@@ -7,7 +7,9 @@ export type DetailRequest =
   | { kind: 'surah'; surah: number }
   /** arabic: wait for the book's Arabic chunk (large) before answering. */
   | { kind: 'hadith'; book: HadithBookId; number: number; arabic?: boolean }
-  | { kind: 'surahs' };
+  | { kind: 'surahs' }
+  /** Verse of the day for a local date (YYYY-MM-DD); the same verse for everyone on that date. */
+  | { kind: 'daily'; date: string };
 
 export interface AyahLine {
   ayah: number;

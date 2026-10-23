@@ -329,6 +329,11 @@ export class SearchEngine {
     const q = this.quran;
     if (!q) return null;
     if (req.kind === 'surahs') return { kind: 'surahs', surahs: q.surahs };
+    if (req.kind === 'daily') {
+      const i = this.dailyIndex(req.date);
+      const s = q.surahs.find((x) => i >= x.start && i < x.start + x.count)!;
+      return this.detail({ kind: 'ayah', surah: s.n, ayah: i - s.start + 1 });
+    }
     if (req.kind === 'hadith') return this.hadithDetail(req.book, req.number);
     const s = q.surahs[req.surah - 1];
     if (!s) return null;
@@ -353,6 +358,28 @@ export class SearchEngine {
       next: req.ayah < s.count ? { surah: s.n, ayah: req.ayah + 1 } : nextSurah ? { surah: nextSurah.n, ayah: 1 } : undefined,
     };
     return detail;
+  }
+
+  private dailyPool?: number[];
+
+  /**
+   * Ayahs that read well on their own in a small card. A length-and-punctuation rule alone picked story
+   * fragments ("As if they had never prospered therein") and verses pointing back ("Indeed in that are
+   * signs"), so the pool keeps openings that stand alone: supplications, direct address, and statements
+   * about Allah. The date picks one with a fixed hash, so it's the same for everyone and needs no server.
+   */
+  private dailyIndex(date: string): number {
+    const q = this.quran!;
+    const opening = /^(Our Lord|My Lord|O you who have believed|O mankind|O humanity|Indeed, Allāh|Allāh is|Allāh -|And Allāh is|And your Lord|Indeed, my Lord|Indeed, your Lord|Say, "He is Allāh|So remember Me|Indeed, with hardship|And whoever fears Allāh|And He is|He is Allāh)/;
+    this.dailyPool ??= q.en.flatMap((raw, i) => {
+      const en = raw.replace(/[\u00B9\u00B2\u00B3\u2070-\u2079]/g, '').trim();
+      const dialogue = /["“”]/.test(en.replace(/^Say, "|"$/g, ''));
+      const ok = en.length >= 30 && en.length <= 220 && opening.test(en) && !dialogue && /[.!?]["')\]]*$/.test(en);
+      return ok ? [i] : [];
+    });
+    let h = 0x811c9dc5; // FNV-1a
+    for (let k = 0; k < date.length; k++) h = Math.imul(h ^ date.charCodeAt(k), 0x01000193) >>> 0;
+    return this.dailyPool[h % this.dailyPool.length]!;
   }
 
   private ayahLine(i: number, ayah: number): AyahLine {

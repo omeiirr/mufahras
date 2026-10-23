@@ -262,7 +262,7 @@ pre-delivery checklist); their generated "design system" targeted marketing page
 **Personal**
 - Bookmarks with tags (IndexedDB)
 - Search history (can be cleared or turned off)
-- Verse / hadith of the day
+- Hadith of the day (verse of the day shipped in milestone 4)
 - Copy (text + citation) and system share
 - **Share as picture card:** Arabic + translation + citation rendered to PNG; light/dark styles; square and story sizes
 - Dark mode (follows the system, with a manual toggle); separate font sizes for Arabic and translation
@@ -302,6 +302,16 @@ quran-search/
    chunk itself, reads cache first (filenames are content-hashed), and deletes chunks no longer in the manifest.
    This doesn't depend on the service worker intercepting the worker, which it doesn't on a first visit.
    The start screen shows what's stored, with a one-tap download of the rest (hadith Arabic, ~5 MB).
+   **Logo** (`public/icons/`, source `scripts/icon-source.svg`): a gold Amiri meem inside a gold 8-point star frame
+   over a faint star tiling, on the accent green. The maskable icon keeps the star inside the 80% safe zone; the
+   favicon drops the tiling. The glyph is centred and sized by its measured ink, not its font box.
+   **Verse of the day** (moved up from milestone 6): a start-screen card, the same verse for everyone on a date,
+   picked by a fixed hash from ~117 short ayahs with self-contained openings (supplications, "O you who have
+   believed…", statements about Allah), so it repeats about three times a year.
+   **Notifications (deferred, 2026-10-23):** the web can't schedule local notifications reliably. The two options
+   are Periodic Background Sync (no server; Chrome/Edge installed apps only; Chrome picks the time) and Web Push
+   (fixed time on every platform, including iPhone and Firefox; needs a small server such as a Cloudflare Worker
+   cron). If it's added, the notification is the daily verse and tapping it opens the verse.
 5. **Enrichment:** topics, similar ayahs, tafsir summary, aliases, transliteration search, source-finder mode.
 6. **Personal:** bookmarks + tags, history, verse/hadith of the day, picture cards, settings, about page.
 

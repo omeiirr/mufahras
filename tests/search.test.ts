@@ -87,3 +87,29 @@ describe.runIf(dataBuilt)('search ranking', () => {
     expect(true).toBe(true);
   });
 });
+
+describe.runIf(dataBuilt)('verse of the day', () => {
+  const engine = loadEngine();
+  const daily = (date: string) => engine.detail({ kind: 'daily', date });
+
+  it('is the same verse for the same date and changes across dates', () => {
+    expect(daily('2026-10-23')).toEqual(daily('2026-10-23'));
+    const refs = new Set(Array.from({ length: 30 }, (_, d) => {
+      const v = daily(`2026-11-${String(d + 1).padStart(2, '0')}`);
+      return v?.kind === 'ayah' ? `${v.surah.n}:${v.ayah}` : '';
+    }));
+    expect(refs.size).toBeGreaterThan(25);
+  });
+
+  it('picks short, complete verses', () => {
+    for (let d = 1; d <= 60; d++) {
+      const v = daily(`2027-01-${String((d % 28) + 1).padStart(2, '0')}-${d}`);
+      expect(v?.kind).toBe('ayah');
+      if (v?.kind !== 'ayah') continue;
+      expect(v.en.length).toBeLessThanOrEqual(230); // 220 plus footnote markers
+      // Continuations are out; "And Allāh is…", "And He is…", "And your Lord…" stand alone and are allowed.
+      expect(v.en).not.toMatch(/^(But|Then|So|As if|Indeed in that)\b/);
+      expect(v.en).not.toMatch(/^And (?!Allāh|He is|your Lord|whoever fears)/);
+    }
+  });
+});

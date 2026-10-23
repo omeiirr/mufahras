@@ -185,7 +185,7 @@ async function init(): Promise<void> {
 async function detail(req: DetailRequest): Promise<Detail | null> {
   if (req.kind === 'hadith') await ensure(req.arabic ? `hadith-${req.book}-ar` : `hadith-${req.book}`);
   else await ensure('quran');
-  if (req.kind === 'ayah') await ensure('translit');
+  if (req.kind === 'ayah' || req.kind === 'daily') await ensure('translit');
   return engine.detail(req);
 }
 

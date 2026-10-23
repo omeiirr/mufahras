@@ -148,7 +148,7 @@
         <p class="note error" role="alert">Couldn't load the data: {status.error}</p>
       {/if}
       {#if !hasQuery}
-        <Empty onpick={(q) => (query = q)} onbrowse={() => navigate({ path: 'surahs' })} {client} ready={status.ready} />
+        <Empty onpick={(q) => (query = q)} onbrowse={() => navigate({ path: 'surahs' })} {client} ready={status.ready} {hrefFor} />
       {:else if !shown}
         <p class="note">Loading the Quran…</p>
       {:else}

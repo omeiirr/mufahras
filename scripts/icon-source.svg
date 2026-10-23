@@ -1,0 +1,8 @@
+<svg data-h="0.5" xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+    <defs><clipPath id="c512"><rect width="512" height="512" rx="112.64"></rect></clipPath></defs>
+    <g clip-path="url(#c512)"><rect width="512" height="512" fill="#1f6b57"></rect><defs><pattern id="p512" width="128" height="128" patternUnits="userSpaceOnUse" x="-64" y="-64">
+         <polygon points="64.00,0.00 82.75,18.75 109.25,18.75 109.25,45.25 128.00,64.00 109.25,82.75 109.25,109.25 82.75,109.25 64.00,128.00 45.25,109.25 18.75,109.25 18.75,82.75 0.00,64.00 18.75,45.25 18.75,18.75 45.25,18.75" fill="none" stroke="#e6c77e" stroke-width="2" opacity="0.22"></polygon>
+         <rect x="48.64" y="-15.36" width="30.72" height="30.72" transform="rotate(45 64 0)" fill="none" stroke="#e6c77e" stroke-width="2" opacity="0.22"></rect>
+       </pattern></defs><rect width="512" height="512" fill="url(#p512)"></rect><polygon points="256.00,25.60 323.48,93.08 418.92,93.08 418.92,188.52 486.40,256.00 418.92,323.48 418.92,418.92 323.48,418.92 256.00,486.40 188.52,418.92 93.08,418.92 93.08,323.48 25.60,256.00 93.08,188.52 93.08,93.08 188.52,93.08" fill="#1f6b57" stroke="#e6c77e" stroke-width="8.533333333333333"></polygon>
+       <polygon points="256.00,48.64 316.73,109.37 402.63,109.37 402.63,195.27 463.36,256.00 402.63,316.73 402.63,402.63 316.73,402.63 256.00,463.36 195.27,402.63 109.37,402.63 109.37,316.73 48.64,256.00 109.37,195.27 109.37,109.37 195.27,109.37" fill="none" stroke="#e6c77e" stroke-width="2.56" opacity="0.7"></polygon>
+    <text x="0" y="0" text-anchor="start" font-family="Amiri" font-size="200" fill="#e6c77e" transform="translate(189.44 230.4) scale(1.4628571428571429)">م</text></g></svg>
