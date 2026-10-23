@@ -1,0 +1,123 @@
+/* Design tokens. Components use only these; raw colours live here and nowhere else.
+   Themes are chosen by data-theme on <html>, set before first paint by the inline script in
+   index.html (which resolves "auto" from the system setting). Without JS, Paper applies.
+   Contrast is checked by tests/contrast.test.ts. The dark themes aim for ~10:1 body text
+   rather than the maximum: near-white on near-black glares. */
+:root {
+  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --font-quran: 'Scheherazade New', 'Noto Naskh Arabic Variable', serif;
+  --font-arabic: 'Noto Naskh Arabic Variable', 'Scheherazade New', serif;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --quran-size: 1.75rem;
+  --arabic-size: 1.375rem;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --tap: 44px;
+  --measure: 68ch;
+
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur: 180ms;
+}
+
+/* Paper: warm off-white and ink. */
+:root,
+:root[data-theme='paper'] {
+  color-scheme: light;
+  --bg: #faf8f3;
+  --surface: #ffffff;
+  --surface-2: #f2efe7;
+  --ink: #1f1d1a;
+  --ink-2: #5c5850;
+  --line: #e4dfd3;
+  --accent: #1f6b57;
+  --accent-ink: #ffffff;
+  --accent-soft: #e3efe9;
+  --mark: #f4e3a6;
+  --focus: #1f6b57;
+  --sahih: #2a6e2f;
+  --hasan: #7d5a00;
+  --daif: #a8271f;
+  --other: #5c5850;
+  --shadow: 0 1px 2px rgb(31 29 26 / 0.06), 0 4px 16px rgb(31 29 26 / 0.06);
+}
+
+/* Sepia: tan paper, brown ink. Lower glare than white for long reading. */
+:root[data-theme='sepia'] {
+  color-scheme: light;
+  --bg: #f1e7d0;
+  --surface: #f8f0dd;
+  --surface-2: #e8dbbd;
+  --ink: #3b2f20;
+  --ink-2: #66543c;
+  --line: #d9c9a5;
+  --accent: #2c6449;
+  --accent-ink: #fbf6ea;
+  --accent-soft: #dfe2c8;
+  --mark: #ead08a;
+  --focus: #2c6449;
+  --sahih: #2d6331;
+  --hasan: #6e4f00;
+  --daif: #9b2a1f;
+  --other: #66543c;
+  --shadow: 0 1px 2px rgb(59 47 32 / 0.08), 0 4px 16px rgb(59 47 32 / 0.08);
+}
+
+/* Dusk: warm charcoal, lifted off black; softened text. */
+:root[data-theme='dusk'] {
+  color-scheme: dark;
+  --bg: #262421;
+  --surface: #2e2c28;
+  --surface-2: #383530;
+  --ink: #dcd5c7;
+  --ink-2: #a9a194;
+  --line: #45423b;
+  --accent: #8fc4b1;
+  --accent-ink: #1d2a25;
+  --accent-soft: #33403a;
+  --mark: #574b2a;
+  --focus: #8fc4b1;
+  --sahih: #97c99f;
+  --hasan: #d9bd78;
+  --daif: #e9a39a;
+  --other: #a9a194;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.2), 0 4px 16px rgb(0 0 0 / 0.18);
+}
+
+/* Night: cool slate blue-grey; softened text. */
+:root[data-theme='night'] {
+  color-scheme: dark;
+  --bg: #1f242c;
+  --surface: #262c35;
+  --surface-2: #2f3640;
+  --ink: #d3d9e1;
+  --ink-2: #9ba6b4;
+  --line: #3a424e;
+  --accent: #8cc5c0;
+  --accent-ink: #172225;
+  --accent-soft: #2c3d42;
+  --mark: #4c4732;
+  --focus: #8cc5c0;
+  --sahih: #94cba0;
+  --hasan: #d8c07c;
+  --daif: #eba59e;
+  --other: #9ba6b4;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.22), 0 4px 16px rgb(0 0 0 / 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur: 0ms;
+  }
+}

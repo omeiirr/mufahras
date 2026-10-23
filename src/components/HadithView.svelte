@@ -1,0 +1,130 @@
+<script lang="ts">
+  import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
+  import type { HadithDetail } from '../lib/data/views';
+  import Actions from './Actions.svelte';
+  import GradeBadge from './GradeBadge.svelte';
+
+  let { d, hrefFor }: { d: HadithDetail; hrefFor: (path: string) => string } = $props();
+
+  const ref = $derived(`${d.title} ${d.number}`);
+  const copyText = $derived(`${d.en}\n\n— ${ref}`);
+</script>
+
+<article class="hadith">
+  <header>
+    <h1>{d.short} {d.number}</h1>
+    <p class="where">{d.title} · Book {d.section.n}: {d.section.name}</p>
+    <div class="summary">
+      {#if d.sahihCollection}
+        <GradeBadge grade="sahih" label="Sahih (collection)" />
+      {:else if d.grades.length}
+        <GradeBadge grade={d.summary} />
+      {:else}
+        <GradeBadge grade="other" label="No grading" />
+      {/if}
+    </div>
+  </header>
+
+  <p class="en">{d.en}</p>
+  {#if d.ar}<p class="arabic" lang="ar" dir="rtl">{d.ar}</p>{/if}
+
+  {#if d.grades.length}
+    <section aria-labelledby="grades-h">
+      <h2 id="grades-h">Gradings</h2>
+      <table>
+        <tbody>
+          {#each d.grades as g (g.scholar)}
+            <tr>
+              <th scope="row">{g.scholar}</th>
+              <td><GradeBadge grade={g.cls} label={g.grade} /></td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </section>
+  {:else if d.sahihCollection}
+    <p class="note">Every hadith in {d.title} is considered sahih; the collection has no per-hadith gradings.</p>
+  {/if}
+
+  <Actions text={copyText} title={ref} />
+
+  <nav class="pager" aria-label="Neighbouring hadith">
+    {#if d.prev !== undefined}<a href={hrefFor(`${d.book}/${d.prev}`)}><ChevronLeft size={18} aria-hidden="true" /> {d.short} {d.prev}</a>{:else}<span></span>{/if}
+    {#if d.next !== undefined}<a href={hrefFor(`${d.book}/${d.next}`)}>{d.short} {d.next} <ChevronRight size={18} aria-hidden="true" /></a>{/if}
+  </nav>
+</article>
+
+<style>
+  .hadith {
+    display: grid;
+    gap: var(--space-4);
+  }
+  h1 {
+    margin: 0;
+    font-size: var(--text-xl);
+    color: var(--accent);
+  }
+  .where {
+    margin: 0;
+    color: var(--ink-2);
+  }
+  .summary {
+    margin-top: var(--space-2);
+  }
+  .en {
+    margin: 0;
+    font-size: var(--text-lg);
+    line-height: 1.7;
+    white-space: pre-line;
+  }
+  .arabic {
+    margin: 0;
+    color: var(--ink);
+  }
+  h2 {
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+    margin: 0 0 var(--space-2);
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  th,
+  td {
+    text-align: left;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--line);
+    font-size: var(--text-sm);
+  }
+  th {
+    font-weight: 500;
+    padding-right: var(--space-3);
+  }
+  td {
+    text-align: right;
+  }
+  .note {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+  .pager {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-3);
+  }
+  .pager a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: var(--tap);
+    padding: 0 var(--space-2);
+    text-decoration: none;
+    font-weight: 500;
+  }
+</style>

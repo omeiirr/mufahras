@@ -1,0 +1,87 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: var(--text-md) / 1.55 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden; /* panes scroll, not the page */
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+mark {
+  background: var(--mark);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 1px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* At Arabic line heights a background block turns into a slab; colour the words instead. */
+.quran mark,
+.arabic mark {
+  background: none;
+  color: var(--accent);
+  padding: 0;
+}
+
+/* Arabic text. Quran text uses the Quran font; hadith and other Arabic the Naskh font. */
+.quran {
+  font-family: var(--font-quran);
+  font-size: var(--quran-size);
+  line-height: 2.1;
+  direction: rtl;
+  text-align: right;
+  font-feature-settings: 'calt', 'liga';
+}
+
+.arabic {
+  font-family: var(--font-arabic);
+  font-size: var(--arabic-size);
+  line-height: 2;
+  direction: rtl;
+  text-align: right;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

@@ -211,9 +211,22 @@ pre-delivery checklist); their generated "design system" targeted marketing page
 - Results: 30 at a time, more appended on scroll (no virtualization needed at this scale).
 
 **Look**
-- Calm, paper-like: warm off-white and ink, one deep-green accent, soft gold highlights; warm charcoal dark mode. No ornament.
-- Latin: system font stack. Quran Arabic: Amiri Quran vs KFGQPC Uthmanic Hafs (QUL), chosen by screenshot comparison.
-  Hadith Arabic: Noto Naskh Arabic. Fonts self-hosted (offline), Arabic loaded only when shown.
+- Calm, paper-like, no ornament. **Four themes** (`src/styles/tokens.css`), picked from the palette button in the filter row:
+  - **Paper**: warm off-white and ink
+  - **Sepia**: tan and brown
+  - **Dusk**: warm charcoal
+  - **Night**: cool slate
+  **Auto** (the default) follows the system setting, Paper by day and Night at night. The choice is saved and applied
+  before first paint. Dark themes keep body text near 10–11:1 rather than the maximum; the first near-black dark
+  theme (15.6:1) glared. `tests/contrast.test.ts` checks every pair in every theme.
+- Latin: system font stack. **Quran Arabic: Scheherazade New** (SIL, OFL, 79 KB), chosen over Amiri Quran and Noto
+  Naskh by screenshot comparison for legibility at phone sizes. Hadith Arabic: Noto Naskh Arabic.
+  Fonts self-hosted (offline), Arabic loaded only when shown.
+- Our Uthmani text uses Tanzil's standard-Unicode conventions (U+0652 sukun, tatweel before dagger alif), so any Unicode
+  Quran font renders it; QPC fonts would need QUL's QPC script instead. The IndoPak text uses QPC-style marks
+  (U+06E1 sukun) and **needs a matching IndoPak font** when that script option is added (milestone 6).
+- Display fixes: pause marks (ۖ ۗ ۚ …) are joined to the preceding word, and the last word stays with the ayah marker,
+  so neither starts a line on its own.
 - Lucide SVG icons, no emoji. Transitions 150–200 ms, off under reduced motion.
 - 44px touch targets, visible focus, AA contrast in both themes, `lang="ar" dir="rtl"` on Arabic, grades labelled
   in text (not colour alone), result count announced to screen readers.
@@ -281,7 +294,8 @@ quran-search/
 
 1. ✅ **Data pipeline** (2026-10-23): fetch + normalize + validate everything; sizes measured; licensing reviewed (confirmation from QUL still pending).
 2. ✅ **Search core** (2026-10-23): worker, query parser, fuzzy matching, reference jumps, ranking tests; plus a bare search page to try it.
-3. **UI shell:** search page, virtualized results, verse and hadith detail, surah reader, hash routing, dark mode.
+3. ✅ **UI shell** (2026-10-23): search page, results paged on scroll, verse / surah / surah index / hadith screens,
+   hash routing, side-by-side desktop layout, four themes with a switcher, copy/share.
 4. **PWA:** offline caching, installability, share target, per-book downloads, deploy to Pages.
 5. **Enrichment:** topics, similar ayahs, tafsir summary, aliases, transliteration search, source-finder mode.
 6. **Personal:** bookmarks + tags, history, verse/hadith of the day, picture cards, settings, about page.

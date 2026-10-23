@@ -12,9 +12,11 @@
 import uFuzzy from '@leeoniya/ufuzzy';
 import { BOOKS, formatHadithNumber } from '../data/books';
 import type { HadithArabicChunk, HadithBookId, HadithChunk, QuranChunk, TranslitChunk } from '../data/types';
-import { gradeRank, summarizeGrades, type GradeClass } from '../hadith/grades';
+import type { AyahDetail, AyahLine, Detail, DetailRequest, HadithDetail } from '../data/views';
+import { classifyGrade, gradeRank, summarizeGrades, type GradeClass } from '../hadith/grades';
 import { foldTranslit, hasArabic, normalizeArabic, normalizeLatin, stripTanzilMarks } from '../text/normalize';
 import { mapRanges, normalizeArabicMapped, normalizeLatinMapped, type Mapped } from '../text/normalize-map';
+import { attachPauseMarks } from '../text/quran-display';
 import { ReferenceParser } from './reference';
 import type { DocRef, Field, Hit, PresentedHit, RefTarget, SearchOptions, SearchResponse, Tier } from './types';
 import { Vocabulary, WordIndex } from './word-index';
@@ -133,12 +135,13 @@ export class SearchEngine {
   search(query: string, opts: SearchOptions = {}): Omit<SearchResponse, 'partial'> {
     const t0 = performance.now();
     const limit = opts.limit ?? 30;
+    const offset = opts.offset ?? 0;
     const pinned = this.pinned(query);
 
     const arabic = hasArabic(query);
     const nq = arabic ? normalizeArabic(query) : normalizeLatin(query);
     const terms = [...new Set(nq.split(' ').filter(Boolean))];
-    if (!terms.length) return { query, pinned, hits: [], total: 0, ms: performance.now() - t0 };
+    if (!terms.length) return { query, pinned: offset ? [] : pinned, hits: [], total: 0, ms: performance.now() - t0 };
 
     const segments = this.segments.filter((s) => (arabic ? s.field === 'ar' : s.field !== 'ar') && this.corpusAllowed(s.corpus, opts));
     let found = this.run(segments, terms, false, arabic, opts);
@@ -163,8 +166,8 @@ export class SearchEngine {
       ranked.sort((a, b) => b.score - a.score);
     }
 
-    const hits = ranked.slice(0, limit).map((c) => this.present({ ref: this.refOf(c), score: c.score, tier: c.tier, field: c.seg.field }, terms));
-    return { query, pinned, hits, total: ranked.length, ms: performance.now() - t0 };
+    const hits = ranked.slice(offset, offset + limit).map((c) => this.present({ ref: this.refOf(c), score: c.score, tier: c.tier, field: c.seg.field }, terms));
+    return { query, pinned: offset ? [] : pinned, hits, total: ranked.length, ms: performance.now() - t0 };
   }
 
   private corpusAllowed(corpus: Segment['corpus'], opts: SearchOptions): boolean {
@@ -297,6 +300,7 @@ export class SearchEngine {
     if (target.kind === 'surah') {
       const s = this.quran!.surahs[target.surah - 1]!;
       hit.label = `Surah ${s.n} · ${s.nameSimple}`;
+      hit.path = `surah/${s.n}`;
       hit.sublabel = `${s.count} ayahs · ${s.place === 'makkah' ? 'Meccan' : 'Medinan'}`;
     } else if (target.kind === 'ayah' && target.ayahTo) {
       hit.label = `${target.surah}:${target.ayah}–${target.ayahTo}`;
@@ -314,6 +318,71 @@ export class SearchEngine {
     return { kind: 'ayah', i: s.start + (target.kind === 'ayah' ? target.ayah - 1 : 0) };
   }
 
+  // ---------------------------------------------------------------- detail screens
+
+  hasQuran(): boolean {
+    return !!this.quran;
+  }
+
+  /** Data for a detail screen, or null if the reference doesn't exist (or its data isn't loaded). */
+  detail(req: DetailRequest): Detail | null {
+    const q = this.quran;
+    if (!q) return null;
+    if (req.kind === 'surahs') return { kind: 'surahs', surahs: q.surahs };
+    if (req.kind === 'hadith') return this.hadithDetail(req.book, req.number);
+    const s = q.surahs[req.surah - 1];
+    if (!s) return null;
+    if (req.kind === 'surah')
+      return {
+        kind: 'surah',
+        surah: s,
+        ayahs: Array.from({ length: s.count }, (_, k) => this.ayahLine(s.start + k, k + 1)),
+        prev: q.surahs[s.n - 2],
+        next: q.surahs[s.n],
+      };
+    if (req.ayah < 1 || req.ayah > s.count) return null;
+    const i = s.start + req.ayah - 1;
+    const prevSurah = q.surahs[s.n - 2];
+    const nextSurah = q.surahs[s.n];
+    const detail: AyahDetail = {
+      kind: 'ayah',
+      surah: s,
+      ...this.ayahLine(i, req.ayah),
+      translit: this.translit?.wbw[i] ?? '',
+      prev: req.ayah > 1 ? { surah: s.n, ayah: req.ayah - 1 } : prevSurah ? { surah: prevSurah.n, ayah: prevSurah.count } : undefined,
+      next: req.ayah < s.count ? { surah: s.n, ayah: req.ayah + 1 } : nextSurah ? { surah: nextSurah.n, ayah: 1 } : undefined,
+    };
+    return detail;
+  }
+
+  private ayahLine(i: number, ayah: number): AyahLine {
+    const q = this.quran!;
+    return { ayah, ar: q.ar[i]!, en: q.en[i]!, footnotes: q.footnotes[i] ?? [] };
+  }
+
+  private hadithDetail(book: HadithBookId, number: number): HadithDetail | null {
+    const b = this.books.get(book);
+    const row = b?.byNumber.get(number);
+    if (!b || row === undefined) return null;
+    const [, section, en, grades] = b.chunk.hadiths[row]!;
+    const info = BOOKS[book];
+    return {
+      kind: 'hadith',
+      book,
+      title: info.title,
+      short: info.short,
+      number,
+      section: { n: section, name: b.chunk.sections[section] ?? '' },
+      en,
+      ar: b.arabic?.[row] ?? '',
+      grades: grades.map(([s, grade]) => ({ scholar: b.chunk.scholars[s] ?? '', grade, cls: classifyGrade(grade) })),
+      summary: b.grade[row]!,
+      sahihCollection: info.sahihCollection,
+      prev: b.chunk.hadiths[row - 1]?.[0],
+      next: b.chunk.hadiths[row + 1]?.[0],
+    };
+  }
+
   // ---------------------------------------------------------------- presentation
 
   present(hit: Hit, terms: string[]): PresentedHit {
@@ -323,11 +392,13 @@ export class SearchEngine {
     let sublabel: string;
     let secondary: string | undefined;
     let grade: GradeClass | undefined;
+    let path: string;
 
     if (ref.kind === 'ayah') {
       const q = this.quran!;
       const s = q.surahs.find((x) => ref.i >= x.start && ref.i < x.start + x.count)!;
       label = `${s.n}:${ref.i - s.start + 1}`;
+      path = label;
       sublabel = s.nameSimple;
       text = field === 'ar' ? q.ar[ref.i]! : field === 'translit' ? this.translit!.wbw[ref.i]! : q.en[ref.i]!;
       if (field !== 'en') secondary = q.en[ref.i];
@@ -335,6 +406,7 @@ export class SearchEngine {
       const b = this.books.get(ref.book)!;
       const [number, section, en] = b.chunk.hadiths[ref.row]!;
       label = `${BOOKS[ref.book].short} ${formatHadithNumber(number)}`;
+      path = `${ref.book}/${number}`;
       sublabel = b.chunk.sections[section] ?? '';
       text = field === 'ar' ? (b.arabic?.[ref.row] ?? '') : en;
       grade = b.grade[ref.row];
@@ -343,12 +415,13 @@ export class SearchEngine {
     let ranges = terms.length ? this.highlight(text, terms, field, tier) : [];
     if (ref.kind === 'ayah' && field === 'translit' && terms.length && ranges.length < terms.length) {
       // The match may have been in the other scheme; show whichever covers more terms.
-      const simple = this.translit!.simple[ref.i]!;
+      const simple = stripTanzilMarks(this.translit!.simple[ref.i]!);
       const alt = this.highlight(simple, terms, field, tier);
       if (alt.length > ranges.length) [text, ranges] = [simple, alt];
     }
     ({ text, ranges } = snippet(text, ranges));
-    return { ref, key: refKey(ref), label, sublabel, field, tier, text, secondary, ranges, grade };
+    if (ref.kind === 'ayah' && field === 'ar') text = attachPauseMarks(text);
+    return { ref, key: refKey(ref), path, label, sublabel, field, tier, text, secondary, ranges, grade };
   }
 
   private highlight(text: string, terms: string[], field: Field, tier: Tier): [number, number][] {
@@ -357,10 +430,11 @@ export class SearchEngine {
       return mapRanges(m, text, termRanges(m, terms, tier));
     }
     // Arabic: whichever dagger-alif reading matches more of the query.
+    // Arabic highlights cover whole words: colouring part of a joined word reads as a rendering glitch.
     const plain = normalizeArabicMapped(text);
     const alif = normalizeArabicMapped(text, true);
-    const a = termRanges(plain, terms, tier);
-    const b = termRanges(alif, terms.map((t) => normalizeArabic(t, true)), tier);
+    const a = wholeWords(plain.text, termRanges(plain, terms, tier));
+    const b = wholeWords(alif.text, termRanges(alif, terms.map((t) => normalizeArabic(t, true)), tier));
     return b.length > a.length ? mapRanges(alif, text, b) : mapRanges(plain, text, a);
   }
 }
@@ -388,6 +462,15 @@ function termRanges(m: Mapped, terms: string[], tier: Tier): [number, number][] 
   }
   ranges.sort((x, y) => x[0] - y[0]);
   return ranges;
+}
+
+/** Widens ranges to the whole space-separated words they touch. */
+function wholeWords(text: string, ranges: [number, number][]): [number, number][] {
+  return ranges.map(([s, e]) => {
+    while (s > 0 && text[s - 1] !== ' ') s--;
+    while (e < text.length && text[e] !== ' ') e++;
+    return [s, e];
+  });
 }
 
 export function refKey(ref: DocRef): string {

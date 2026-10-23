@@ -16,6 +16,8 @@ export interface SearchOptions {
   /** Hide hadith graded below this bucket. */
   minGrade?: GradeClass;
   limit?: number;
+  /** Skip this many hits (for loading more on scroll). */
+  offset?: number;
 }
 
 /** How well the weakest query term matched: 3 exact, 2 one typo, 1 fzf-style abbreviation. */
@@ -34,6 +36,8 @@ export interface Hit {
 export interface PresentedHit {
   ref: DocRef;
   key: string;
+  /** Route path of the detail screen ("2:255", "bukhari/1", "surah/36"). */
+  path: string;
   label: string;
   sublabel: string;
   field: Field;

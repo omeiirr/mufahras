@@ -2,7 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="theme-color" content="#faf8f3" />
+    <script>
+      // Apply the saved theme before first paint (see src/lib/theme.svelte.ts).
+      (function () {
+        var bg = { paper: '#faf8f3', sepia: '#f1e7d0', dusk: '#262421', night: '#1f242c' };
+        var t = 'auto';
+        try {
+          t = localStorage.getItem('theme') || 'auto';
+        } catch (e) {}
+        if (!bg[t]) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'paper';
+        document.documentElement.dataset.theme = t;
+        document.querySelector('meta[name="theme-color"]').content = bg[t];
+      })();
+    </script>
+    <meta name="description" content="Fast fuzzy search of the Quran and the six major hadith collections. Works offline." />
     <title>Quran & Hadith Search</title>
   </head>
   <body>
