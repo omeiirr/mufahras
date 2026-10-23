@@ -369,7 +369,19 @@ from each verse's "Similar verses" section. Details and lessons: `docs/TECHNICAL
 - Word-by-word translation and morphology / root explorer (QUL)
 - Full tafsirs (Ibn Kathir, Maarif-ul-Quran) as optional downloads
 - More collections: Muwatta Malik, Nawawi's 40, 40 Hadith Qudsi, Riyad as-Salihin
-- Hifz / memorization mode: hide text, test recall, track progress; quiz on mutashabihat (similar phrases that are easy to mix up)
+- **Memorisation (hifz) mode** (designed 2026-10-24, shelved; not planned for the near future):
+  - *Practice a passage* with less help at each step: full ayah → first letters only → hidden words revealed
+    word by word → recite from memory; then rate yourself (got it / hesitated / missed). Word hiding reuses
+    `wordSpans`, which already splits every ayah exactly into QUL's words.
+  - *Daily revision* scheduled with FSRS (`ts-fsrs`, MIT), presented the traditional way: sabaq (new),
+    sabqi (recent), manzil (older, in rotation); a "Revision today" card on the start screen.
+  - *Mutashabihat drills* from QUL's 814 repeated phrases: a warning on ayahs whose phrase continues differently
+    elsewhere, and a quiz choosing the right continuation among the real alternatives.
+  - *Listening* (later): recitation per ayah, repeat and loop, streamed and cached per passage.
+  - Progress in IndexedDB alongside bookmarks, included in export/import. Voice checking left out (unreliable
+    in the browser; Tarteel does it well).
+  - Open questions: revise by ayah or by mushaf page (needs QUL's page layouts); audio early or later;
+    individual use or with a teacher (sharing progress would mean leaving the device).
 - Bookmark export/import and optional sync (e.g. via a GitHub gist)
 - Browser address-bar search (OpenSearch) and a browser extension for right-click → "Find source"
 - Native wrappers (Tauri for desktop with a global hotkey, Capacitor for app stores)
