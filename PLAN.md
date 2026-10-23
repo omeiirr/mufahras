@@ -329,6 +329,9 @@ Each milestone ends with something usable on a phone.
 
 ## Possible future features
 
+- **"Report a mistake" link** on each verse and hadith screen: opens the repo's "Mistake in a text" issue form
+  (`.github/ISSUE_TEMPLATE/1-text-mistake.yml`) with the reference, the text shown and a link back already filled in
+  (via the `template=` and field query parameters). Nothing is sent automatically; submitting needs a GitHub account.
 - **Search by meaning** ("dealing with anxiety") with a small on-device embedding model (optional ~20–30 MB download)
 - Ayah audio recitation (streamed), with a choice of reciter and verse-by-verse highlighting
 - More translations and side-by-side view (Urdu, Bengali, Indonesian, … are already in the sources)
