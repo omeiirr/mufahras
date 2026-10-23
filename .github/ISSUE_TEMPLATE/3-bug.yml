@@ -1,0 +1,38 @@
+name: Something isn't working
+description: Layout problems, offline not working, install issues, errors.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you saw instead. Screenshots help a lot.
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device, browser and version
+      placeholder: "iPhone 15, Safari, iOS 19"
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: How you use the app
+      options:
+        - Installed (home screen or app icon)
+        - In the browser
+    validations:
+      required: true
+  - type: dropdown
+    id: theme
+    attributes:
+      label: Theme
+      options:
+        - Auto
+        - Paper
+        - Sepia
+        - Dusk
+        - Night

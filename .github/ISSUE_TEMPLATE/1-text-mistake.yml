@@ -1,0 +1,53 @@
+name: Mistake in a text
+description: A typo, a wrong or missing word, a wrong reference or grading in a verse or hadith.
+title: "[Text] "
+labels: ["text"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Jazakallahu khayran for taking the time. Texts come from the sources listed in NOTICE; if the mistake is in
+        the source itself, we'll report it upstream too.
+  - type: input
+    id: reference
+    attributes:
+      label: Reference
+      description: The verse or hadith, as the app shows it.
+      placeholder: "2:255, or Bukhari 1"
+    validations:
+      required: true
+  - type: dropdown
+    id: part
+    attributes:
+      label: Which part is wrong?
+      options:
+        - Quran Arabic
+        - Translation
+        - Footnote
+        - Transliteration
+        - Hadith English
+        - Hadith Arabic
+        - Grading
+        - Book or chapter name
+        - The reference or number itself
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What's wrong
+      description: Quote the text as it appears, and say what's wrong with it.
+    validations:
+      required: true
+  - type: textarea
+    id: correct
+    attributes:
+      label: What it should be, and your source
+      description: The correct text if you know it, and where it comes from (a printed edition, sunnah.com, quran.com…).
+  - type: input
+    id: link
+    attributes:
+      label: Link
+      description: Optional. Copy the address from the app.
+      placeholder: "https://omeiirr.github.io/mufahras/#/2:255"

@@ -1,0 +1,43 @@
+name: Search didn't find it
+description: You searched for something and the verse or hadith you meant didn't come up, or came up too low.
+title: "[Search] "
+labels: ["search"]
+body:
+  - type: input
+    id: query
+    attributes:
+      label: What you typed
+      placeholder: "actions are judged by intentions"
+    validations:
+      required: true
+  - type: input
+    id: expected
+    attributes:
+      label: What you expected to find
+      description: The verse or hadith you were looking for, if you know it.
+      placeholder: "Bukhari 1"
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: What happened
+      options:
+        - No results
+        - It was there, but too far down
+        - Something unrelated came first
+        - The page was slow or froze
+    validations:
+      required: true
+  - type: checkboxes
+    id: filters
+    attributes:
+      label: Filters that were on
+      options:
+        - label: Quran only
+        - label: Hadith only
+        - label: Sahih only
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      description: Optional, but helps with slowness.
+      placeholder: "Pixel 7, Chrome, installed app"
