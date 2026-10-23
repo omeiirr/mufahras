@@ -3,6 +3,7 @@
 import { BOOKS } from '../data/books';
 import type { HadithBookId, Surah } from '../data/types';
 import { hasArabic, normalizeArabic, normalizeLatin } from '../text/normalize';
+import { ALIASES } from './aliases';
 import type { RefTarget } from './types';
 
 const ARTICLES = new Set(['al', 'an', 'at', 'ash', 'as', 'ad', 'adh', 'ar', 'az', 'ath', 'aal', 'ali']);
@@ -26,6 +27,7 @@ export class ReferenceParser {
   private names: [number, string][] = [];
   private arabicNames = new Map<string, number>();
   private books = new Map<string, HadithBookId>();
+  private aliases = new Map<string, RefTarget>();
 
   constructor(private surahs: Surah[]) {
     for (const s of surahs) {
@@ -38,6 +40,7 @@ export class ReferenceParser {
       this.arabicNames.set(normalizeArabic(s.nameAr).replace(/^ال/, ''), s.n);
     }
     for (const b of Object.values(BOOKS)) for (const a of b.aliases) this.books.set(a, b.id);
+    for (const a of ALIASES) for (const s of a.spellings) this.aliases.set(aliasKey(s), { ...a.target, name: a.name });
   }
 
   parse(raw: string): RefTarget | null {
@@ -46,6 +49,9 @@ export class ReferenceParser {
       .toLowerCase()
       .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
     if (!q) return null;
+
+    const alias = this.aliases.get(aliasKey(q));
+    if (alias) return alias;
 
     let m = /^(\d{1,3})\s*[:.\s]\s*(\d{1,3})(?:\s*-\s*(\d{1,3}))?$/.exec(q);
     if (m) return this.ayah(Number(m[1]), Number(m[2]), m[3] ? Number(m[3]) : undefined);
@@ -109,6 +115,11 @@ export class ReferenceParser {
     }
     return best;
   }
+}
+
+/** Alias lookup key: Arabic normalized, Latin compacted and folded like surah names; spaces ignored. */
+function aliasKey(s: string): string {
+  return hasArabic(s) ? normalizeArabic(s).replace(/ /g, '') : fold(compact(s.replace(/^\s*(?:surah|surat|sura)\s+/i, '')));
 }
 
 /** Damerau-Levenshtein (optimal string alignment) distance. */

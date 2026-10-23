@@ -1,4 +1,6 @@
 <script lang="ts">
+  import BookMarked from '@lucide/svelte/icons/book-marked';
+  import Tag from '@lucide/svelte/icons/tag';
   import type { PresentedHit, SearchResponse } from '../lib/search/types';
   import GradeBadge from './GradeBadge.svelte';
   import Highlighted from './Highlighted.svelte';
@@ -21,6 +23,8 @@
 
   const items = $derived([...response.pinned.map((h) => ({ hit: h, pinned: true })), ...response.hits.map((h) => ({ hit: h, pinned: false }))]);
   const more = $derived(response.hits.length < response.total);
+  // Source-finder matches come after all strict matches; a divider introduces them.
+  const firstNear = $derived(response.hits.findIndex((h) => h.overlap));
   const tierNote: Record<number, string> = { 2: 'close spelling', 1: 'abbreviation' };
 
   let sentinel = $state<HTMLElement>();
@@ -46,6 +50,20 @@
   {/if}
 </p>
 
+{#if response.chips.length}
+  <ul class="chips" aria-label="Browse">
+    {#each response.chips as chip (chip.path)}
+      <li>
+        <a href={hrefFor(chip.path)} class="chip" title={chip.label}>
+          {#if chip.kind === 'topic'}<Tag size={16} aria-hidden="true" />{:else}<BookMarked size={16} aria-hidden="true" />{/if}
+          <span class="label">{chip.label}</span>
+          <span class="sub">{chip.sub}</span>
+        </a>
+      </li>
+    {/each}
+  </ul>
+{/if}
+
 {#if !response.total && !response.pinned.length && !response.partial}
   <div class="none">
     <p>Nothing matched <strong dir="auto">“{response.query}”</strong>.</p>
@@ -64,6 +82,12 @@
 
 <ol class="list">
   {#each items as { hit, pinned } (`${pinned ? 'p' : 'h'}${hit.key}`)}
+    {#if !pinned && hit === response.hits[firstNear]}
+      <li class="divider" aria-hidden="true">
+        <span>Close matches</span>
+        <span class="why">most of your words, maybe worded differently</span>
+      </li>
+    {/if}
     <li id={pinned ? undefined : `hit-${hit.key}`}>
       <a
         href={hrefFor(hit.path)}
@@ -82,7 +106,8 @@
           <strong>{hit.label}</strong>
           <span class="sub">{hit.sublabel}</span>
           {#if hit.grade && hit.ref.kind === 'hadith'}<GradeBadge grade={hit.grade} />{/if}
-          {#if tierNote[hit.tier]}<span class="tier">{tierNote[hit.tier]}</span>{/if}
+          {#if hit.overlap}<span class="tier">{hit.overlap[0]} of {hit.overlap[1]} words</span>
+          {:else if tierNote[hit.tier]}<span class="tier">{tierNote[hit.tier]}</span>{/if}
         </span>
         {#if hit.field === 'ar'}
           <span class={hit.ref.kind === 'ayah' ? 'quran text' : 'arabic text'} lang="ar" dir="rtl"><Highlighted text={hit.text} ranges={hit.ranges} /></span>
@@ -184,6 +209,61 @@
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+  .chips {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-2) var(--space-4) 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    max-width: 100%;
+    min-height: var(--tap);
+    padding: 0 var(--space-3);
+    border-radius: 99px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+    font-size: var(--text-sm);
+  }
+  .chip:hover {
+    border-color: var(--accent);
+  }
+  .chip :global(svg) {
+    color: var(--accent);
+    flex: none;
+  }
+  .chip .label {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 22ch;
+  }
+  .chip .sub {
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .divider {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+    margin: var(--space-3) var(--space-3) 0;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--line);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .divider .why {
+    font-weight: 400;
   }
   .none {
     padding: 0 var(--space-4) var(--space-4);

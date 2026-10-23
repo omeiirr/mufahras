@@ -11,12 +11,12 @@
 // candidates, minus a penalty for long texts.
 import uFuzzy from '@leeoniya/ufuzzy';
 import { BOOKS, formatHadithNumber } from '../data/books';
-import type { HadithArabicChunk, HadithBookId, HadithChunk, QuranChunk, TranslitChunk } from '../data/types';
-import type { AyahDetail, AyahLine, Detail, DetailRequest, HadithDetail } from '../data/views';
+import type { HadithArabicChunk, HadithBookId, HadithChunk, MutashabihatChunk, QuranChunk, SimilarChunk, TafsirChunk, Theme, Topic, TranslitChunk } from '../data/types';
+import type { AyahDetail, AyahLine, Chip, Detail, DetailRequest, HadithDetail, SectionDetail } from '../data/views';
 import { classifyGrade, gradeRank, summarizeGrades, type GradeClass } from '../hadith/grades';
 import { foldTranslit, hasArabic, normalizeArabic, normalizeLatin, stripTanzilMarks } from '../text/normalize';
 import { mapRanges, normalizeArabicMapped, normalizeLatinMapped, type Mapped } from '../text/normalize-map';
-import { attachPauseMarks } from '../text/quran-display';
+import { Enrichment, nameMatch } from './enrich';
 import { ReferenceParser } from './reference';
 import type { DocRef, Field, Hit, PresentedHit, RefTarget, SearchOptions, SearchResponse, Tier } from './types';
 import { Vocabulary, WordIndex } from './word-index';
@@ -29,6 +29,15 @@ const FUZZY_BELOW = 20;
 const MIN_TYPO_LEN = 4;
 const MIN_ABBREV_LEN = 3;
 const PHRASE_CANDIDATES = 300;
+/** Source finder: tried when a query of at least this many meaningful words matches fewer than SOURCE_BELOW strictly. */
+const SOURCE_MIN_WORDS = 3;
+const SOURCE_BELOW = 10;
+
+// Words too common to say anything about the source of a quote.
+const EN_STOP = new Set(
+  'a an the and or of to in on at for with by from is are was were be been being it its this that these those he she they we you i me my your his her their our them him us as do does did so but if then than which who whom what when where how there here has have had will shall would should can could may might o oh all any some such into out up down over about upon unto said says say'.split(' '),
+);
+const AR_STOP = new Set('في من على الي عن ان ما لا و يا ثم او قد لم لن هو هي'.split(' '));
 const SNIPPET = 280;
 
 // Word match quality, packed as (tier - 1) * 3 + boundary + 1, so 0 means "no match" and higher is better.
@@ -54,6 +63,9 @@ interface Candidate {
   doc: number;
   score: number;
   tier: Tier;
+  overlap?: [number, number];
+  /** Source finder: the next ayah, when the match spans two. */
+  next?: number;
 }
 
 /** Words matching one term, with their match quality, as a list (for postings) and a map (for lookups). */
@@ -67,7 +79,15 @@ interface HadithBookState {
   arabic?: HadithArabicChunk;
   grade: GradeClass[];
   byNumber: Map<number, number>;
+  /** Section number -> its rows, and normalized section names for chip matching. */
+  sectionRows: Map<number, number[]>;
+  sectionNames: [number, string][];
 }
+
+/** "The Book of Fasting" / "Chapters On Fasting" -> "fasting", for matching chapter names to queries. */
+const sectionKey = (name: string) => normalizeLatin(name).replace(/^(the )?(book|chapters?) (of|on|about) (the )?/, '');
+const CHIP_TOPICS = 2;
+const CHIP_SECTIONS = 2;
 
 export class SearchEngine {
   private quran?: QuranChunk;
@@ -79,6 +99,7 @@ export class SearchEngine {
   private vocab: { latin?: Vocabulary; arabic?: Vocabulary } = {};
   /** Vocabulary matches per script + pass + term; typing changes one term at a time, so most hit. */
   private wordCache = new Map<string, WordMatches>();
+  private extra?: Enrichment;
 
   private addSegment(corpus: Segment['corpus'], field: Field, hay: string[], fold?: (s: string) => string): void {
     this.segments.push({ id: this.segments.length, corpus, field, fold, hay, index: new WordIndex(hay) });
@@ -94,6 +115,7 @@ export class SearchEngine {
   addQuran(chunk: QuranChunk): void {
     this.quran = chunk;
     this.parser = new ReferenceParser(chunk.surahs);
+    this.extra = new Enrichment(chunk);
     this.addSegment('quran', 'en', chunk.en.map(normalizeLatin));
     // Indexed under both dagger-alif readings (see daggerToAlif); queries are matched against each as typed.
     this.addSegment('quran', 'ar', chunk.ar.map((a) => normalizeArabic(a)));
@@ -113,6 +135,8 @@ export class SearchEngine {
       chunk,
       grade: chunk.hadiths.map(([, , , grades]) => summarizeGrades(grades.map(([, g]) => g), info.sahihCollection)),
       byNumber: new Map(chunk.hadiths.map((h, row) => [h[0], row])),
+      sectionRows: chunk.hadiths.reduce((m, h, row) => m.set(h[1], [...(m.get(h[1]) ?? []), row]), new Map<number, number[]>()),
+      sectionNames: Object.entries(chunk.sections).map(([n, name]) => [Number(n), sectionKey(name)]),
     });
     this.addSegment(chunk.id, 'en', chunk.hadiths.map(([, , en]) => normalizeLatin(en)));
   }
@@ -141,11 +165,14 @@ export class SearchEngine {
     const arabic = hasArabic(query);
     const nq = arabic ? normalizeArabic(query) : normalizeLatin(query);
     const terms = [...new Set(nq.split(' ').filter(Boolean))];
-    if (!terms.length) return { query, pinned: offset ? [] : pinned, hits: [], total: 0, ms: performance.now() - t0 };
+    if (!terms.length) return { query, pinned: offset ? [] : pinned, chips: [], hits: [], total: 0, ms: performance.now() - t0 };
 
     const segments = this.segments.filter((s) => (arabic ? s.field === 'ar' : s.field !== 'ar') && this.corpusAllowed(s.corpus, opts));
+    // Long queries skip the fuzzy pass: with many words, one-typo and abbreviation matches on every
+    // word add up to thousands of weak hits. The source finder below handles them instead.
+    const long = terms.filter((t) => t.length > 1 && !(arabic ? AR_STOP : EN_STOP).has(t)).length >= 4;
     let found = this.run(segments, terms, false, arabic, opts);
-    if (found.length < FUZZY_BELOW) found = this.run(segments, terms, true, arabic, opts);
+    if (found.length < FUZZY_BELOW && !long) found = this.run(segments, terms, true, arabic, opts);
 
     // Best candidate per document across its fields and spellings.
     const best = new Map<string, Candidate>();
@@ -166,8 +193,22 @@ export class SearchEngine {
       ranked.sort((a, b) => b.score - a.score);
     }
 
-    const hits = ranked.slice(offset, offset + limit).map((c) => this.present({ ref: this.refOf(c), score: c.score, tier: c.tier, field: c.seg.field }, terms));
-    return { query, pinned: offset ? [] : pinned, hits, total: ranked.length, ms: performance.now() - t0 };
+    // Source finder: a long query (a pasted quote, a remembered sentence) that matched little strictly
+    // may still share most of its words with the source, in another translation or wording.
+    // These come after every strict match.
+    if (ranked.length < SOURCE_BELOW) {
+      const near = this.overlap(segments, terms, arabic, opts, best);
+      ranked.push(...near);
+    }
+
+    // Close matches highlight only the meaningful words they were matched on, not "a" or "its".
+    const content = terms.filter((t) => t.length > 1 && !(arabic ? AR_STOP : EN_STOP).has(t));
+    const hits = ranked
+      .slice(offset, offset + limit)
+      .map((c) => this.present({ ref: this.refOf(c), score: c.score, tier: c.tier, field: c.seg.field, overlap: c.overlap }, c.overlap ? content : terms));
+    // Chips also accompany a surah-name match ("hajj" is Surah 22 and a topic), not a numeric reference.
+    const chips = offset || (pinned.length && /\d/.test(query)) ? [] : this.chips(query, opts);
+    return { query, pinned: offset ? [] : pinned, chips, hits, total: ranked.length, ms: performance.now() - t0 };
   }
 
   private corpusAllowed(corpus: Segment['corpus'], opts: SearchOptions): boolean {
@@ -256,6 +297,106 @@ export class SearchEngine {
     return out;
   }
 
+  /**
+   * Documents sharing at least half of the query's meaningful words (each word matched as a whole word,
+   * a word prefix, or with one typo), ranked by how rare the shared words are (IDF) times the share,
+   * plus a bonus for query word pairs that appear side by side. Skips documents already in `exclude`.
+   */
+  private overlap(segments: Segment[], terms: string[], arabic: boolean, opts: SearchOptions, exclude: Map<string, Candidate>): Candidate[] {
+    const stop = arabic ? AR_STOP : EN_STOP;
+    const content = terms.filter((t) => t.length > 1 && !stop.has(t));
+    if (content.length < SOURCE_MIN_WORDS) return [];
+    const need = Math.max(2, Math.ceil(content.length / 2));
+
+    const best = new Map<string, Candidate>();
+    for (const seg of segments) {
+      const { index } = seg;
+      const n = index.size;
+      const allowed = this.allowedDocs(seg, opts);
+      const weight = new Float32Array(n);
+      const count = new Uint8Array(n);
+      const touched: number[] = [];
+      const perTerm: { seen: Uint8Array; idf: number }[] = [];
+      for (const term of seg.fold ? content.map(seg.fold) : content) {
+        const seen = new Uint8Array(n);
+        const docs: number[] = [];
+        for (const [w, q] of this.matchWords(term, true, arabic).list) {
+          // Whole words, word prefixes and one-typo matches; not letters inside other words or abbreviations.
+          if (!((q - 1) % 3 >= 1 || tierOf(q) === 2)) continue;
+          for (const d of index.postings(w) ?? [])
+            if (!seen[d]) {
+              seen[d] = 1;
+              docs.push(d);
+            }
+        }
+        const idf = Math.log(1 + n / (1 + docs.length));
+        perTerm.push({ seen, idf });
+        for (const d of docs) {
+          if (!count[d]) touched.push(d);
+          count[d] = count[d]! + 1;
+          weight[d] = weight[d]! + idf;
+        }
+      }
+      // A quote can run across two ayahs ("Say: He is Allah, the One…; Allah, the Eternal…" is 112:1–2),
+      // so Quran ayahs are also scored together with the next ayah of the same surah.
+      const nextInSurah = (d: number) => {
+        if (seg.corpus !== 'quran') return -1;
+        const s = this.quran!.surahs.find((x) => d >= x.start && d < x.start + x.count)!;
+        return d + 1 < s.start + s.count ? d + 1 : -1;
+      };
+      for (const d of touched) {
+        if (allowed && !allowed(d)) continue;
+        let c = count[d]!;
+        let w = weight[d]!;
+        let len = index.lengths[d]!;
+        let next: number | undefined;
+        const e = nextInSurah(d);
+        if (e >= 0 && count[e]) {
+          let c2 = 0;
+          let w2 = 0;
+          for (const t of perTerm)
+            if (t.seen[d] || t.seen[e]) {
+              c2++;
+              w2 += t.idf;
+            }
+          if (c2 > c) [c, w, len, next] = [c2, w2, len + index.lengths[e]!, e];
+        }
+        if (c < need) continue;
+        const ref = seg.corpus === 'quran' ? `q${d}` : `h${seg.corpus}:${d}`;
+        if (exclude.has(ref)) continue;
+        const share = c / content.length;
+        const score = w * share - Math.log2(1 + len / (seg.field === 'translit' ? 2 : 1) / 100);
+        const prev = best.get(ref);
+        if (!prev || score > prev.score) best.set(ref, { seg, doc: d, tier: 3, score, overlap: [c, content.length], next });
+      }
+    }
+
+    // Rerank the leaders by contiguity: a quote's words sit together in its source, while a long hadith
+    // can collect the same words scattered over paragraphs. Score = query words found within the best
+    // short stretch of the text, then word pairs found side by side, then the first-pass score.
+    const ranked = [...best.values()].sort((a, b) => b.score - a.score).slice(0, PHRASE_CANDIDATES);
+    const span = Math.max(8, Math.round(content.length * 2));
+    for (const c of ranked) {
+      const terms = c.seg.fold ? content.map(c.seg.fold) : content;
+      const text = c.seg.hay[c.doc]! + (c.next !== undefined ? ` ${c.seg.hay[c.next]!}` : '');
+      const words = text.split(' ');
+      const hits: [number, number][] = []; // [word position, term index]
+      words.forEach((w, pos) => terms.forEach((t, k) => w.startsWith(t) && hits.push([pos, k])));
+      let window = 0;
+      for (let i = 0, j = 0; j < hits.length; j++) {
+        while (hits[j]![0] - hits[i]![0] >= span) i++;
+        window = Math.max(window, new Set(hits.slice(i, j + 1).map(([, k]) => k)).size);
+      }
+      let pairs = 0;
+      for (let k = 1; k < terms.length; k++) if (text.includes(`${terms[k - 1]} ${terms[k]}`)) pairs++;
+      // Hadith often quote verses in their own translation (Muslim 330 quotes 2:286). Someone typing a verse's
+      // wording wants the verse, so an ayah beats a hadith that matches at most one more word.
+      const quranBonus = c.seg.corpus === 'quran' ? 12 : 0;
+      c.score = window * 10 + pairs * 4 + quranBonus + c.score * 0.3;
+    }
+    return ranked.sort((a, b) => b.score - a.score);
+  }
+
   /** Vocabulary words matching a term, with their match quality. */
   private matchWords(term: string, fuzzy: boolean, arabic: boolean): WordMatches {
     const key = `${arabic ? 'a' : 'l'}|${fuzzy ? 1 : 0}|${term}`;
@@ -297,6 +438,14 @@ export class SearchEngine {
     const ref = this.resolve(target);
     if (!ref) return [];
     const hit = this.present({ ref, score: 0, tier: 3, field: 'en' }, []);
+    if (target.name) {
+      // A well-known name: show it, with the reference it resolves to underneath.
+      const ref = target.kind === 'hadith' ? hit.label : target.kind === 'surah' ? `Surah ${target.surah}` : target.ayahTo ? `${target.surah}:${target.ayah}–${target.ayahTo}` : hit.label;
+      hit.sublabel = `${ref} · ${target.kind === 'hadith' ? hit.sublabel : (this.quran!.surahs[target.surah - 1]?.nameSimple ?? '')}`;
+      hit.label = target.name;
+      if (target.kind === 'surah') hit.path = `surah/${target.surah}`;
+      return [hit];
+    }
     if (target.kind === 'surah') {
       const s = this.quran!.surahs[target.surah - 1]!;
       hit.label = `Surah ${s.n} · ${s.nameSimple}`;
@@ -320,6 +469,47 @@ export class SearchEngine {
 
   // ---------------------------------------------------------------- detail screens
 
+  // ---- QUL extras (loaded after the Quran; see worker.ts)
+
+  addTafsir(c: TafsirChunk): void {
+    this.extra!.tafsir = c;
+  }
+  addThemes(c: Theme[]): void {
+    this.extra!.setThemes(c);
+  }
+  addTopics(c: Topic[]): void {
+    this.extra!.setTopics(c);
+  }
+  addSimilar(c: SimilarChunk): void {
+    this.extra!.similar = c;
+  }
+  addMutashabihat(c: MutashabihatChunk): void {
+    this.extra!.phrases = c;
+  }
+
+  /** Topic and hadith-chapter names matching a short query, as browse chips. */
+  private chips(query: string, opts: SearchOptions): Chip[] {
+    const q = normalizeLatin(query);
+    if (!q || hasArabic(query) || q.split(' ').length > 3) return [];
+    const out: Chip[] = [];
+    if (opts.corpus !== 'hadith' && !opts.books?.length)
+      for (const t of this.extra?.matchTopics(q, CHIP_TOPICS) ?? []) out.push({ kind: 'topic', label: t.name, sub: `Topic · ${t.count} ayahs`, path: `topic/${t.id}` });
+    if (opts.corpus !== 'quran' && !opts.surah) {
+      const found: [number, Chip][] = [];
+      for (const [id, b] of this.books) {
+        if (opts.books?.length && !opts.books.includes(id)) continue;
+        for (const [n, name] of b.sectionNames) {
+          const score = nameMatch(q, name);
+          const count = b.sectionRows.get(n)?.length ?? 0;
+          if (score && count)
+            found.push([score + Math.min(5, Math.log2(count)), { kind: 'section', label: b.chunk.sections[n]!, sub: `${BOOKS[id].short} · ${count} hadith`, path: `${id}/book/${n}` }]);
+        }
+      }
+      out.push(...found.sort((a, b) => b[0] - a[0]).slice(0, CHIP_SECTIONS).map(([, c]) => c));
+    }
+    return out;
+  }
+
   hasQuran(): boolean {
     return !!this.quran;
   }
@@ -335,6 +525,8 @@ export class SearchEngine {
       return this.detail({ kind: 'ayah', surah: s.n, ayah: i - s.start + 1 });
     }
     if (req.kind === 'hadith') return this.hadithDetail(req.book, req.number);
+    if (req.kind === 'topic') return this.extra?.topicDetail(req.id) ?? null;
+    if (req.kind === 'section') return this.sectionDetail(req.book, req.n);
     const s = q.surahs[req.surah - 1];
     if (!s) return null;
     if (req.kind === 'surah')
@@ -353,6 +545,7 @@ export class SearchEngine {
       kind: 'ayah',
       surah: s,
       ...this.ayahLine(i, req.ayah),
+      extra: this.extra?.ready ? this.extra.forAyah(i) : undefined,
       translit: this.translit?.wbw[i] ?? '',
       prev: req.ayah > 1 ? { surah: s.n, ayah: req.ayah - 1 } : prevSurah ? { surah: prevSurah.n, ayah: prevSurah.count } : undefined,
       next: req.ayah < s.count ? { surah: s.n, ayah: req.ayah + 1 } : nextSurah ? { surah: nextSurah.n, ayah: 1 } : undefined,
@@ -387,6 +580,25 @@ export class SearchEngine {
     return { ayah, ar: q.ar[i]!, en: q.en[i]!, footnotes: q.footnotes[i] ?? [] };
   }
 
+  private sectionDetail(book: HadithBookId, n: number): SectionDetail | null {
+    const b = this.books.get(book);
+    const rows = b?.sectionRows.get(n);
+    if (!b || !rows) return null;
+    const info = BOOKS[book];
+    return {
+      kind: 'section',
+      book,
+      title: info.title,
+      short: info.short,
+      n,
+      name: b.chunk.sections[n] ?? '',
+      hadiths: rows.map((r) => {
+        const [number, , en] = b.chunk.hadiths[r]!;
+        return { number, en: en.length > 280 ? `${en.slice(0, en.lastIndexOf(' ', 270))}…` : en, grade: b.grade[r]! };
+      }),
+    };
+  }
+
   private hadithDetail(book: HadithBookId, number: number): HadithDetail | null {
     const b = this.books.get(book);
     const row = b?.byNumber.get(number);
@@ -413,7 +625,7 @@ export class SearchEngine {
   // ---------------------------------------------------------------- presentation
 
   present(hit: Hit, terms: string[]): PresentedHit {
-    const { ref, field, tier } = hit;
+    const { ref, field, tier, overlap } = hit;
     let text: string;
     let label: string;
     let sublabel: string;
@@ -447,8 +659,7 @@ export class SearchEngine {
       if (alt.length > ranges.length) [text, ranges] = [simple, alt];
     }
     ({ text, ranges } = snippet(text, ranges));
-    if (ref.kind === 'ayah' && field === 'ar') text = attachPauseMarks(text);
-    return { ref, key: refKey(ref), path, label, sublabel, field, tier, text, secondary, ranges, grade };
+    return { ref, key: refKey(ref), path, label, sublabel, field, tier, text, secondary, ranges, grade, overlap };
   }
 
   private highlight(text: string, terms: string[], field: Field, tier: Tier): [number, number][] {
@@ -513,10 +724,17 @@ function wholeWordAt(text: string, phrase: string): boolean {
   return false;
 }
 
-/** Cuts long texts (hadith) to a window around the first highlight, shifting ranges to match. */
+/** Cuts long texts (hadith) to a window around the densest run of highlights, shifting ranges to match. */
 function snippet(text: string, ranges: [number, number][]): { text: string; ranges: [number, number][] } {
   if (text.length <= SNIPPET) return { text, ranges };
-  const first = ranges[0]?.[0] ?? 0;
+  // Start at the highlight that has the most others within one snippet's length after it.
+  let first = ranges[0]?.[0] ?? 0;
+  let most = 0;
+  for (let i = 0; i < ranges.length; i++) {
+    let n = 0;
+    for (let j = i; j < ranges.length && ranges[j]![1] - ranges[i]![0] <= SNIPPET - 100; j++) n++;
+    if (n > most) [most, first] = [n, ranges[i]![0]];
+  }
   let start = Math.max(0, first - 80);
   if (start > 0) {
     const space = text.indexOf(' ', start);

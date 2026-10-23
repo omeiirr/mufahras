@@ -5,7 +5,20 @@
 // loads that book's. Each time a chunk lands, the latest query is re-run so results fill in.
 /// <reference lib="webworker" />
 import type { Detail, DetailRequest } from '../data/views';
-import { HADITH_BOOKS, type HadithArabicChunk, type HadithBookId, type HadithChunk, type Manifest, type QuranChunk, type TranslitChunk } from '../data/types';
+import {
+  HADITH_BOOKS,
+  type HadithArabicChunk,
+  type HadithBookId,
+  type HadithChunk,
+  type Manifest,
+  type MutashabihatChunk,
+  type QuranChunk,
+  type SimilarChunk,
+  type TafsirChunk,
+  type Theme,
+  type Topic,
+  type TranslitChunk,
+} from '../data/types';
 import { SearchEngine } from './engine';
 import type { SearchOptions, SearchResponse } from './types';
 
@@ -73,6 +86,11 @@ async function load(name: string): Promise<void> {
 
   if (name === 'quran') engine.addQuran(data as QuranChunk);
   else if (name === 'translit') engine.addTranslit(data as TranslitChunk);
+  else if (name === 'tafsir') engine.addTafsir(data as TafsirChunk);
+  else if (name === 'themes') engine.addThemes(data as Theme[]);
+  else if (name === 'topics') engine.addTopics(data as Topic[]);
+  else if (name === 'similar') engine.addSimilar(data as SimilarChunk);
+  else if (name === 'mutashabihat') engine.addMutashabihat(data as MutashabihatChunk);
   else if (arBook) engine.addHadithArabic(arBook, data as HadithArabicChunk);
   else engine.addHadith(data as HadithChunk);
 
@@ -89,8 +107,11 @@ function runSearch(req: Extract<WorkerRequest, { type: 'search' }>): void {
 
 // ---- offline storage
 
+/** Verse-screen extras: tafsir, themes, topics, similar ayahs, mutashabihat. */
+const EXTRA_CHUNKS = ['tafsir', 'themes', 'topics', 'similar', 'mutashabihat'];
+
 /** Chunks needed for everything the app does today; Arabic hadith included. */
-const OFFLINE_CHUNKS = ['quran', 'translit', ...HADITH_BOOKS.map((b) => `hadith-${b}`), ...HADITH_BOOKS.map((b) => `hadith-${b}-ar`)];
+const OFFLINE_CHUNKS = ['quran', 'translit', ...EXTRA_CHUNKS, ...HADITH_BOOKS.map((b) => `hadith-${b}`), ...HADITH_BOOKS.map((b) => `hadith-${b}-ar`)];
 // Runtime cache names, see vite.config.ts.
 const DATA_CACHE = 'mufahras-data';
 const MANIFEST_CACHE = 'mufahras-manifest';
@@ -180,12 +201,17 @@ async function init(): Promise<void> {
   status.ready = true;
   post({ type: 'status', status: { ...status } });
   if (latest) runSearch(latest);
+  // Topic names give search its topic chips; small, so fetched right away.
+  await ensure('topics');
 }
 
 async function detail(req: DetailRequest): Promise<Detail | null> {
   if (req.kind === 'hadith') await ensure(req.arabic ? `hadith-${req.book}-ar` : `hadith-${req.book}`);
+  else if (req.kind === 'section') await ensure(`hadith-${req.book}`);
   else await ensure('quran');
   if (req.kind === 'ayah' || req.kind === 'daily') await ensure('translit');
+  if (req.kind === 'topic') await ensure('topics');
+  if (req.kind === 'ayah' && req.extra) await Promise.all(EXTRA_CHUNKS.map(ensure));
   return engine.detail(req);
 }
 

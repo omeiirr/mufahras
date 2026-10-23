@@ -145,8 +145,12 @@ for (const w of Object.values(words)) {
 const ar = perAyah('uthmani', Object.fromEntries(wordsByAyah), (ws) =>
   ws
     .sort((a, b) => a[0] - b[0])
-    .map(([, t]) => t)
-    .filter((t) => t !== '' && !/^[٠-٩]+$/.test(t))
+    .map(([, t]) => t.trim())
+    .filter((t) => t !== '' && !/^[\u0660-\u0669]+$/.test(t))
+    // A space inside one QUL word (before a pause mark, after ۞, or in a split word like إِلْ يَاسِينَ)
+    // becomes a no-break space, so a plain space always separates two QUL words: word positions in
+    // similar-ayah and mutashabihat data map exactly, and marks never wrap away from their word.
+    .map((t) => t.replace(/ /g, '\u00A0'))
     .join(' '),
 );
 

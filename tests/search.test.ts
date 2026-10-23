@@ -77,10 +77,26 @@ describe.runIf(dataBuilt)('search ranking', () => {
 
   // Popular paraphrases that don't share the translation's words. Needs the source-finder mode
   // (milestone 5) or search by meaning (future); tracked here so progress is visible.
-  it.todo('alias: "ayatul kursi" → 2:255 (aliases.json, milestone 5)');
-  it.todo('paraphrase: "actions are judged by intentions" → Bukhari 1');
-  it.todo('paraphrase: "allah does not burden a soul beyond" → 2:286');
+  // Source finder: quotes in other translations or wordings, sharing most but not all words.
+  it.each([
+    ['O you who believe! Seek help in patience and As-Salat (the prayer). Truly! Allah is with As-Sabirin', '2:153', 3], // Muhsin Khan
+    ['allah does not burden a soul beyond its capacity', '2:286', 5],
+    ['Say: He is Allah, the One and Only; Allah, the Eternal, Absolute', '112:1', 5], // Yusuf Ali
+    ['The reward of deeds depends on intentions, and every person will get what he intended', 'Bukhari 1', 5],
+  ])('source finder: %s → %s (top %i)', (q, expected, n) => {
+    expect(labels(q).slice(0, n)).toContain(expected);
+  });
+
+  it('ranks strict matches above source-finder matches', () => {
+    const r = engine.search('seek help through patience and prayer');
+    const firstNear = r.hits.findIndex((h) => h.overlap);
+    expect(r.hits.slice(0, 2).every((h) => !h.overlap)).toBe(true);
+    if (firstNear >= 0) expect(r.hits.slice(firstNear).every((h) => h.overlap)).toBe(true);
+  });
+
+  // Paraphrases sharing too few words with the translation; needs search by meaning (future).
   it.todo('paraphrase: "none of you truly believes until he loves for his brother" → Bukhari 13');
+  it.todo('paraphrase: "On no soul doth Allah place a burden greater than it can bear" (Yusuf Ali) → 2:286');
 
   it('stays fast on broad and fuzzy queries', () => {
     for (const q of ['a', 'al', 'allah', 'the prophet said', 'abu huraira', 'xyzzy', 'mercyful forgivng']) labels(q);

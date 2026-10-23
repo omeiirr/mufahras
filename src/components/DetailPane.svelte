@@ -4,6 +4,8 @@
   import { detailFor } from '../lib/router.svelte';
   import type { SearchClient } from '../lib/search/client';
   import HadithView from './HadithView.svelte';
+  import SectionView from './SectionView.svelte';
+  import TopicView from './TopicView.svelte';
   import SurahIndex from './SurahIndex.svelte';
   import SurahView from './SurahView.svelte';
   import VerseView from './VerseView.svelte';
@@ -43,6 +45,9 @@
       // Hadith: the English shows at once; the book's Arabic (up to 1.3 MB) follows when loaded.
       if (d?.kind === 'hadith' && !d.ar && t.req.kind === 'hadith')
         client.detail({ ...t.req, arabic: true }).then((full) => current && full && (detail = full));
+      // Verse: the text shows at once; tafsir, topics and similar ayahs follow when their chunks load.
+      if (d?.kind === 'ayah' && !d.extra && t.req.kind === 'ayah')
+        client.detail({ ...t.req, extra: true }).then((full) => current && full && (detail = full));
     });
     return () => (current = false);
   });
@@ -52,6 +57,8 @@
     if (detail.kind === 'ayah') return `${detail.surah.n}:${detail.ayah} · ${detail.surah.nameSimple}`;
     if (detail.kind === 'surah') return `${detail.surah.n}. ${detail.surah.nameSimple}`;
     if (detail.kind === 'surahs') return 'Surahs';
+    if (detail.kind === 'topic') return detail.name;
+    if (detail.kind === 'section') return `${detail.short} · ${detail.name}`;
     return `${detail.short} ${detail.number}`;
   });
 </script>
@@ -75,6 +82,10 @@
         <SurahIndex d={detail} {hrefFor} />
       {:else if detail?.kind === 'hadith'}
         <HadithView d={detail} {hrefFor} />
+      {:else if detail?.kind === 'topic'}
+        <TopicView d={detail} {hrefFor} />
+      {:else if detail?.kind === 'section'}
+        <SectionView d={detail} {hrefFor} />
       {:else if loading}
         <p class="loading">Loading…</p>
       {/if}

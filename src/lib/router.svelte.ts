@@ -4,6 +4,8 @@
 //   'surah/2[/255]'    surah reader (optionally scrolled to an ayah)
 //   'surahs'           surah index
 //   'bukhari/1'        hadith
+//   'bukhari/book/30'  a chapter (book) of a hadith collection
+//   'topic/1651'       a QUL topic
 // The search state lives in the query string on every route, so the desktop layout can show results
 // and a detail side by side, and Back on a phone returns to the same results.
 import { HADITH_BOOKS, type HadithBookId } from './data/types';
@@ -91,6 +93,10 @@ export function detailFor(path: string): { req: DetailRequest; scrollTo?: number
   m = /^surah\/(\d{1,3})(?:\/(\d{1,3}))?$/.exec(path);
   if (m) return { req: { kind: 'surah', surah: Number(m[1]) }, scrollTo: m[2] ? Number(m[2]) : undefined };
   if (path === 'surahs') return { req: { kind: 'surahs' } };
+  m = /^topic\/(\d+)$/.exec(path);
+  if (m) return { req: { kind: 'topic', id: Number(m[1]) } };
+  m = /^(\w+)\/book\/(\d+)$/.exec(path);
+  if (m && BOOK_SET.has(m[1]!)) return { req: { kind: 'section', book: m[1] as HadithBookId, n: Number(m[2]) } };
   m = /^(\w+)\/(\d+(?:\.\d+)?)$/.exec(path);
   if (m && BOOK_SET.has(m[1]!)) return { req: { kind: 'hadith', book: m[1] as HadithBookId, number: Number(m[2]) } };
   return null;

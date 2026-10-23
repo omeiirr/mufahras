@@ -6,6 +6,7 @@
   import { splitLastWord } from '../lib/text/quran-display';
   import { ayahMarker, placeName } from '../lib/ui/format';
   import Actions from './Actions.svelte';
+  import VerseExtras from './VerseExtras.svelte';
 
   let { d, hrefFor }: { d: AyahDetail; hrefFor: (path: string) => string } = $props();
 
@@ -22,6 +23,12 @@
       <span class="ar-name" lang="ar" dir="rtl">{d.surah.nameAr}</span>
       <span>· {placeName(d.surah.place)}</span>
     </p>
+    {#if d.extra?.theme}
+      <p class="theme">
+        <a href={hrefFor(`surah/${d.surah.n}/${d.extra.theme.from}`)}>{d.extra.theme.text}</a>
+        <span>· {d.extra.theme.from === d.extra.theme.to ? `${d.surah.n}:${d.extra.theme.from}` : `${d.surah.n}:${d.extra.theme.from}–${d.extra.theme.to}`}</span>
+      </p>
+    {/if}
   </header>
 
   <p class="quran" lang="ar" dir="rtl">{head}<span class="nowrap">{last} <span class="marker">{ayahMarker(d.ayah)}</span></span></p>
@@ -36,6 +43,12 @@
   <p class="credit">Translation: Saheeh International</p>
 
   <Actions text={copyText} title={`Quran ${ref}`} />
+
+  {#if d.extra}
+    <VerseExtras {d} extra={d.extra} {hrefFor} />
+  {:else}
+    <p class="loading-extra">Loading explanation, topics and similar verses…</p>
+  {/if}
 
   <nav class="pager" aria-label="Neighbouring verses">
     {#if d.prev}
@@ -78,6 +91,20 @@
   }
   .marker {
     color: var(--accent);
+  }
+  .theme {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-sm);
+    color: var(--ink-2);
+  }
+  .theme a {
+    color: var(--ink);
+    text-decoration-color: var(--line);
+  }
+  .loading-extra {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: var(--text-sm);
   }
   .translit {
     margin: 0;

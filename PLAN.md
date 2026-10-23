@@ -312,7 +312,22 @@ quran-search/
    are Periodic Background Sync (no server; Chrome/Edge installed apps only; Chrome picks the time) and Web Push
    (fixed time on every platform, including iPhone and Firefox; needs a small server such as a Cloudflare Worker
    cron). If it's added, the notification is the daily verse and tapping it opens the verse.
-5. **Enrichment:** topics, similar ayahs, tafsir summary, aliases, transliteration search, source-finder mode.
+5. ✅ **Enrichment** (2026-10-24):
+   - **Aliases** (`src/lib/search/aliases.ts`): 34 well-known names for verses, surahs and hadith ("ayatul kursi",
+     "amana rasul", "heart of the quran", "hadith jibril"), each target checked against its text in tests.
+     Hadith numbers follow hadith-api, which differs from sunnah.com for Muslim.
+   - **Source finder:** for queries with ≥ 4 meaningful words that match few results strictly, rank texts
+     by shared rare words, reranked by contiguity (query words within a short stretch), with Quran ayah pairs
+     scored together (a quote can span 112:1–2) and an ayah preferred over a hadith quoting it. Results come
+     after all strict matches under "Close matches", marked "5 of 6 words". The fuzzy pass is skipped for these
+     long queries; it produced thousands of weak matches.
+   - **Topic and chapter chips** above results (QUL topics; hadith book chapters), each opening a topic page
+     (`#/topic/<id>`) or chapter page (`#/<book>/book/<n>`).
+   - **Verse screen:** the passage theme, the Al-Mukhtasar explanation (collapsible), topics (most specific
+     first), similar ayahs with the shared words highlighted, and repeated phrases (mutashabihat) with every
+     occurrence. Loaded after the verse itself is shown.
+   - The build writes spaces inside a QUL word as no-break spaces, so word positions in QUL data map exactly
+     to our text (tested for all 6,236 ayahs).
 6. **Personal:** bookmarks + tags, history, verse/hadith of the day, picture cards, settings, about page.
 
 Each milestone ends with something usable on a phone.

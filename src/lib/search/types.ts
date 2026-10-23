@@ -1,13 +1,18 @@
 import type { HadithBookId } from '../data/types';
+import type { Chip } from '../data/views';
 import type { GradeClass } from '../hadith/grades';
 
 export type DocRef = { kind: 'ayah'; i: number } | { kind: 'hadith'; book: HadithBookId; row: number };
 
-/** What a reference-style query ("2:255", "baqarah 255", "bukhari 1") points to. */
-export type RefTarget =
+/** What a reference-style query ("2:255", "baqarah 255", "bukhari 1", "ayatul kursi") points to. */
+export type RefTarget = (
   | { kind: 'ayah'; surah: number; ayah: number; ayahTo?: number }
   | { kind: 'surah'; surah: number }
-  | { kind: 'hadith'; book: HadithBookId; number: number };
+  | { kind: 'hadith'; book: HadithBookId; number: number }
+) & {
+  /** Set when the query was a well-known name (aliases.ts). */
+  name?: string;
+};
 
 export interface SearchOptions {
   corpus?: 'all' | 'quran' | 'hadith';
@@ -30,6 +35,8 @@ export interface Hit {
   score: number;
   tier: Tier;
   field: Field;
+  /** Source-finder match: [query words found, meaningful query words]. */
+  overlap?: [number, number];
 }
 
 /** A hit prepared for display: label, a snippet of the matched field, and highlight ranges within it. */
@@ -47,11 +54,15 @@ export interface PresentedHit {
   secondary?: string;
   ranges: [number, number][];
   grade?: GradeClass;
+  /** Source-finder match: [query words found, meaningful query words]. */
+  overlap?: [number, number];
 }
 
 export interface SearchResponse {
   query: string;
   pinned: PresentedHit[];
+  /** Topics and hadith chapters whose names match the query. */
+  chips: Chip[];
   hits: PresentedHit[];
   total: number;
   ms: number;

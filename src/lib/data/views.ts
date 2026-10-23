@@ -3,11 +3,14 @@ import type { GradeClass } from '../hadith/grades';
 import type { HadithBookId, Surah } from './types';
 
 export type DetailRequest =
-  | { kind: 'ayah'; surah: number; ayah: number }
+  /** extra: wait for the tafsir/topics/similar chunks (~0.7 MB) before answering. */
+  | { kind: 'ayah'; surah: number; ayah: number; extra?: boolean }
   | { kind: 'surah'; surah: number }
   /** arabic: wait for the book's Arabic chunk (large) before answering. */
   | { kind: 'hadith'; book: HadithBookId; number: number; arabic?: boolean }
   | { kind: 'surahs' }
+  | { kind: 'topic'; id: number }
+  | { kind: 'section'; book: HadithBookId; n: number }
   /** Verse of the day for a local date (YYYY-MM-DD); the same verse for everyone on that date. */
   | { kind: 'daily'; date: string };
 
@@ -25,6 +28,49 @@ export interface AyahDetail extends AyahLine {
   translit: string;
   prev?: { surah: number; ayah: number };
   next?: { surah: number; ayah: number };
+  /** Tafsir, theme, topics, similar ayahs, repeated phrases; absent until their chunks have loaded. */
+  extra?: AyahExtra;
+}
+
+export interface AyahRef {
+  surah: number;
+  ayah: number;
+}
+
+export interface AyahExtra {
+  /** Al-Mukhtasar. from/to: the ayahs (same surah) this explanation covers; usually just this one. */
+  tafsir?: { text: string; from: number; to: number };
+  /** The passage's theme and the ayahs it spans. */
+  theme?: { text: string; from: number; to: number };
+  topics: { id: number; name: string; count: number }[];
+  /** Ayahs with shared wording; ranges are the shared words in that ayah's Arabic. */
+  similar: (AyahRef & { name: string; ar: string; en: string; ranges: [number, number][] })[];
+  /** Mutashabihat: phrases this ayah shares with others; ranges are the phrase in this ayah's Arabic. */
+  phrases: { text: string; ranges: [number, number][]; count: number; refs: (AyahRef & { name: string })[] }[];
+}
+
+export interface TopicDetail {
+  kind: 'topic';
+  id: number;
+  name: string;
+  nameAr: string;
+  description: string;
+  parents: { id: number; name: string }[];
+  children: { id: number; name: string; count: number }[];
+  related: { id: number; name: string }[];
+  ayahs: (AyahRef & { name: string; en: string })[];
+  /** All ayahs in the topic; ayahs holds the first TOPIC_LIMIT. */
+  total: number;
+}
+
+export interface SectionDetail {
+  kind: 'section';
+  book: HadithBookId;
+  title: string;
+  short: string;
+  n: number;
+  name: string;
+  hadiths: { number: number; en: string; grade: GradeClass }[];
 }
 
 export interface SurahDetail {
@@ -63,4 +109,12 @@ export interface HadithDetail {
   next?: number;
 }
 
-export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail;
+export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail | TopicDetail | SectionDetail;
+
+/** Suggested browse links shown above results: a QUL topic, or a chapter (book) of a hadith collection. */
+export interface Chip {
+  kind: 'topic' | 'section';
+  label: string;
+  sub: string;
+  path: string;
+}
