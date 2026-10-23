@@ -187,8 +187,10 @@
     /* Fill the window exactly. 100% follows html/body; 100dvh can come out a pixel short in installed apps. */
     height: 100%;
     display: grid;
-    /* minmax(0, …): a long unbroken line must wrap, not widen the column past the screen. */
+    /* minmax(0, …) both ways: a long line must wrap and a tall start screen must scroll inside its pane,
+       not stretch the grid past the window (which pushed the search bar off screen). */
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
   }
 
   /* Phone: results scroll above a dock pinned to the bottom (chips, then the bar). */

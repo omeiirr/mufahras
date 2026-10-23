@@ -22,8 +22,11 @@ export default defineConfig({
         start_url: './',
         scope: './',
         display: 'standalone',
+        // Android paints the bar below an installed app from one of these (background_color on Android 15+,
+        // theme_color on older versions), so both are the Paper background. The page's theme-color meta
+        // still follows the in-app theme for the status bar.
         background_color: '#faf8f3',
-        theme_color: '#1f6b57',
+        theme_color: '#faf8f3',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
