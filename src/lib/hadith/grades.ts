@@ -20,3 +20,25 @@ const RANK: Record<GradeClass, number> = { sahih: 4, hasan: 3, other: 2, daif: 1
 export function gradeRank(c: GradeClass): number {
   return RANK[c];
 }
+
+/**
+ * One bucket for a hadith with several scholars' gradings: the most common bucket, and on a tie the
+ * less authentic one, so the "Sahih only" filter errs on the side of leaving a hadith out.
+ */
+export function summarizeGrades(grades: string[], sahihCollection: boolean): GradeClass {
+  if (sahihCollection) return 'sahih';
+  if (!grades.length) return 'other';
+  const votes = new Map<GradeClass, number>();
+  for (const g of grades) {
+    const c = classifyGrade(g);
+    votes.set(c, (votes.get(c) ?? 0) + 1);
+  }
+  let best: GradeClass = 'other';
+  let bestVotes = 0;
+  for (const [c, n] of votes)
+    if (n > bestVotes || (n === bestVotes && RANK[c] < RANK[best])) {
+      best = c;
+      bestVotes = n;
+    }
+  return best;
+}

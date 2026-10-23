@@ -46,10 +46,10 @@ describe.runIf(built)('generated data', () => {
 
   it('has one footnote per superscript marker', () => {
     for (const [i, notes] of Object.entries(quran.footnotes)) {
-      const markers = quran.en[Number(i)]!.match(/[¹²³⁰-⁹]+/g) ?? [];
+      const markers = quran.en[Number(i)]!.match(/[\u00B9\u00B2\u00B3\u2070-\u2079]+/g) ?? [];
       expect(markers.length, `ayah index ${i}`).toBe(notes.length);
     }
-    expect(quran.en.filter((t, i) => /[¹²³⁰-⁹]/.test(t) && !quran.footnotes[i])).toEqual([]);
+    expect(quran.en.filter((t, i) => /[\u00B9\u00B2\u00B3\u2070-\u2079]/.test(t) && !quran.footnotes[i])).toEqual([]);
   });
 
   it('resolves tafsir group pointers to heads that cover them', () => {

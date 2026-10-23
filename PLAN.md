@@ -144,20 +144,84 @@ Still to add (milestone 5): `aliases.json`, hand-curated names → refs (`ayatul
 
 Runs in the worker. Steps for each query:
 
-1. **Reference parsing** (checked first, exact):
-   `2:255`, `2 255`, `baqarah 255` (fuzzy surah name), `bukhari 1`, `muslim 8`, aliases.
-   A match is pinned to the top as a "Go to" result.
-2. **Mode selection:**
-   - Short query (≤ ~8 words): **fuzzy mode** with uFuzzy (`intraMode: 1`, so one typo per term is tolerated).
-     Ranking: exact phrase > all terms whole-word > all terms prefix > fuzzy/typo matches; ties broken by shorter text.
-   - Long query (pasted quote): **source-finder mode**, which ranks by word-overlap / n-gram similarity
-     instead of fuzzy matching (fuzzy matching of a whole paragraph is slow and ranks poorly).
-     Shows "Best match: Bukhari 6018 (93% overlap)".
-   - Arabic script in the query: search the normalized Arabic field.
-3. **Topic matches:** the query is also fuzzy-matched against QUL topic names and hadith section names;
-   matches appear as chips ("Topic: Patience · 48 ayahs", "Book of Fasting · Bukhari") that filter the results.
-4. **Filters:** Quran / Hadith / both, surah, hadith book, and minimum grading (e.g. "Sahih only").
-5. Matches are highlighted using uFuzzy's ranges.
+1. **Reference parsing** (`src/lib/search/reference.ts`), pinned above results as "go to":
+   `2:255`, `2 255`, `2:255-257`, `112`, `baqarah 255` / `baqra 255` / `al imran 190` (typo-tolerant surah names,
+   spelling folds like yaseen→yasin), `surah mulk`, bare exact names (`fatiha`), `البقرة ٢٥٥`, `سورة يس`,
+   `bukhari 1`, `sahih bukhari 6018`, `muslim #8`, `abu dawood 402.2`, `tirmizi 2516`.
+   Words like "allah" are never read as surah names. Aliases (`ayatul kursi`) come in milestone 5.
+2. **Term matching** (`src/lib/search/engine.ts`). Every query term must match a word of the document, in any order.
+   Each segment (one field of one collection: Quran English / transliteration / Arabic ×2, each hadith book's
+   English / Arabic) has an inverted word index; terms are matched once against a vocabulary shared per script:
+   - tier 3 **exact**: word contains the term (1 letter: whole word; 2 letters: word prefix)
+   - tier 2 **typo**: one insertion/deletion/substitution/transposition (uFuzzy single-error), terms ≥ 4 letters
+   - tier 1 **abbreviation**: letters in order within one word, fzf-style (`ptnc` → patience), terms ≥ 3 letters
+   The exact pass runs first; the fuzzy tiers are added only if it finds < 20 results. Both fuzzy tiers keep
+   the first letter, so they only scan vocabulary words starting with it. The rarest term is processed first;
+   later terms are checked only against the remaining candidates.
+3. **Ranking:** weakest term tier × 30, + per-term word-boundary bonus (prefix +4, whole word +10),
+   + phrase bonus for the top 300 (+25, +10 if on word boundaries), + 10 for an exact transliteration match,
+   − 3·log₂(1 + length/100). Best field per document wins.
+4. **Spelling folds:**
+   - Quran Arabic is indexed both with the dagger alif dropped and as ا, so الرحمن, العالمين and الصلاة all match the Uthmani text.
+   - Transliteration drops Tanzil's AA/`/` marks and folds oo→u, ee→i, doubled letters, dh→th (`alqayyum` ↔ `alqayyoomu`).
+5. **Filters:** Quran / Hadith / all; a surah filter means Quran only, a book filter means those books only;
+   minimum grade uses one bucket per hadith (the most common across scholars, ties toward the weaker bucket;
+   Bukhari and Muslim count as sahih).
+6. **Highlighting:** match ranges are found in normalized text and mapped back to the display text
+   (`normalize-map.ts`, verified identical to the regex normalizers over all data). Long hadith are cut to a
+   ~280-character snippet around the first match.
+7. **Worker** (`worker.ts`): Quran → transliteration → six books (English, fetched in parallel); hadith Arabic on
+   the first Arabic query. The latest query re-runs as each chunk lands.
+
+Measured 2026-10-23 (desktop, warm): ~5 ms per keystroke, 10 ms average per query, 30 ms for the first Arabic
+query; in the browser the Quran is searchable after ~0.3 s and all books after ~1.2 s from a local server.
+`tests/search.test.ts` holds the ranking checks and prints timings.
+
+Still to come (milestone 5):
+- **Source-finder mode** for pasted or remembered quotes that don't match the translation's words
+  (`actions are judged by intentions` → Bukhari 1); tracked as `it.todo` in the ranking tests.
+- **Topic matches:** the query is fuzzy-matched against QUL topic names and hadith section names, shown as
+  chips ("Topic: Patience · 48 ayahs", "Book of Fasting · Bukhari") that filter the results.
+
+## UI design (milestone 3; agreed 2026-10-23)
+
+Guidance from the ui-ux-pro-max and apple-design skills (accessibility, touch, empty states, motion,
+pre-delivery checklist); their generated "design system" targeted marketing pages and wasn't used as-is.
+
+**Decisions**
+- **Phone:** search bar at the **bottom**, within thumb reach, with filter chips just above it; results scroll above.
+- **Quran results show the translation only;** the Arabic shows in the verse view. Arabic-script queries show Arabic as the main text.
+- **Desktop (≥ 1024px): side by side.** Results on the left, the opened verse or hadith on the right; ↑/↓ moves the
+  selection and updates the right pane. Narrower screens use the phone layout.
+
+**Screens (hash routes)**
+| Route | Screen |
+|---|---|
+| `#/?q=…&in=quran&sahih=1` | Search. Query and filters live in the URL; typing replaces the history entry, opening a result pushes one |
+| `#/2:255` | Verse: Arabic, translation, footnotes, previous/next ayah, "Read surah". Room for tafsir, similar ayahs, mutashabihat, theme (M5) and bookmark/share (M6) |
+| `#/surah/2` | Surah reader: names, Meccan/Medinan, ayah count, bismillah, all ayahs with ayah-number markers; `#/surah/2/255` scrolls to an ayah |
+| `#/bukhari/1` | Hadith: English, Arabic (loaded on open), book and chapter, gradings table (scholar → grade) |
+
+**Behaviour**
+- Desktop keys: `/` or Ctrl+K focus search, ↑/↓ move, Enter open, Esc back. Phone: Back returns to results with scroll kept.
+- Filters: chips (All · Quran · Hadith · Sahih only) plus a filter sheet (surah picker, hadith books).
+- Empty search: tappable examples showing what works (references, Arabic, transliteration).
+  No results: concrete suggestions (fewer words, switch Quran/Hadith, turn off Sahih only).
+- Loading: a small "loading hadith 3/6" note only while partial.
+- Results: 30 at a time, more appended on scroll (no virtualization needed at this scale).
+
+**Look**
+- Calm, paper-like: warm off-white and ink, one deep-green accent, soft gold highlights; warm charcoal dark mode. No ornament.
+- Latin: system font stack. Quran Arabic: Amiri Quran vs KFGQPC Uthmanic Hafs (QUL), chosen by screenshot comparison.
+  Hadith Arabic: Noto Naskh Arabic. Fonts self-hosted (offline), Arabic loaded only when shown.
+- Lucide SVG icons, no emoji. Transitions 150–200 ms, off under reduced motion.
+- 44px touch targets, visible focus, AA contrast in both themes, `lang="ar" dir="rtl"` on Arabic, grades labelled
+  in text (not colour alone), result count announced to screen readers.
+
+**Build**
+- Plain Svelte 5 components + CSS custom properties (tokens.css); no UI kit, no Tailwind. Small custom hash router.
+- Worker gains detail requests (ayah with context, surah, hadith with Arabic) so data stays off the main thread.
+- Before handing over: ui-ux-pro-max pre-delivery checklist, screenshots of both themes at 375px and desktop.
 
 ## Features for v1
 
@@ -216,7 +280,7 @@ quran-search/
 ## Milestones
 
 1. ✅ **Data pipeline** (2026-10-23): fetch + normalize + validate everything; sizes measured; licensing reviewed (confirmation from QUL still pending).
-2. **Search core:** worker, query parser, fuzzy mode, reference jumps, ranking tests against a fixed set of queries.
+2. ✅ **Search core** (2026-10-23): worker, query parser, fuzzy matching, reference jumps, ranking tests; plus a bare search page to try it.
 3. **UI shell:** search page, virtualized results, verse and hadith detail, surah reader, hash routing, dark mode.
 4. **PWA:** offline caching, installability, share target, per-book downloads, deploy to Pages.
 5. **Enrichment:** topics, similar ayahs, tafsir summary, aliases, transliteration search, source-finder mode.
