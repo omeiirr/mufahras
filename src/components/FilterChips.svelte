@@ -16,17 +16,26 @@
       <button type="button" role="radio" aria-checked={corpus === value} class:on={corpus === value} onclick={() => onchange({ corpus: value })}>{label}</button>
     {/each}
   </div>
-  <button type="button" class="toggle" class:on={sahih} aria-pressed={sahih} disabled={corpus === 'quran'} onclick={() => onchange({ sahih: !sahih })}>
-    Sahih hadith only
+  <button
+    type="button"
+    class="toggle"
+    class:on={sahih}
+    aria-pressed={sahih}
+    aria-label="Sahih hadith only"
+    disabled={corpus === 'quran'}
+    onclick={() => onchange({ sahih: !sahih })}
+  >
+    Sahih only
   </button>
 </div>
 
 <style>
+  /* Not a scroll container: a row that scrolled sideways also dragged vertically by the enlarged tap
+     areas. It fits at common phone widths and wraps on very narrow ones. */
   .chips {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--space-2);
-    overflow-x: auto;
-    scrollbar-width: none;
   }
   .group {
     display: flex;
@@ -37,7 +46,7 @@
   }
   button {
     min-height: 36px;
-    padding: 0 var(--space-3);
+    padding: 0 10px;
     border-radius: 99px;
     font-size: var(--text-sm);
     color: var(--ink-2);
