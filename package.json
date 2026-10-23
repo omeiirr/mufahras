@@ -2,6 +2,13 @@
   "name": "mufahras",
   "private": true,
   "version": "0.1.0",
+  "description": "Find any verse of the Quran or hadith of the six major collections as you type. Works offline.",
+  "license": "MIT",
+  "homepage": "https://omeiirr.github.io/mufahras/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/omeiirr/mufahras.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +18,12 @@
     "test": "vitest run",
     "data:fetch": "tsx scripts/fetch-hadith.ts",
     "data": "NODE_OPTIONS=--disable-warning=ExperimentalWarning tsx scripts/build-data.ts"
+  },
+  "dependencies": {
+    "@fontsource-variable/noto-naskh-arabic": "^5.3.0",
+    "@fontsource/scheherazade-new": "^5.3.0",
+    "@leeoniya/ufuzzy": "^1.0.19",
+    "@lucide/svelte": "^1.61.0"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
@@ -25,11 +38,5 @@
     "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.0.5",
     "workbox-window": "^7.4.1"
-  },
-  "dependencies": {
-    "@fontsource-variable/noto-naskh-arabic": "^5.3.0",
-    "@fontsource/scheherazade-new": "^5.3.0",
-    "@leeoniya/ufuzzy": "^1.0.19",
-    "@lucide/svelte": "^1.61.0"
   }
 }

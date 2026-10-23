@@ -114,6 +114,11 @@ any of them; may Allah reward them for making this knowledge open.
 
 Mufahras grew out of [quran-cli](https://github.com/omeiirr/quran-cli), a command-line version of the same idea.
 
+## License
+
+The code is under the [MIT License](LICENSE): use it, learn from it, build on it. The Quran and hadith data are not
+covered by it; they remain under their own terms, set out in [NOTICE](NOTICE).
+
 ## For developers
 
 It's a static web app: Svelte 5 and TypeScript, built with Vite. A build step turns the source data into compact

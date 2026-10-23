@@ -39,6 +39,7 @@ export default defineConfig({
         // App shell, fonts, icons, and the Quran itself, so a first visit is enough to work offline.
         // Hadith chunks are cached as the worker loads them (runtime rule below).
         globPatterns: ['**/*.{js,css,html,woff2,png}', 'data/quran.*.json', 'data/translit.*.json'],
+        globIgnores: ['og.png'], // link-preview card: only fetched by link scrapers
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
