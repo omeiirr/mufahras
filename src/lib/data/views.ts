@@ -16,7 +16,8 @@ export type DetailRequest =
   | { kind: 'daily'; date: string }
   /** Hadith of the day (Bukhari or Muslim), the same for everyone on a date. */
   | { kind: 'hadith-daily'; date: string }
-  | { kind: 'books' };
+  | { kind: 'books' }
+  | { kind: 'words'; surah: number; ayah: number };
 
 export interface AyahLine {
   ayah: number;
@@ -130,12 +131,18 @@ export interface GraphDetail {
   edges: [number, number, number][];
 }
 
+export interface WordsDetail {
+  kind: 'words';
+  /** One per QUL word of the ayah, in order. meaning is '' until QUL's word-by-word translation is added. */
+  words: { ar: string; translit: string; meaning: string }[];
+}
+
 export interface BooksDetail {
   kind: 'books';
   books: { id: HadithBookId; title: string; short: string; count: number; sections: { n: number; name: string; count: number }[] }[];
 }
 
-export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail | TopicDetail | SectionDetail | GraphDetail | BooksDetail;
+export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail | TopicDetail | SectionDetail | GraphDetail | BooksDetail | WordsDetail;
 
 /** Suggested browse links shown above results: a QUL topic, or a chapter (book) of a hadith collection. */
 export interface Chip {

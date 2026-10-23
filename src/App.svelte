@@ -197,7 +197,7 @@
     </section>
   {:else if path}
     <section class="detail overlay" aria-label="Selected result" transition:fly={{ x: 48, duration: reducedMotion ? 0 : 200, opacity: 0 }}>
-      <DetailPane {path} {client} showBack={true} onback={back} {hrefFor} onsearch={searchFor} />
+      <DetailPane {path} {client} showBack={true} onback={back} {hrefFor} onsearch={searchFor} onmenu={() => (menuOpen = true)} />
     </section>
   {/if}
 
@@ -213,6 +213,7 @@
         onback={back}
         onopen={(p) => navigate({ path: p })}
         onfocus={(ref) => navigate({ path: ref ? `graph/${ref}` : 'graph' }, { replace: true })}
+        onmenu={() => (menuOpen = true)}
       />
     {/await}
   {/if}

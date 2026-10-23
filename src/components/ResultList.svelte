@@ -2,6 +2,7 @@
   import BookMarked from '@lucide/svelte/icons/book-marked';
   import Tag from '@lucide/svelte/icons/tag';
   import type { PresentedHit, SearchResponse } from '../lib/search/types';
+  import { settings } from '../lib/store/settings.svelte';
   import GradeBadge from './GradeBadge.svelte';
   import Highlighted from './Highlighted.svelte';
 
@@ -50,7 +51,7 @@
   {/if}
 </p>
 
-{#if response.chips.length}
+{#if response.chips.length && !settings.sakinah}
   <ul class="chips" aria-label="Browse">
     {#each response.chips as chip (chip.path)}
       <li>

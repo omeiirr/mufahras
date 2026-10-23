@@ -9,6 +9,7 @@
   import Share2 from '@lucide/svelte/icons/share-2';
   import type { CardContent } from '../lib/card/render';
   import { bookmarks, isBookmarked, toggleBookmark, type Bookmark as BookmarkRecord } from '../lib/store/bookmarks.svelte';
+  import { settings } from '../lib/store/settings.svelte';
   import CardSheet from './CardSheet.svelte';
 
   let {
@@ -52,7 +53,9 @@
   {#if canShare}
     <button type="button" onclick={share}><Share2 size={18} aria-hidden="true" /> Share</button>
   {/if}
-  <button type="button" onclick={() => (cardOpen = true)}><ImageIcon size={18} aria-hidden="true" /> Image</button>
+  {#if !settings.sakinah}
+    <button type="button" onclick={() => (cardOpen = true)}><ImageIcon size={18} aria-hidden="true" /> Image</button>
+  {/if}
 </div>
 
 {#if cardOpen}<CardSheet content={card} onclose={() => (cardOpen = false)} />{/if}

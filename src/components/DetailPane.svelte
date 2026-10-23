@@ -1,5 +1,7 @@
 <script lang="ts">
   import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+  import MenuIcon from '@lucide/svelte/icons/menu';
+  import { settings } from '../lib/store/settings.svelte';
   import type { Detail } from '../lib/data/views';
   import { detailFor } from '../lib/router.svelte';
   import type { SearchClient } from '../lib/search/client';
@@ -21,6 +23,7 @@
     onback,
     hrefFor,
     onsearch,
+    onmenu,
   }: {
     path: string;
     client: SearchClient;
@@ -28,6 +31,8 @@
     onback: () => void;
     hrefFor: (path: string) => string;
     onsearch: (q: string) => void;
+    /** Phones: open the menu drawer from the reading screens too. */
+    onmenu?: () => void;
   } = $props();
 
   // Pages built from this device's own data (bookmarks, history) or static text; no worker request.
@@ -68,7 +73,7 @@
       if (d?.kind === 'hadith' && !d.ar && t.req.kind === 'hadith')
         client.detail({ ...t.req, arabic: true }).then((full) => current && full && (detail = full));
       // Verse: the text shows at once; tafsir, topics and similar ayahs follow when their chunks load.
-      if (d?.kind === 'ayah' && !d.extra && t.req.kind === 'ayah')
+      if (d?.kind === 'ayah' && !d.extra && t.req.kind === 'ayah' && !settings.sakinah)
         client.detail({ ...t.req, extra: true }).then((full) => current && full && (detail = full));
     });
     return () => (current = false);
@@ -84,6 +89,7 @@
     if (detail.kind === 'section') return `${detail.short} · ${detail.name}`;
     if (detail.kind === 'graph') return 'Similar verses';
     if (detail.kind === 'books') return 'Hadith collections';
+    if (detail.kind === 'words') return '';
     return `${detail.short} ${detail.number}`;
   });
 </script>
@@ -93,6 +99,9 @@
     <header class="top">
       <button type="button" class="back" onclick={onback} aria-label="Back to results"><ArrowLeft size={22} aria-hidden="true" /></button>
       <span class="title">{title}</span>
+      {#if onmenu}
+        <button type="button" class="back menu" onclick={onmenu} aria-label="Menu"><MenuIcon size={22} aria-hidden="true" /></button>
+      {/if}
     </header>
   {/if}
   <div class="scroll" bind:this={scroller}>
@@ -106,7 +115,7 @@
       {:else if missing}
         <p class="missing">This reference doesn't exist. <button type="button" onclick={onback}>Back to search</button></p>
       {:else if detail?.kind === 'ayah'}
-        <VerseView d={detail} {hrefFor} />
+        <VerseView d={detail} {hrefFor} {client} />
       {:else if detail?.kind === 'surah'}
         <SurahView d={detail} scrollTo={target?.scrollTo} {hrefFor} />
       {:else if detail?.kind === 'surahs'}
@@ -151,6 +160,10 @@
   }
   .back:hover {
     background: var(--surface-2);
+  }
+  .menu {
+    margin-left: auto;
+    flex: none;
   }
   .title {
     font-weight: 600;

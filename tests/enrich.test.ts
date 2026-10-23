@@ -118,3 +118,26 @@ describe.runIf(dataBuilt)('hadith of the day and collections index', () => {
     expect(d.books.every((b) => b.sections.reduce((n, s) => n + s.count, 0) === b.count)).toBe(true);
   });
 });
+
+describe.runIf(dataBuilt)('word by word', () => {
+  const engine = loadEngine();
+  const words = (surah: number, ayah: number) => {
+    const d = engine.detail({ kind: 'words', surah, ayah });
+    return d?.kind === 'words' ? d.words : [];
+  };
+
+  it('pairs each Arabic word with its transliteration', () => {
+    const w = words(1, 1);
+    expect(w.map((x) => x.translit)).toEqual(["bis'mi", 'l-lahi', 'l-raḥmāni', 'l-raḥīmi']);
+    expect(w[0]!.ar).toBe('بِسْمِ');
+    expect(words(2, 255)).toHaveLength(50);
+  });
+
+  it('has a transliteration for every word except four gaps in the source', () => {
+    const q = engine.detail({ kind: 'surahs' });
+    if (q?.kind !== 'surahs') throw new Error('no surahs');
+    const gaps: string[] = [];
+    for (const s of q.surahs) for (let a = 1; a <= s.count; a++) if (words(s.n, a).some((w) => !w.translit)) gaps.push(`${s.n}:${a}`);
+    expect(gaps).toEqual(['2:181', '8:6', '13:37', '36:52']);
+  });
+});

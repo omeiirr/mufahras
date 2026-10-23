@@ -539,6 +539,15 @@ const update = () => document.documentElement.style.setProperty('--kb', `${Math.
   menu's "Install app". iOS never fires it; the menu shows the Share → Add to Home Screen steps instead.
 - **Storage can be unavailable.** Private browsing can block IndexedDB and localStorage: every read and write
   is wrapped, settings fall back to defaults, and the bookmarks page says why it can't save.
+- **Sakinah mode is a setting, not a separate app.** Components check `settings.sakinah` and leave out the
+  daily cards, chips, graph, verse extras and picture cards; the verse screen also skips requesting the extras,
+  so their data isn't downloaded.
+- **Word by word loads on the first tap.** Each Arabic word is a button (read as plain text until tapped); the
+  `words` chunk (212 KB) is fetched only when one is. QUL's word-by-word transliteration lines up with our
+  words by QUL word number, except four gaps in the source (2:181, 8:6, 13:37, 36:52), which show "—".
+- **A second version of the same data must not reset the UI.** The verse arrives again with its extras a
+  moment after it opens; resetting the tapped word on every new `d` cleared it. Reset on a change of verse
+  (compare the reference), not of object.
 - **Export/import merges.** Importing keeps existing bookmarks and unions their tags; nothing is overwritten
   or lost by importing an older file.
 
@@ -590,9 +599,12 @@ const update = () => document.documentElement.style.setProperty('--kb', `${Math.
   5 s, right at Vitest's default limit; those tests set 30 s explicitly rather than flaking.
 - **Data integrity:** counts, footnote markers vs footnotes, tafsir groups, cross-references.
 - **Contrast** for every theme.
-- **Headless Chromium** (outside the test suite): screenshots of every screen at 375 px and desktop in each
-  theme, plus measurements (scroll width, element positions, scroll containers in the dock), and an offline
-  end-to-end run against the deployed site.
+- **Browser tests (Playwright, `npm run e2e`, in CI before every deploy):** every kind of screen at 360 px,
+  390 px and desktop must not overflow sideways, must fill the window exactly, and must have nothing scrollable
+  in the dock; the start screen scrolls with the search bar on screen; plus typo search, the share target,
+  Esc closing only the top layer, word by word, Sakinah mode, bookmarks, and a full offline run (download
+  everything, go offline, reload, search, open a hadith with its Arabic). These began as one-off scripts
+  around screenshots; making them assertions is what stops a layout bug from reaching a phone again.
 
 `it.todo` keeps known gaps visible (paraphrases that need search by meaning) instead of hiding them.
 

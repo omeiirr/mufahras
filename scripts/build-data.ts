@@ -14,6 +14,7 @@ import { HADITH_BOOKS } from '../src/lib/data/types.ts';
 import type {
   ChunkInfo,
   GraphChunk,
+  WordsChunk,
   HadithBookId,
   HadithArabicChunk,
   HadithChunk,
@@ -191,6 +192,24 @@ const translitWbw = perAyah('english-wbw-transliteration', Object.fromEntries(wb
 );
 
 const quran: QuranChunk = { surahs, ar, en, footnotes };
+
+// Word by word: QUL's word-level files share the uthmani word numbering (surah:ayah:word).
+function wordsPerAyah(src: Record<string, string>, name: string): string[][] {
+  const out = keys.map(() => [] as string[]);
+  for (const [loc, t] of Object.entries(src)) {
+    const [s, a, w] = loc.split(':').map(Number);
+    const i = indexOf.get(`${s}:${a}`);
+    if (i === undefined || !w) throw new Error(`${name}: bad location ${loc}`);
+    out[i]![w - 1] = String(t).trim();
+  }
+  return out.map((ws) => Array.from(ws, (t) => t ?? ''));
+}
+const wbwMeaningFile = readdirSync(QUL).find((f) => /wbw|word-by-word/i.test(f) && !/translit/i.test(f));
+const wordsChunk: WordsChunk = {
+  translit: wordsPerAyah(qulJson<Record<string, string>>('english-wbw-transliteration'), 'wbw transliteration'),
+  meaning: wbwMeaningFile ? wordsPerAyah(qulJson<Record<string, string>>(wbwMeaningFile), 'wbw translation') : null,
+};
+notes.push(wbwMeaningFile ? `words: meanings from ${wbwMeaningFile}` : 'words: no word-by-word translation in data-src/qul yet; transliteration only');
 const translitChunk: TranslitChunk = { simple: translit, wbw: translitWbw };
 
 const indopak: IndopakChunk = perAyah('indopak', qulJson<Record<string, { text: string }>>('indopak'), (v) => v.text);
@@ -479,6 +498,7 @@ emit('themes', themes, themes.length);
 emit('similar', similar, similarPairs);
 emit('mutashabihat', mutashabihat, Object.keys(phrases).length);
 emit('graph', graph, graph.edges.length);
+emit('words', wordsChunk, wordsChunk.translit.reduce((n, w) => n + w.length, 0));
 for (const [c, arabic] of hadithChunks) {
   emit(`hadith-${c.id}`, c, c.hadiths.length);
   emit(`hadith-${c.id}-ar`, arabic, arabic.length);

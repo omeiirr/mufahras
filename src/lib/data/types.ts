@@ -66,6 +66,15 @@ export interface Phrase {
 }
 
 /**
+ * Word by word, per ayah index and QUL word number - 1: transliteration, and the English meaning when
+ * QUL's word-by-word translation file is present (null otherwise). Loaded on the first word tapped.
+ */
+export interface WordsChunk {
+  translit: string[][];
+  meaning: string[][] | null;
+}
+
+/**
  * Similar-ayah graph with a layout computed at build time (d3-force), so the page draws at once.
  * nodes: [ayah index, x, y]; edges: [node a, node b, similarity score 50–100], each pair once.
  */

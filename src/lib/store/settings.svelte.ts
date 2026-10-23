@@ -9,13 +9,18 @@ export interface Settings {
   translit: boolean;
   /** Remember searches on this device (recent searches, history page). */
   history: boolean;
+  /**
+   * Sakinah mode: search and reading only. Hides the daily cards, recent searches, topic chips, the graph,
+   * verse extras (explanation, topics, similar verses, phrases) and picture cards; their data isn't fetched.
+   */
+  sakinah: boolean;
 }
 
 export const TEXT_SCALES = [0.9, 1, 1.12, 1.25] as const;
 export const ARABIC_SCALES = [0.85, 1, 1.2, 1.4] as const;
 
 const KEY = 'settings';
-const DEFAULTS: Settings = { textScale: 1, arabicScale: 1, translit: true, history: true };
+const DEFAULTS: Settings = { textScale: 1, arabicScale: 1, translit: true, history: true, sakinah: false };
 
 function load(): Settings {
   try {

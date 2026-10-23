@@ -12,6 +12,8 @@
 import uFuzzy from '@leeoniya/ufuzzy';
 import { BOOKS, formatHadithNumber } from '../data/books';
 import { HADITH_BOOKS } from '../data/types';
+import type { WordsChunk } from '../data/types';
+import { wordSpans } from '../text/quran-display';
 import type { GraphChunk, HadithArabicChunk, HadithBookId, HadithChunk, MutashabihatChunk, QuranChunk, SimilarChunk, TafsirChunk, Theme, Topic, TranslitChunk } from '../data/types';
 import type { AyahDetail, AyahLine, Chip, Detail, DetailRequest, HadithDetail, SectionDetail } from '../data/views';
 import { classifyGrade, gradeRank, summarizeGrades, type GradeClass } from '../hadith/grades';
@@ -509,6 +511,10 @@ export class SearchEngine {
   addGraph(c: GraphChunk): void {
     this.graph = c;
   }
+  addWords(c: WordsChunk): void {
+    this.words = c;
+  }
+  private words?: WordsChunk;
   private graph?: GraphChunk;
 
   private graphDetail(): Detail | null {
@@ -573,6 +579,16 @@ export class SearchEngine {
     if (req.kind === 'graph') return this.graphDetail();
     if (req.kind === 'hadith-daily') return this.dailyHadith(req.date);
     if (req.kind === 'books') return this.booksDetail();
+    if (req.kind === 'words') {
+      const s = q.surahs[req.surah - 1];
+      if (!s || !this.words || req.ayah < 1 || req.ayah > s.count) return null;
+      const i = s.start + req.ayah - 1;
+      const ar = q.ar[i]!;
+      return {
+        kind: 'words',
+        words: wordSpans(ar).map(([a, b], k) => ({ ar: ar.slice(a, b), translit: this.words!.translit[i]?.[k] ?? '', meaning: this.words!.meaning?.[i]?.[k] ?? '' })),
+      };
+    }
     if (req.kind === 'section') return this.sectionDetail(req.book, req.n);
     const s = q.surahs[req.surah - 1];
     if (!s) return null;

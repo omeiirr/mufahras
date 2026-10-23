@@ -32,7 +32,7 @@
   <p class="brand"><img src="icons/icon-192.png" alt="" width="32" height="32" /><span class="name">Mufahras</span> <span class="ar" lang="ar" dir="rtl">مُفَهْرَس</span></p>
   <h1>Find any verse or hadith</h1>
   <p class="lede">The Quran and the six major hadith collections, searchable as you type. Works offline once loaded.</p>
-  {#if settings.history && history.list.length}
+  {#if !settings.sakinah && settings.history && history.list.length}
     <div class="recent">
       <h2>Recent</h2>
       <ul>
@@ -40,8 +40,10 @@
       </ul>
     </div>
   {/if}
-  <DailyVerse {client} {hrefFor} />
-  <DailyHadith {client} {hrefFor} />
+  {#if !settings.sakinah}
+    <DailyVerse {client} {hrefFor} />
+    <DailyHadith {client} {hrefFor} />
+  {/if}
   <ul>
     {#each examples as [q, note] (q)}
       <li>
@@ -54,9 +56,9 @@
   </ul>
   <div class="ctas">
     <button type="button" class="browse" onclick={onbrowse}><BookOpen size={18} aria-hidden="true" /> Browse surahs</button>
-    <a class="graph" href={hrefFor('graph')}><Network size={18} aria-hidden="true" /> Similar verses graph</a>
+    {#if !settings.sakinah}<a class="graph" href={hrefFor('graph')}><Network size={18} aria-hidden="true" /> Similar verses graph</a>{/if}
   </div>
-  <OfflinePanel {client} {ready} />
+  {#if !settings.sakinah}<OfflinePanel {client} {ready} />{/if}
 </section>
 
 <style>

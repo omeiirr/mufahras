@@ -52,6 +52,16 @@
     <button type="button" class="icon" bind:this={closeButton} onclick={onclose} aria-label="Close menu"><X size={22} aria-hidden="true" /></button>
   </header>
 
+  <section class="sakinah" class:on={settings.sakinah}>
+    <label class="row toggle">
+      <span>
+        <strong>Sakinah mode</strong>
+        <small>Search and read, nothing else: no daily cards, suggestions, graph or extras.</small>
+      </span>
+      <input type="checkbox" checked={settings.sakinah} onchange={(e) => updateSettings({ sakinah: e.currentTarget.checked })} />
+    </label>
+  </section>
+
   <section>
     <h2>Library</h2>
     <ul class="links">
@@ -61,7 +71,9 @@
       {/if}
       <li><button type="button" onclick={() => go('surahs')}><BookOpen size={18} aria-hidden="true" /> Surahs</button></li>
       <li><button type="button" onclick={() => go('books')}><BookMarked size={18} aria-hidden="true" /> Hadith collections</button></li>
-      <li><button type="button" onclick={() => go('graph')}><Network size={18} aria-hidden="true" /> Similar verses graph</button></li>
+      {#if !settings.sakinah}
+        <li><button type="button" onclick={() => go('graph')}><Network size={18} aria-hidden="true" /> Similar verses graph</button></li>
+      {/if}
     </ul>
   </section>
 
@@ -150,7 +162,7 @@
   .scrim {
     position: fixed;
     inset: 0;
-    z-index: 30;
+    z-index: 30; /* above the graph page (20) */
     background: rgb(0 0 0 / 0.35);
   }
   .drawer {
@@ -293,6 +305,13 @@
     width: 22px;
     height: 22px;
     accent-color: var(--accent);
+  }
+  .sakinah.on {
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
+  }
+  .sakinah strong {
+    display: block;
   }
   .note {
     margin: var(--space-1) 0 0;

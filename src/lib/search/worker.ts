@@ -19,6 +19,7 @@ import {
   type Topic,
   type TranslitChunk,
   type GraphChunk,
+  type WordsChunk,
 } from '../data/types';
 import { SearchEngine } from './engine';
 import type { SearchOptions, SearchResponse } from './types';
@@ -93,6 +94,7 @@ async function load(name: string): Promise<void> {
   else if (name === 'similar') engine.addSimilar(data as SimilarChunk);
   else if (name === 'mutashabihat') engine.addMutashabihat(data as MutashabihatChunk);
   else if (name === 'graph') engine.addGraph(data as GraphChunk);
+  else if (name === 'words') engine.addWords(data as WordsChunk);
   else if (arBook) engine.addHadithArabic(arBook, data as HadithArabicChunk);
   else engine.addHadith(data as HadithChunk);
 
@@ -113,7 +115,7 @@ function runSearch(req: Extract<WorkerRequest, { type: 'search' }>): void {
 const EXTRA_CHUNKS = ['tafsir', 'themes', 'topics', 'similar', 'mutashabihat', 'graph'];
 
 /** Chunks needed for everything the app does today; Arabic hadith included. */
-const OFFLINE_CHUNKS = ['quran', 'translit', ...EXTRA_CHUNKS, ...HADITH_BOOKS.map((b) => `hadith-${b}`), ...HADITH_BOOKS.map((b) => `hadith-${b}-ar`)];
+const OFFLINE_CHUNKS = ['quran', 'translit', 'words', ...EXTRA_CHUNKS, ...HADITH_BOOKS.map((b) => `hadith-${b}`), ...HADITH_BOOKS.map((b) => `hadith-${b}-ar`)];
 // Runtime cache names, see vite.config.ts.
 const DATA_CACHE = 'mufahras-data';
 const MANIFEST_CACHE = 'mufahras-manifest';
@@ -214,6 +216,7 @@ async function detail(req: DetailRequest): Promise<Detail | null> {
   if (req.kind === 'ayah' || req.kind === 'daily') await ensure('translit');
   if (req.kind === 'topic') await ensure('topics');
   if (req.kind === 'graph') await ensure('graph');
+  if (req.kind === 'words') await ensure('words');
   if (req.kind === 'hadith-daily') await Promise.all([ensure('hadith-bukhari'), ensure('hadith-muslim')]);
   if (req.kind === 'books') await Promise.all(HADITH_BOOKS.map((b) => ensure(`hadith-${b}`)));
   if (req.kind === 'ayah' && req.extra) await Promise.all(EXTRA_CHUNKS.map(ensure));

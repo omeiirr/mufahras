@@ -9,5 +9,5 @@
     "resolveJsonModule": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": ["src/**/*", "scripts/**/*", "tests/**/*", "vite.config.ts"]
+  "include": ["src/**/*", "scripts/**/*", "tests/**/*", "e2e/**/*", "vite.config.ts", "playwright.config.ts"]
 }

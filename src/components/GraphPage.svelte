@@ -6,6 +6,7 @@
   import ArrowLeft from '@lucide/svelte/icons/arrow-left';
   import BookOpen from '@lucide/svelte/icons/book-open';
   import Maximize from '@lucide/svelte/icons/maximize';
+  import MenuIcon from '@lucide/svelte/icons/menu';
   import Minus from '@lucide/svelte/icons/minus';
   import Plus from '@lucide/svelte/icons/plus';
   import X from '@lucide/svelte/icons/x';
@@ -18,6 +19,7 @@
     onback,
     onopen,
     onfocus,
+    onmenu,
   }: {
     client: SearchClient;
     /** "2:255" to centre on that ayah, or null for the whole graph. */
@@ -25,6 +27,7 @@
     onback: () => void;
     onopen: (path: string) => void;
     onfocus: (ref: string | null) => void;
+    onmenu: () => void;
   } = $props();
 
   let graph = $state<GraphDetail | null>(null);
@@ -293,6 +296,7 @@
       <label class="visually-hidden" for="graph-go">Find an ayah in the graph</label>
       <input id="graph-go" bind:value={goTo} placeholder="Find 2:255" inputmode="numeric" autocomplete="off" aria-invalid={notFound} />
     </form>
+    <button type="button" class="icon" onclick={onmenu} aria-label="Menu"><MenuIcon size={22} aria-hidden="true" /></button>
   </header>
 
   <div class="legend" aria-label="Legend">

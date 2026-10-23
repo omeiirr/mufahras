@@ -335,6 +335,10 @@ quran-search/
    (direct sayings from Bukhari's and Muslim's reminder chapters, ~310 hadith); share as an image (square or
    story, light or dark, through the system share sheet or a download). The build places hadith that
    hadith-api left without a chapter by the chapters' number ranges (300 in Bukhari, 145 in Muslim).
+   Added after: **Sakinah mode** (menu toggle: search and reading only, no daily cards, suggestions, graph,
+   verse extras or picture cards), the **menu button on reading screens** on phones, **word by word** (tap a
+   word in a verse for its transliteration; meanings once QUL's word-by-word English translation is in
+   `data-src/qul/`), and **browser tests in CI** (Playwright: layout at three sizes, interactions, offline).
    **Still open:** the IndoPak script. Its text uses private-use glyphs (1,383 in 1,218 ayahs) that only QUL's
    IndoPak font draws; it needs that font (QUL account download).
 

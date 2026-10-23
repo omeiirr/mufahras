@@ -3,16 +3,58 @@
   import ChevronLeft from '@lucide/svelte/icons/chevron-left';
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import type { AyahDetail } from '../lib/data/views';
-  import { splitLastWord } from '../lib/text/quran-display';
+  import type { SearchClient } from '../lib/search/client';
+  import type { WordsDetail } from '../lib/data/views';
+  import { wordSpans } from '../lib/text/quran-display';
+  import WordCard from './WordCard.svelte';
   import { settings } from '../lib/store/settings.svelte';
   import { ayahMarker, placeName } from '../lib/ui/format';
   import Actions from './Actions.svelte';
   import VerseExtras from './VerseExtras.svelte';
 
-  let { d, hrefFor }: { d: AyahDetail; hrefFor: (path: string) => string } = $props();
+  let { d, hrefFor, client }: { d: AyahDetail; hrefFor: (path: string) => string; client: SearchClient } = $props();
+
+  // Word by word: tap a word; its data loads on the first tap.
+  const spans = $derived(wordSpans(d.ar));
+  let picked = $state<number | null>(null);
+  let words = $state<WordsDetail['words'] | null>(null);
+  const HINT_KEY = 'wbw-hint-seen';
+  let hint = $state((() => {
+    try {
+      return !localStorage.getItem(HINT_KEY);
+    } catch {
+      return true;
+    }
+  })());
+  // Reset when the verse changes. Not on every new `d`: the same verse arrives again with its extras a
+  // moment after it opens, and that must not clear a word just tapped.
+  let shownRef = '';
+  $effect(() => {
+    const ref = `${d.surah.n}:${d.ayah}`;
+    if (ref === shownRef) return;
+    shownRef = ref;
+    picked = null;
+    words = null;
+  });
+  function pick(k: number) {
+    if (k < 0 || k >= spans.length) return;
+    picked = k;
+    if (hint) {
+      hint = false;
+      try {
+        localStorage.setItem(HINT_KEY, '1');
+      } catch {
+        // storage blocked: the hint shows again next time
+      }
+    }
+    if (!words)
+      client.detail({ kind: 'words', surah: d.surah.n, ayah: d.ayah }).then((r) => {
+        if (r?.kind === 'words') words = r.words;
+      });
+  }
 
   const ref = $derived(`${d.surah.n}:${d.ayah}`);
-  const [head, last] = $derived(splitLastWord(d.ar));
+
   const plainEn = $derived(d.en.replace(/[\u00B9\u00B2\u00B3\u2070-\u2079]/g, ''));
   const bookmark = $derived({ path: ref, kind: 'ayah' as const, label: ref, sublabel: d.surah.nameSimple, text: plainEn.slice(0, 220) });
   const card = $derived({ ar: `${d.ar} ${ayahMarker(d.ayah)}`, arFont: 'quran' as const, en: plainEn, ref: `Quran ${ref}`, sub: `${d.surah.nameSimple} · ${d.surah.nameAr}` });
@@ -27,7 +69,7 @@
       <span class="ar-name" lang="ar" dir="rtl">{d.surah.nameAr}</span>
       <span>· {placeName(d.surah.place)}</span>
     </p>
-    {#if d.extra?.theme}
+    {#if d.extra?.theme && !settings.sakinah}
       <p class="theme">
         <a href={hrefFor(`surah/${d.surah.n}/${d.extra.theme.from}`)}>{d.extra.theme.text}</a>
         <span>· {d.extra.theme.from === d.extra.theme.to ? `${d.surah.n}:${d.extra.theme.from}` : `${d.surah.n}:${d.extra.theme.from}–${d.extra.theme.to}`}</span>
@@ -35,7 +77,23 @@
     {/if}
   </header>
 
-  <p class="quran" lang="ar" dir="rtl">{head}<span class="nowrap">{last} <span class="marker">{ayahMarker(d.ayah)}</span></span></p>
+  <p class="quran" lang="ar" dir="rtl">
+    {#each spans as [a, b], k (k)}
+      {#if k === spans.length - 1}
+        <span class="nowrap"
+          ><button type="button" class="w" class:sel={picked === k} onclick={() => pick(k)}>{d.ar.slice(a, b)}</button>
+          <span class="marker">{ayahMarker(d.ayah)}</span></span
+        >
+      {:else}
+        <button type="button" class="w" class:sel={picked === k} onclick={() => pick(k)}>{d.ar.slice(a, b)}</button>{' '}
+      {/if}
+    {/each}
+  </p>
+  {#if picked !== null}
+    <WordCard {words} index={picked} onpick={pick} onclose={() => (picked = null)} />
+  {:else if hint}
+    <p class="hint">Tap any word to see it word by word.</p>
+  {/if}
   {#if d.translit && settings.translit}<p class="translit">{d.translit}</p>{/if}
   <p class="en">{d.en}</p>
 
@@ -48,7 +106,9 @@
 
   <Actions text={copyText} title={`Quran ${ref}`} {bookmark} {card} />
 
-  {#if d.extra}
+  {#if settings.sakinah}
+    <!-- Sakinah mode: the verse and its translation only. -->
+  {:else if d.extra}
     <VerseExtras {d} extra={d.extra} {hrefFor} />
   {:else}
     <p class="loading-extra">Loading explanation, topics and similar verses…</p>
@@ -95,6 +155,25 @@
   }
   .marker {
     color: var(--accent);
+  }
+  /* Words are buttons, but read as plain text until tapped. */
+  .w {
+    font: inherit;
+    color: inherit;
+    padding: 0 1px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .w:hover {
+    background: var(--surface-2);
+  }
+  .w.sel {
+    background: color-mix(in srgb, var(--mark) 70%, transparent);
+  }
+  .hint {
+    margin: calc(-1 * var(--space-2)) 0 0;
+    font-size: var(--text-xs);
+    color: var(--ink-2);
   }
   .theme {
     margin: var(--space-2) 0 0;

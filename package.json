@@ -17,7 +17,8 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "data:fetch": "tsx scripts/fetch-hadith.ts",
-    "data": "NODE_OPTIONS=--disable-warning=ExperimentalWarning tsx scripts/build-data.ts"
+    "data": "NODE_OPTIONS=--disable-warning=ExperimentalWarning tsx scripts/build-data.ts",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@fontsource-variable/noto-naskh-arabic": "^5.3.0",
@@ -26,6 +27,7 @@
     "@lucide/svelte": "^1.61.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tsconfig/svelte": "^5.0.8",
     "@types/d3-force": "^3.0.10",

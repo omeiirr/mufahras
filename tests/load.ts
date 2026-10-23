@@ -22,6 +22,7 @@ export function loadEngine(): SearchEngine {
   engine.addSimilar(loadChunk('similar'));
   engine.addMutashabihat(loadChunk('mutashabihat'));
   engine.addGraph(loadChunk('graph'));
+  engine.addWords(loadChunk('words'));
   for (const book of HADITH_BOOKS) {
     engine.addHadith(loadChunk(`hadith-${book}`));
     engine.addHadithArabic(book, loadChunk(`hadith-${book}-ar`));
