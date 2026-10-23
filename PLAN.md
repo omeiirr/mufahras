@@ -342,6 +342,14 @@ Each milestone ends with something usable on a phone.
 - **iOS PWA limits:** no share target on iOS, and storage can be evicted. Request persistent storage and keep
   the export/import of bookmarks on the future list.
 
+## Similar-verses graph (added 2026-10-24)
+
+`#/graph` and `#/graph/<s>:<a>`: every ayah with similar verses as a node (1,644), every QUL similar pair as an
+edge (2,336), coloured Meccan/Medinan with colours validated by the dataviz skill's script for each theme.
+Layout computed at build time with d3-force; the page is a lazily loaded canvas with pan, zoom, pinch,
+nearest-node hover, and a card listing the selected verse's links as text. Linked from the start screen and
+from each verse's "Similar verses" section. Details and lessons: `docs/TECHNICAL.md` §13.
+
 ## Possible future features
 
 - **"Report a mistake" link** on each verse and hadith screen: opens the repo's "Mistake in a text" issue form

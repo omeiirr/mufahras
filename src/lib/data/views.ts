@@ -10,6 +10,7 @@ export type DetailRequest =
   | { kind: 'hadith'; book: HadithBookId; number: number; arabic?: boolean }
   | { kind: 'surahs' }
   | { kind: 'topic'; id: number }
+  | { kind: 'graph' }
   | { kind: 'section'; book: HadithBookId; n: number }
   /** Verse of the day for a local date (YYYY-MM-DD); the same verse for everyone on that date. */
   | { kind: 'daily'; date: string };
@@ -109,7 +110,24 @@ export interface HadithDetail {
   next?: number;
 }
 
-export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail | TopicDetail | SectionDetail;
+export interface GraphNode extends AyahRef {
+  name: string;
+  place: 'makkah' | 'madinah';
+  /** Translation, shortened for tooltips. */
+  en: string;
+  x: number;
+  y: number;
+  degree: number;
+}
+
+export interface GraphDetail {
+  kind: 'graph';
+  nodes: GraphNode[];
+  /** [node a, node b, similarity score 50–100]. */
+  edges: [number, number, number][];
+}
+
+export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail | TopicDetail | SectionDetail | GraphDetail;
 
 /** Suggested browse links shown above results: a QUL topic, or a chapter (book) of a hadith collection. */
 export interface Chip {

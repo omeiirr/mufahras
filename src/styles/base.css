@@ -58,12 +58,15 @@ mark {
   -webkit-box-decoration-break: clone;
 }
 
-/* At Arabic line heights a background block turns into a slab; colour the words instead. */
+/* Arabic matches: a softer, rounded version of the same highlight. Colour alone (the first attempt) was
+   too close to the ink in Sepia; a full-strength block looked heavy at Arabic line heights. */
 .quran mark,
 .arabic mark {
-  background: none;
-  color: var(--accent);
-  padding: 0;
+  background: var(--mark);
+  background: color-mix(in srgb, var(--mark) 70%, transparent);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 0 3px;
 }
 
 /* Arabic text. Quran text uses the Quran font; hadith and other Arabic the Naskh font. */

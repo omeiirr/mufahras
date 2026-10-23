@@ -65,6 +65,15 @@ export interface Phrase {
   occurrences: Record<number, [number, number][]>;
 }
 
+/**
+ * Similar-ayah graph with a layout computed at build time (d3-force), so the page draws at once.
+ * nodes: [ayah index, x, y]; edges: [node a, node b, similarity score 50–100], each pair once.
+ */
+export interface GraphChunk {
+  nodes: [number, number, number][];
+  edges: [number, number, number][];
+}
+
 export interface MutashabihatChunk {
   phrases: Record<number, Phrase>;
   byAyah: Record<number, number[]>;

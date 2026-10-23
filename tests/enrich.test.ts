@@ -63,3 +63,25 @@ describe.runIf(dataBuilt)('topic and chapter pages, chips', () => {
     expect(engine.search('2:255').chips).toEqual([]);
   });
 });
+
+describe.runIf(dataBuilt)('similar-verse graph', () => {
+  const engine = loadEngine();
+  const g = engine.detail({ kind: 'graph' });
+
+  it('has every similar pair once, between real nodes, with a layout', () => {
+    expect(g?.kind).toBe('graph');
+    if (g?.kind !== 'graph') return;
+    const seen = new Set<string>();
+    for (const [a, b, score] of g.edges) {
+      expect(a).not.toBe(b);
+      expect(g.nodes[a] && g.nodes[b]).toBeTruthy();
+      expect(score).toBeGreaterThanOrEqual(50);
+      const key = [a, b].sort((p, q) => p - q).join('-');
+      expect(seen.has(key), key).toBe(false);
+      seen.add(key);
+    }
+    expect(g.nodes.every((n) => Number.isFinite(n.x) && Number.isFinite(n.y))).toBe(true);
+    const node = g.nodes.find((n) => n.surah === 1 && n.ayah === 2)!;
+    expect(node.degree).toBeGreaterThan(5);
+  });
+});

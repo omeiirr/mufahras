@@ -77,8 +77,13 @@
   const shown = $derived(hasQuery && response ? response : null);
   const allHits = $derived<PresentedHit[]>(shown ? [...shown.pinned, ...shown.hits] : []);
 
+  // The graph is its own full-window page (lazy-loaded), not a detail in the pane.
+  const graphRoute = $derived(route.path === 'graph' || route.path.startsWith('graph/'));
+  const graphFocus = $derived(route.path.startsWith('graph/') ? route.path.slice('graph/'.length) : null);
+  const path = $derived(graphRoute ? '' : route.path);
+
   // Desktop shows the first result until one is chosen; with no query, the surah index.
-  const detailPath = $derived(route.path || (wide ? (allHits[0]?.path ?? (hasQuery ? '' : 'surahs')) : ''));
+  const detailPath = $derived(path || (wide ? (allHits[0]?.path ?? (hasQuery ? '' : 'surahs')) : ''));
   const selectedKey = $derived(allHits.find((h) => h.path === detailPath)?.key ?? null);
 
   function hrefFor(path: string): string {
@@ -175,10 +180,22 @@
         <p class="note placeholder">Nothing selected.</p>
       {/if}
     </section>
-  {:else if route.path}
+  {:else if path}
     <section class="detail overlay" aria-label="Selected result" transition:fly={{ x: 48, duration: reducedMotion ? 0 : 200, opacity: 0 }}>
-      <DetailPane path={route.path} {client} showBack={true} onback={back} {hrefFor} />
+      <DetailPane {path} {client} showBack={true} onback={back} {hrefFor} />
     </section>
+  {/if}
+
+  {#if graphRoute}
+    {#await import('./components/GraphPage.svelte') then { default: GraphPage }}
+      <GraphPage
+        {client}
+        focus={graphFocus}
+        onback={back}
+        onopen={(p) => navigate({ path: p })}
+        onfocus={(ref) => navigate({ path: ref ? `graph/${ref}` : 'graph' }, { replace: true })}
+      />
+    {/await}
   {/if}
 </div>
 

@@ -51,6 +51,9 @@
   --daif: #a8271f;
   --other: #5c5850;
   --shadow: 0 1px 2px rgb(31 29 26 / 0.06), 0 4px 16px rgb(31 29 26 / 0.06);
+  /* Graph: Meccan / Medinan (dataviz validator: passes on this background) */
+  --viz-meccan: #2a78d6;
+  --viz-medinan: #eb6834;
 }
 
 /* Sepia: tan paper, brown ink. Lower glare than white for long reading. */
@@ -72,6 +75,9 @@
   --daif: #9b2a1f;
   --other: #66543c;
   --shadow: 0 1px 2px rgb(59 47 32 / 0.08), 0 4px 16px rgb(59 47 32 / 0.08);
+  /* Graph: Meccan / Medinan (dataviz validator: passes on this background) */
+  --viz-meccan: #2a78d6;
+  --viz-medinan: #d95926;
 }
 
 /* Dusk: warm charcoal, lifted off black; softened text. */
@@ -93,6 +99,9 @@
   --daif: #e9a39a;
   --other: #a9a194;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.2), 0 4px 16px rgb(0 0 0 / 0.18);
+  /* Graph: Meccan / Medinan (dataviz validator: passes on this background) */
+  --viz-meccan: #3987e5;
+  --viz-medinan: #d95926;
 }
 
 /* Night: cool slate blue-grey; softened text. */
@@ -114,6 +123,9 @@
   --daif: #eba59e;
   --other: #9ba6b4;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.22), 0 4px 16px rgb(0 0 0 / 0.2);
+  /* Graph: Meccan / Medinan (dataviz validator: passes on this background) */
+  --viz-meccan: #3987e5;
+  --viz-medinan: #d95926;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -59,6 +59,7 @@
     if (detail.kind === 'surahs') return 'Surahs';
     if (detail.kind === 'topic') return detail.name;
     if (detail.kind === 'section') return `${detail.short} · ${detail.name}`;
+    if (detail.kind === 'graph') return 'Similar verses';
     return `${detail.short} ${detail.number}`;
   });
 </script>

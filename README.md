@@ -132,8 +132,9 @@ npm test             # search ranking, data integrity and colour-contrast checks
 npm run build        # data + app into dist/
 ```
 
-Every push to `main` is built, checked and deployed to GitHub Pages. [PLAN.md](PLAN.md) has the design, the data
-pipeline, the search engine and what's coming next, including topics, tafsir, similar verses, and finding the source
+Every push to `main` is built, checked and deployed to GitHub Pages. [docs/TECHNICAL.md](docs/TECHNICAL.md) has
+what we learned building it (normalizing Arabic, making fuzzy search fast, offline pitfalls, typesetting the
+Quran), with code. [PLAN.md](PLAN.md) has the design, the data pipeline, the search engine and what's coming next, including topics, tafsir, similar verses, and finding the source
 of a whole pasted quote.
 
 ---

@@ -11,7 +11,7 @@
 // candidates, minus a penalty for long texts.
 import uFuzzy from '@leeoniya/ufuzzy';
 import { BOOKS, formatHadithNumber } from '../data/books';
-import type { HadithArabicChunk, HadithBookId, HadithChunk, MutashabihatChunk, QuranChunk, SimilarChunk, TafsirChunk, Theme, Topic, TranslitChunk } from '../data/types';
+import type { GraphChunk, HadithArabicChunk, HadithBookId, HadithChunk, MutashabihatChunk, QuranChunk, SimilarChunk, TafsirChunk, Theme, Topic, TranslitChunk } from '../data/types';
 import type { AyahDetail, AyahLine, Chip, Detail, DetailRequest, HadithDetail, SectionDetail } from '../data/views';
 import { classifyGrade, gradeRank, summarizeGrades, type GradeClass } from '../hadith/grades';
 import { foldTranslit, hasArabic, normalizeArabic, normalizeLatin, stripTanzilMarks } from '../text/normalize';
@@ -486,6 +486,30 @@ export class SearchEngine {
   addMutashabihat(c: MutashabihatChunk): void {
     this.extra!.phrases = c;
   }
+  addGraph(c: GraphChunk): void {
+    this.graph = c;
+  }
+  private graph?: GraphChunk;
+
+  private graphDetail(): Detail | null {
+    const g = this.graph;
+    const q = this.quran;
+    if (!g || !q) return null;
+    const degree = new Array<number>(g.nodes.length).fill(0);
+    for (const [a, b] of g.edges) {
+      degree[a]!++;
+      degree[b]!++;
+    }
+    return {
+      kind: 'graph',
+      nodes: g.nodes.map(([i, x, y], k) => {
+        const s = q.surahs.find((sur) => i >= sur.start && i < sur.start + sur.count)!;
+        const en = q.en[i]!.replace(/[\u00B9\u00B2\u00B3\u2070-\u2079]/g, '');
+        return { surah: s.n, ayah: i - s.start + 1, name: s.nameSimple, place: s.place, en: en.length > 160 ? `${en.slice(0, en.lastIndexOf(' ', 150))}…` : en, x, y, degree: degree[k]! };
+      }),
+      edges: g.edges,
+    };
+  }
 
   /** Topic and hadith-chapter names matching a short query, as browse chips. */
   private chips(query: string, opts: SearchOptions): Chip[] {
@@ -526,6 +550,7 @@ export class SearchEngine {
     }
     if (req.kind === 'hadith') return this.hadithDetail(req.book, req.number);
     if (req.kind === 'topic') return this.extra?.topicDetail(req.id) ?? null;
+    if (req.kind === 'graph') return this.graphDetail();
     if (req.kind === 'section') return this.sectionDetail(req.book, req.n);
     const s = q.surahs[req.surah - 1];
     if (!s) return null;

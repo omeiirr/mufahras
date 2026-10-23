@@ -1,6 +1,7 @@
 <script lang="ts">
   // Shown before typing: examples that demonstrate what the search understands.
   import BookOpen from '@lucide/svelte/icons/book-open';
+  import Network from '@lucide/svelte/icons/network';
   import type { SearchClient } from '../lib/search/client';
   import DailyVerse from './DailyVerse.svelte';
   import OfflinePanel from './OfflinePanel.svelte';
@@ -39,7 +40,10 @@
       </li>
     {/each}
   </ul>
-  <button type="button" class="browse" onclick={onbrowse}><BookOpen size={18} aria-hidden="true" /> Browse surahs</button>
+  <div class="ctas">
+    <button type="button" class="browse" onclick={onbrowse}><BookOpen size={18} aria-hidden="true" /> Browse surahs</button>
+    <a class="graph" href={hrefFor('graph')}><Network size={18} aria-hidden="true" /> Similar verses graph</a>
+  </div>
   <OfflinePanel {client} {ready} />
 </section>
 
@@ -105,6 +109,23 @@
     color: var(--ink-2);
     font-size: var(--text-sm);
     text-align: right;
+  }
+  .ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .graph {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--tap);
+    padding: 0 var(--space-4);
+    border-radius: 99px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
   }
   .browse {
     display: inline-flex;

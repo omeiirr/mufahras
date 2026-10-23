@@ -1,6 +1,7 @@
 <script lang="ts">
   // Below a verse: Al-Mukhtasar explanation, topics, similar ayahs and repeated phrases (mutashabihat).
   import ChevronDown from '@lucide/svelte/icons/chevron-down';
+  import Network from '@lucide/svelte/icons/network';
   import Tag from '@lucide/svelte/icons/tag';
   import type { AyahDetail, AyahExtra } from '../lib/data/views';
   import Highlighted from './Highlighted.svelte';
@@ -42,7 +43,10 @@
 
 {#if extra.similar.length}
   <section aria-labelledby="similar-h">
-    <h2 id="similar-h">Similar verses <span class="sub">shared wording highlighted</span></h2>
+    <h2 id="similar-h">
+      Similar verses <span class="sub">shared wording highlighted</span>
+      <a class="graph-link" href={hrefFor(`graph/${d.surah.n}:${d.ayah}`)}><Network size={14} aria-hidden="true" /> See in graph</a>
+    </h2>
     <ul class="list">
       {#each extra.similar as s (`${s.surah}:${s.ayah}`)}
         <li>
@@ -100,6 +104,16 @@
   .sub {
     color: var(--ink-2);
     font-weight: 400;
+  }
+  .graph-link {
+    float: right;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 600;
+    text-decoration: none;
   }
   .tafsir {
     margin: 0;

@@ -7,11 +7,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { gzipSync } from 'node:zlib';
+import { forceCollide, forceLink, forceManyBody, forceSimulation, forceX, forceY, type SimulationNodeDatum } from 'd3-force';
 import { unzipSync } from 'fflate';
 import { classifyGrade } from '../src/lib/hadith/grades.ts';
 import { HADITH_BOOKS } from '../src/lib/data/types.ts';
 import type {
   ChunkInfo,
+  GraphChunk,
   HadithBookId,
   HadithArabicChunk,
   HadithChunk,
@@ -329,6 +331,42 @@ for (const [k, ids] of Object.entries(phraseVerses)) {
 if (danglingPhraseRefs) notes.push(`mutashabihat: dropped ${danglingPhraseRefs} ayah→phrase references to phrases not in phrases.json`);
 const mutashabihat: MutashabihatChunk = { phrases, byAyah };
 
+// ---------------------------------------------------------------- similar-ayah graph
+
+// Each pair once (QUL lists most both ways), keeping the higher score.
+const pairScore = new Map<string, number>();
+for (const [a, list] of Object.entries(similar))
+  for (const [b, score] of list) {
+    const [x, y] = [Number(a), b].sort((p, q) => p - q);
+    const key = `${x}-${y}`;
+    pairScore.set(key, Math.max(pairScore.get(key) ?? 0, score));
+  }
+const graphAyahs = [...new Set([...pairScore.keys()].flatMap((k) => k.split('-').map(Number)))].sort((a, b) => a - b);
+const nodeOf = new Map(graphAyahs.map((i, k) => [i, k]));
+type LayoutNode = SimulationNodeDatum & { degree: number };
+const layoutNodes: LayoutNode[] = graphAyahs.map(() => ({ degree: 0 }));
+const layoutLinks = [...pairScore].map(([k, score]) => {
+  const [a, b] = k.split('-').map((x) => nodeOf.get(Number(x))!);
+  layoutNodes[a!]!.degree++;
+  layoutNodes[b!]!.degree++;
+  return { source: a!, target: b!, score };
+});
+// Deterministic: d3-force seeds its own random source. Weak centering keeps the many small clusters
+// together instead of drifting apart; stronger pairs sit closer.
+const sim = forceSimulation(layoutNodes)
+  .force('link', forceLink(layoutLinks).distance((l: { score: number }) => 34 - l.score / 5).strength(0.6))
+  .force('charge', forceManyBody().strength(-14).distanceMax(220))
+  .force('collide', forceCollide<LayoutNode>((n) => 3 + Math.sqrt(n.degree) * 1.5))
+  .force('x', forceX(0).strength(0.035))
+  .force('y', forceY(0).strength(0.035))
+  .stop();
+for (let t = 0; t < 600; t++) sim.tick();
+const graph: GraphChunk = {
+  nodes: graphAyahs.map((i, k) => [i, Math.round(layoutNodes[k]!.x! * 10) / 10, Math.round(layoutNodes[k]!.y! * 10) / 10]),
+  edges: layoutLinks.map((l) => [(l.source as unknown as LayoutNode & { index: number }).index, (l.target as unknown as LayoutNode & { index: number }).index, l.score]),
+};
+notes.push(`graph: ${graph.nodes.length} ayahs, ${graph.edges.length} similar pairs`);
+
 // ---------------------------------------------------------------- hadith
 
 type ApiHadith = { hadithnumber: number; text: string; grades: { name: string; grade: string }[]; reference: { book: number; hadith: number } };
@@ -421,6 +459,7 @@ emit('topics', topicsOut, topicsOut.length);
 emit('themes', themes, themes.length);
 emit('similar', similar, similarPairs);
 emit('mutashabihat', mutashabihat, Object.keys(phrases).length);
+emit('graph', graph, graph.edges.length);
 for (const [c, arabic] of hadithChunks) {
   emit(`hadith-${c.id}`, c, c.hadiths.length);
   emit(`hadith-${c.id}-ar`, arabic, arabic.length);
