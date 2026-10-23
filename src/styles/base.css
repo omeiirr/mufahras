@@ -10,6 +10,12 @@ body {
   height: 100%;
 }
 
+/* The canvas behind the app: without this, any gap (e.g. 100dvh rounding short of an installed
+   app's window) shows the browser's default white. */
+html {
+  background: var(--bg);
+}
+
 body {
   background: var(--bg);
   color: var(--ink);

@@ -184,7 +184,8 @@
 
 <style>
   .app {
-    height: 100dvh;
+    /* Fill the window exactly. 100% follows html/body; 100dvh can come out a pixel short in installed apps. */
+    height: 100%;
     display: grid;
     /* minmax(0, …): a long unbroken line must wrap, not widen the column past the screen. */
     grid-template-columns: minmax(0, 1fr);
