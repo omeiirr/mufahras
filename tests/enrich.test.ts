@@ -141,3 +141,26 @@ describe.runIf(dataBuilt)('word by word', () => {
     expect(gaps).toEqual(['2:181', '8:6', '13:37', '36:52']);
   });
 });
+
+describe.runIf(dataBuilt)('word-by-word meanings', () => {
+  const engine = loadEngine();
+  const words = (surah: number, ayah: number) => {
+    const d = engine.detail({ kind: 'words', surah, ayah });
+    return d?.kind === 'words' ? d.words : [];
+  };
+
+  it('gives each word its English meaning, as plain text', () => {
+    expect(words(1, 1).map((w) => w.meaning)).toEqual(['In (the) name', '(of) Allah', 'the Most Gracious', 'the Most Merciful']);
+    expect(words(2, 255)[6]!.meaning).toBe('the Sustainer of all that exists');
+    const q = engine.detail({ kind: 'surahs' });
+    if (q?.kind !== 'surahs') throw new Error('no surahs');
+    let missing = 0;
+    for (const s of q.surahs)
+      for (let a = 1; a <= s.count; a++)
+        for (const w of words(s.n, a)) {
+          if (!w.meaning) missing++;
+          expect(w.meaning).not.toMatch(/<[a-z]/i);
+        }
+    expect(missing).toBeLessThan(10);
+  });
+});

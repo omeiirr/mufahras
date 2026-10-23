@@ -25,6 +25,7 @@ test('tapping a word shows it word by word', async ({ page }) => {
   await openApp(page, '#/1:1?q=x');
   await page.locator('.verse .quran button.w').first().click();
   await expect(page.getByRole('region', { name: 'Word by word' })).toContainText("bis'mi");
+  await expect(page.getByRole('region', { name: 'Word by word' })).toContainText('In (the) name');
   await page.getByRole('button', { name: 'Next word' }).click();
   await expect(page.getByRole('region', { name: 'Word by word' })).toContainText('l-lahi');
 });

@@ -204,10 +204,11 @@ function wordsPerAyah(src: Record<string, string>, name: string): string[][] {
   }
   return out.map((ws) => Array.from(ws, (t) => t ?? ''));
 }
-const wbwMeaningFile = readdirSync(QUL).find((f) => /wbw|word-by-word/i.test(f) && !/translit/i.test(f));
+// The plain file, by name: QUL also offers a "colored" variant with part-of-speech HTML in each entry.
+const wbwMeaningFile = readdirSync(QUL).find((f) => f.startsWith('english-wbw-translation'));
 const wordsChunk: WordsChunk = {
   translit: wordsPerAyah(qulJson<Record<string, string>>('english-wbw-transliteration'), 'wbw transliteration'),
-  meaning: wbwMeaningFile ? wordsPerAyah(qulJson<Record<string, string>>(wbwMeaningFile), 'wbw translation') : null,
+  meaning: wbwMeaningFile ? wordsPerAyah(qulJson<Record<string, string>>('english-wbw-translation'), 'wbw translation') : null,
 };
 notes.push(wbwMeaningFile ? `words: meanings from ${wbwMeaningFile}` : 'words: no word-by-word translation in data-src/qul yet; transliteration only');
 const translitChunk: TranslitChunk = { simple: translit, wbw: translitWbw };
@@ -508,6 +509,7 @@ const sources: Source[] = [
   { name: 'Quran text (Uthmani, IndoPak)', provider: 'Tanzil, via QUL', url: 'https://qul.tarteel.ai/resources/quran-script', license: 'Tanzil terms: verbatim, with attribution to tanzil.net', version: 'QUL download' },
   { name: 'Saheeh International translation', provider: 'Dar Abul-Qasim, via QUL', url: 'https://qul.tarteel.ai/resources/translation', license: '© Saheeh International', version: 'QUL download' },
   { name: 'Transliteration', provider: 'QUL', url: 'https://qul.tarteel.ai/resources/transliteration', license: 'Not stated', version: 'QUL download' },
+  { name: 'Word-by-word English meanings', provider: 'QUL', url: 'https://qul.tarteel.ai/resources/translation', license: 'Not stated', version: 'QUL download' },
   { name: 'Abridged Explanation of the Quran (Al-Mukhtasar)', provider: 'Tafsir Center for Quranic Studies, via QUL', url: 'https://qul.tarteel.ai/resources/tafsir', license: 'Not stated', version: 'QUL download' },
   { name: 'Topics, ayah themes, similar ayahs, mutashabihat', provider: 'QUL', url: 'https://qul.tarteel.ai/resources', license: 'Not stated', version: 'QUL download' },
   { name: 'Hadith (six books, English + Arabic, gradings)', provider: 'fawazahmed0/hadith-api', url: 'https://github.com/fawazahmed0/hadith-api', license: 'Unlicense', version: HADITH_API_COMMIT },

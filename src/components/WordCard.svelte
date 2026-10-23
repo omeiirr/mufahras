@@ -20,7 +20,7 @@
       <p class="ar" lang="ar" dir="rtl">{w.ar}</p>
       <div class="info">
         <p class="translit">{w.translit || '—'}</p>
-        {#if w.meaning}<p class="meaning">{w.meaning}</p>{:else if !hasMeanings}<p class="sub">Meanings are on their way; transliteration for now.</p>{/if}
+        {#if w.meaning}<p class="meaning">{w.meaning}</p>{:else if !hasMeanings}<p class="sub">Transliteration only; meanings aren't available.</p>{/if}
       </div>
     </div>
     <div class="nav">

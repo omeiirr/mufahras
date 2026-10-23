@@ -543,7 +543,10 @@ const update = () => document.documentElement.style.setProperty('--kb', `${Math.
   daily cards, chips, graph, verse extras and picture cards; the verse screen also skips requesting the extras,
   so their data isn't downloaded.
 - **Word by word loads on the first tap.** Each Arabic word is a button (read as plain text until tapped); the
-  `words` chunk (212 KB) is fetched only when one is. QUL's word-by-word transliteration lines up with our
+  `words` chunk (486 KB with meanings) is fetched only when one is. QUL has two English word-by-word files:
+  use the plain one (`english-wbw-translation`); the "colored" one wraps every word in part-of-speech HTML
+  (`<span class='v'>Say</span>`), and it sorts first, so pick the file by name. On touch screens `:hover`
+  sticks after a tap: put hover tints inside `@media (hover: hover)`. QUL's word-by-word transliteration lines up with our
   words by QUL word number, except four gaps in the source (2:181, 8:6, 13:37, 36:52), which show "—".
 - **A second version of the same data must not reset the UI.** The verse arrives again with its extras a
   moment after it opens; resetting the tapped word on every new `d` cleared it. Reset on a change of verse

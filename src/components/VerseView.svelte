@@ -164,8 +164,11 @@
     border-radius: 6px;
     cursor: pointer;
   }
-  .w:hover {
-    background: var(--surface-2);
+  /* Touch screens keep :hover after a tap; only real pointers get the hover tint. */
+  @media (hover: hover) {
+    .w:hover {
+      background: var(--surface-2);
+    }
   }
   .w.sel {
     background: color-mix(in srgb, var(--mark) 70%, transparent);

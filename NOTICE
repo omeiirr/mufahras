@@ -5,5 +5,5 @@ Mufahras bundles data from the following sources. The app is not affiliated with
 Quran text (Uthmani and IndoPak scripts): Tanzil Project, https://tanzil.net. The text is shown verbatim.
 Translation: Saheeh International, © Dar Abul-Qasim.
 Tafsir: "Abridged Explanation of the Quran" (Al-Mukhtasar fi Tafsir al-Quran), Tafsir Center for Quranic Studies.
-Transliteration, topics, ayah themes, similar ayahs, mutashabihat and surah metadata: Quranic Universal Library (QUL), https://qul.tarteel.ai.
+Word-by-word English meanings, transliteration, topics, ayah themes, similar ayahs, mutashabihat and surah metadata: Quranic Universal Library (QUL), https://qul.tarteel.ai.
 Hadith (Sahih al-Bukhari, Sahih Muslim, Sunan Abu Dawud, Jami at-Tirmidhi, Sunan an-Nasa'i, Sunan Ibn Majah), English and Arabic text and gradings: fawazahmed0/hadith-api, https://github.com/fawazahmed0/hadith-api (Unlicense).
