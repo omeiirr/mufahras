@@ -19,6 +19,7 @@ Contents
 10. [UI: Svelte 5, routing and layout](#10-ui-svelte-5-routing-and-layout)
 11. [Typesetting Arabic](#11-typesetting-arabic)
 12. [Themes, colour and contrast](#12-themes-colour-and-contrast)
+12b. [Personal features: bookmarks, history, cards, the drawer](#12b-personal-features-bookmarks-history-cards-the-drawer)
 13. [The similar-verses graph](#13-the-similar-verses-graph)
 14. [Icons and link previews](#14-icons-and-link-previews)
 15. [Testing](#15-testing)
@@ -48,7 +49,8 @@ the searching.
 
 - **Stack:** Svelte 5 + TypeScript + Vite, [uFuzzy](https://github.com/leeoniya/uFuzzy) for fuzzy matching,
   vite-plugin-pwa (Workbox) for offline, d3-force at build time only. No UI kit, no CSS framework.
-- **Main bundle:** ~37 KB gzipped. The graph page (~4 KB) is a separate chunk loaded when opened.
+- **Main bundle:** ~46 KB gzipped (37 KB before bookmarks, cards and the menu). The graph page (~4 KB) is a
+  separate chunk loaded when opened.
 - **Data:** content-hashed JSON chunks (Quran 586 KB gzipped; each hadith book 0.4–1.1 MB English and
   0.6–1.3 MB Arabic; ~12 MB everything).
 
@@ -524,7 +526,21 @@ const update = () => document.documentElement.style.setProperty('--kb', `${Math.
   the chapters of manners, faith, knowledge, supplication and softening of hearts gave a pool that reads well.
   The same happened with the verse of the day (§7).
 - **Text size as a root font scale** (`html { font-size: calc(100% * var(--text-scale)) }`) scales every rem,
-  like the system setting; Arabic sizes multiply by a separate `--arabic-scale`.
+  like the system setting; Arabic sizes multiply by a separate `--arabic-scale`. Components that set an Arabic
+  size directly must multiply by it too, or they silently ignore the setting (five did).
+- **Check the source's own metadata before inventing a fix.** The hadith wrongly shown as Bukhari's
+  "Introduction" were fixable from hadith-api's `section_details` (each chapter's number range), already in
+  the file we downloaded.
+- **Pin what a curated list depends on, and test it by name.** The hadith of the day uses section numbers from
+  the pinned hadith-api commit; a test checks those numbers still name the intended chapters, so a data update
+  can't quietly switch "Good Manners" for "Funerals".
+- **The install button needs an event captured early.** Chrome fires `beforeinstallprompt` once, possibly
+  before the app mounts, so `install.svelte.ts` is imported first in `main.ts` and keeps the event for the
+  menu's "Install app". iOS never fires it; the menu shows the Share → Add to Home Screen steps instead.
+- **Storage can be unavailable.** Private browsing can block IndexedDB and localStorage: every read and write
+  is wrapped, settings fall back to defaults, and the bookmarks page says why it can't save.
+- **Export/import merges.** Importing keeps existing bookmarks and unions their tags; nothing is overwritten
+  or lost by importing an older file.
 
 ## 13. The similar-verses graph
 
@@ -562,13 +578,16 @@ const update = () => document.documentElement.style.setProperty('--kb', `${Math.
 
 ## 15. Testing
 
-388 tests in Vitest, most of them against the real generated data:
+392 tests in Vitest (2 of them `it.todo`), most of them against the real generated data:
 
 - **Ranking:** a fixed list of queries with the result that must appear in the top N (typos, abbreviations,
   transliteration, Arabic without diacritics, other translations). The test prints every query's time.
 - **Equivalence across the corpus:** the mapped normalizer equals the regex one for all ~93,000 texts; the word
   splitter matches QUL's word count for all 6,236 ayahs. These found the five odd QUL words in §2.
-- **Every alias's target contains its text.**
+- **Every alias's target contains its text**; the hadith of the day's chapters still have the intended names;
+  hadith the source left without a chapter are placed in the right one (Bukhari 299 in Menstrual Periods).
+- **Full-corpus tests need a longer timeout.** Walking ~40,000 Arabic texts character by character takes about
+  5 s, right at Vitest's default limit; those tests set 30 s explicitly rather than flaking.
 - **Data integrity:** counts, footnote markers vs footnotes, tafsir groups, cross-references.
 - **Contrast** for every theme.
 - **Headless Chromium** (outside the test suite): screenshots of every screen at 375 px and desktop in each
@@ -589,5 +608,8 @@ const update = () => document.documentElement.style.setProperty('--kb', `${Math.
 - Highest contrast isn't most readable; aim for comfortable and test the floor.
 - Quotes come from somewhere contiguous: score closeness, not just overlap.
 - Keep known gaps as visible todo tests.
+- Curate anything shown "of the day": a hash over everything that fits picks rulings and stories out of context.
+- The topmost layer owns the keyboard: a sheet's Esc must not also reach the page behind it.
+- Look in the source's metadata before writing a workaround for its data.
 - Read data that comes from crowd-sourced or converted sources defensively: QUL and hadith-api are excellent,
   and they still had fragments, mis-filed topics, split words and empty records.
