@@ -1,41 +1,136 @@
-# Mufahras مُفَهْرَس
+<div align="center">
 
-Find any verse of the Quran or hadith of the six major collections as you type. Fuzzy matching, typo-tolerant,
-works offline, installable on phone and desktop.
+<img src="public/icons/icon-512.png" alt="Mufahras logo: a golden meem inside an eight-pointed star" width="120" />
 
-**Use it:** https://omeiirr.github.io/mufahras/
+# Mufahras · مُفَهْرَس
 
-The name means "indexed", after *al-Muʿjam al-Mufahras*, the classic Quran concordance for finding a verse from a
-word you remember.
+**Find any verse of the Quran, or any hadith of the six major collections, as you type.**
 
-## What it searches
+[**Open Mufahras →**](https://omeiirr.github.io/mufahras/)
 
-- **Quran:** Uthmani Arabic, Saheeh International translation with footnotes, transliteration
-- **Hadith:** Sahih al-Bukhari, Sahih Muslim, Sunan Abi Dawud, Jamiʿ at-Tirmidhi, Sunan an-Nasaʾi, Sunan Ibn Majah,
-  in English and Arabic, with each scholar's grading
+</div>
 
-Try `patience prayer`, `patiance` (typos are fine), `ptnc pryr` (abbreviations), `2:255`, `baqarah 255`,
-`bukhari 1`, `qul huwa allahu ahad`, or Arabic without diacritics: `الحمد لله رب العالمين`.
+---
 
-On Android, install it and it appears in the system Share menu: share any text to find its source.
+*Assalamu alaikum wa rahmatullah.*
 
-## Development
+Have you ever remembered a few words of a verse, or half of a hadith someone quoted, and wanted to find where it
+comes from? Mufahras is for that moment. Type what you remember, misspelled or out of order, in English, Arabic or
+transliteration, and the source appears before you've finished typing.
+
+It's free, it has no accounts and no ads, and once it's loaded it works without an internet connection.
+
+<p align="center">
+  <img src="docs/screenshots/phone-start.png" alt="Start screen with the verse of the day" width="230" />
+  <img src="docs/screenshots/phone-search.png" alt="Searching for 'patience prayer'" width="230" />
+  <img src="docs/screenshots/phone-verse-night.png" alt="Ayat al-Kursi in the Night theme" width="230" />
+</p>
+
+## Why "Mufahras"?
+
+*Mufahras* (مُفَهْرَس) means **indexed**. For generations, the way to find a verse from a word you remembered was
+*al-Muʿjam al-Mufahras li-Alfāẓ al-Qurʾān al-Karīm*, the concordance compiled by Muḥammad Fuʾād ʿAbd al-Bāqī, which
+lists every word of the Quran with the verses it appears in. Its sister work, *al-Muʿjam al-Mufahras li-Alfāẓ
+al-Ḥadīth al-Nabawī*, did the same for hadith.
+
+This app tries to carry that tradition into your pocket: an index of the Quran and the Sunnah that answers as you type.
+
+The icon is the letter *mīm*, the first letter of the name, in gold inside an eight-pointed star, a shape found
+across Islamic art and in the ۞ that marks the divisions of the mushaf.
+
+## What you can search
+
+- **The Quran:** the Uthmani Arabic text, the Saheeh International translation with its footnotes, and transliteration
+- **Hadith:** Sahih al-Bukhari, Sahih Muslim, Sunan Abi Dawud, Jamiʿ at-Tirmidhi, Sunan an-Nasaʾi and Sunan Ibn Majah,
+  in English and Arabic, with each scholar's grading shown beside the hadith
+
+Some things to try:
+
+| Type | To find |
+|---|---|
+| `patience prayer` | verses and hadith with both words, in any order |
+| `patiance` | typos are fine |
+| `ptnc pryr` | abbreviations work too, like fzf |
+| `2:255` · `baqarah 255` · `surah yaseen` | a verse or surah directly |
+| `bukhari 1` · `tirmidhi 2516` | a hadith by its number |
+| `qul huwa allahu ahad` | transliteration |
+| `الحمد لله رب العالمين` | Arabic, with or without diacritics |
+
+Every verse opens with its neighbours, a link to read the whole surah, and a button to copy or share it with its
+reference. Every hadith shows its book and chapter, the Arabic, and each grading by name. There's a verse of the day
+on the start screen, four colour themes (Paper, Sepia, Dusk and Night), and on a desktop the results and the text sit
+side by side, with the keyboard doing the rest (`/` to search, ↑ ↓ to move, Enter to open).
+
+<p align="center">
+  <img src="docs/screenshots/desktop.png" alt="Desktop: Arabic search results on the left, Al-Fatihah 1:2 on the right" width="760" />
+</p>
+
+## Fast
+
+Everything happens on your device. The texts are indexed in the background as soon as they arrive, and each search
+runs against that index in a few milliseconds on a laptop, quick enough to update on every keystroke on a phone. There's no
+server to wait for, because there is no server.
+
+The Quran (about 1 MB) is searchable within a moment of opening the app; the six hadith collections follow in the
+background while you type.
+
+## Works offline
+
+After your first visit, Mufahras keeps the app, the Quran and the English hadith on your device, so it opens and
+searches without a connection: on a flight, underground, or anywhere the signal drops. One tap on the start screen
+stores the rest (mainly the Arabic of the hadith, about 5 MB), and then everything works offline.
+
+Install it like an app: **Add to Home Screen** in Safari on iPhone, **Install app** in Chrome on Android, or the install
+icon in the address bar on desktop. On Android, an installed Mufahras appears in the **Share** menu: select a quote
+in any app, share it to Mufahras, and it searches for the source.
+
+## Private
+
+- **No accounts, no sign-in, no tracking, no analytics, no ads, no cookies.**
+- **Your searches never leave your device.** They're answered by code running on your phone or computer, not sent
+  anywhere. The same goes for anything you share into the app.
+- **Only two things are stored, both on your device:** the texts kept for offline use, and the colour theme you picked.
+- The app is plain files served by GitHub Pages. Like any website, GitHub sees the ordinary request for those files
+  ([GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement));
+  nothing else is sent, and fonts and icons come from the app itself, not from third parties.
+
+## A note on the texts
+
+The translation and the hadith gradings come from the sources credited below and are shown as they are. A
+translation conveys meaning but is not the Quran itself, and gradings are the judgements of the scholars named beside
+them. For anything you act on, please confirm with people of knowledge.
+
+If you spot a mistake in a text, a reference that points to the wrong place, or a search that should have found
+something and didn't, please [open an issue](https://github.com/omeiirr/mufahras/issues). It helps everyone who uses it.
+
+## Credits
+
+The Quran data comes from the [Quranic Universal Library (QUL)](https://qul.tarteel.ai) by Tarteel, with the Quran
+text prepared by [Tanzil](https://tanzil.net), the translation by Saheeh International, and the transliteration from
+QUL. The hadith collections come from [fawazahmed0/hadith-api](https://github.com/fawazahmed0/hadith-api). The Quran
+is set in [Scheherazade New](https://software.sil.org/scheherazade/) by SIL, the hadith Arabic in Noto Naskh Arabic,
+and the logo's mīm in Amiri. Full details are in [NOTICE](NOTICE). Mufahras is not affiliated with or endorsed by
+any of them; may Allah reward them for making this knowledge open.
+
+Mufahras grew out of [quran-cli](https://github.com/omeiirr/quran-cli), a command-line version of the same idea.
+
+## For developers
+
+It's a static web app: Svelte 5 and TypeScript, built with Vite. A build step turns the source data into compact
+JSON chunks; a Web Worker indexes them and runs every search, so the page itself only draws.
 
 ```sh
 npm install
 npm run data:fetch   # download the hadith collections (pinned version)
 npm run dev          # http://localhost:5173 (add -- --host to open it from a phone)
-npm test             # search ranking, data integrity, contrast checks
-npm run build        # builds data + app into dist/
+npm test             # search ranking, data integrity and colour-contrast checks
+npm run build        # data + app into dist/
 ```
 
-Everything runs in the browser: the data is split into JSON chunks, indexed in a Web Worker and searched there.
-See [PLAN.md](PLAN.md) for the design, data pipeline and roadmap.
+Every push to `main` is built, checked and deployed to GitHub Pages. [PLAN.md](PLAN.md) has the design, the data
+pipeline, the search engine and what's coming next, including topics, tafsir, similar verses, and finding the source
+of a whole pasted quote.
 
-Successor to [quran-cli](https://github.com/omeiirr/quran-cli).
+---
 
-## Data and credits
-
-Quran data from the [Quranic Universal Library (QUL)](https://qul.tarteel.ai) by Tarteel (Quran text prepared by
-[Tanzil](https://tanzil.net)); hadith from [fawazahmed0/hadith-api](https://github.com/fawazahmed0/hadith-api).
-Full credits in [NOTICE](NOTICE). Not affiliated with or endorsed by any of these sources.
+<p align="center"><em>If it benefits you, please remember us in your duʿāʾ.</em></p>
