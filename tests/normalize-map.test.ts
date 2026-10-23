@@ -31,10 +31,10 @@ describe('normalize-map', () => {
 
     it(`latin (${latin.length} texts)`, () => {
       expect(latin.filter((t) => normalizeLatinMapped(t).text !== normalizeLatin(t)).slice(0, 3)).toEqual([]);
-    });
+    }, 30_000);
     it(`arabic, both dagger readings (${arabic.length} texts)`, () => {
       expect(arabic.filter((t) => normalizeArabicMapped(t).text !== normalizeArabic(t)).slice(0, 3)).toEqual([]);
       expect(quran.ar.filter((t) => normalizeArabicMapped(t, true).text !== normalizeArabic(t, true)).slice(0, 3)).toEqual([]);
-    });
+    }, 30_000); // walks ~40,000 texts character by character
   });
 });

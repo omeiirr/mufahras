@@ -192,11 +192,11 @@
     overflow: hidden;
   }
   .text.quran {
-    font-size: 1.5rem;
+    font-size: calc(1.5rem * var(--arabic-scale, 1));
     line-height: 2;
   }
   .text.arabic {
-    font-size: 1.2rem;
+    font-size: calc(1.2rem * var(--arabic-scale, 1));
   }
   .translit {
     font-style: italic;

@@ -94,6 +94,7 @@ export function detailFor(path: string): { req: DetailRequest; scrollTo?: number
   if (m) return { req: { kind: 'surah', surah: Number(m[1]) }, scrollTo: m[2] ? Number(m[2]) : undefined };
   if (path === 'surahs') return { req: { kind: 'surahs' } };
   if (path === 'graph' || path.startsWith('graph/')) return { req: { kind: 'graph' } };
+  if (path === 'books') return { req: { kind: 'books' } };
   m = /^topic\/(\d+)$/.exec(path);
   if (m) return { req: { kind: 'topic', id: Number(m[1]) } };
   m = /^(\w+)\/book\/(\d+)$/.exec(path);

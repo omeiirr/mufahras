@@ -51,7 +51,7 @@
   .name-ar {
     margin: 0;
     font-family: var(--font-quran);
-    font-size: 2.25rem;
+    font-size: calc(2.25rem * var(--arabic-scale, 1));
     line-height: 1.6;
     color: var(--accent);
   }

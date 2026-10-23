@@ -13,8 +13,9 @@
   --text-md: 1rem;
   --text-lg: 1.125rem;
   --text-xl: 1.375rem;
-  --quran-size: 1.75rem;
-  --arabic-size: 1.375rem;
+  /* Arabic sizes follow the Arabic size setting (settings.svelte.ts). */
+  --quran-size: calc(1.75rem * var(--arabic-scale, 1));
+  --arabic-size: calc(1.375rem * var(--arabic-scale, 1));
 
   --space-1: 4px;
   --space-2: 8px;

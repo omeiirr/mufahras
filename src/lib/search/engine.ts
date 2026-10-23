@@ -11,6 +11,7 @@
 // candidates, minus a penalty for long texts.
 import uFuzzy from '@leeoniya/ufuzzy';
 import { BOOKS, formatHadithNumber } from '../data/books';
+import { HADITH_BOOKS } from '../data/types';
 import type { GraphChunk, HadithArabicChunk, HadithBookId, HadithChunk, MutashabihatChunk, QuranChunk, SimilarChunk, TafsirChunk, Theme, Topic, TranslitChunk } from '../data/types';
 import type { AyahDetail, AyahLine, Chip, Detail, DetailRequest, HadithDetail, SectionDetail } from '../data/views';
 import { classifyGrade, gradeRank, summarizeGrades, type GradeClass } from '../hadith/grades';
@@ -87,6 +88,25 @@ interface HadithBookState {
 /** "The Book of Fasting" / "Chapters On Fasting" -> "fasting", for matching chapter names to queries. */
 const sectionKey = (name: string) => normalizeLatin(name).replace(/^(the )?(book|chapters?) (of|on|about) (the )?/, '');
 const CHIP_TOPICS = 2;
+
+/**
+ * Hadith of the day: the text opens with the narrator and goes straight to the Prophet's ﷺ words
+ * ("Narrated Abu Huraira: The Prophet (ﷺ) said, …", "Abu Huraira reported Allah's Messenger (ﷺ) as saying: …").
+ * Stories, questions and rulings tied to an occasion read badly on a card out of context.
+ */
+const SAYING_OPENING =
+  /^(Narrated [^:]{2,60}:\s*|[^:.]{2,60} (reported|narrated) (that )?)(the Prophet|Allah's Messenger|the Messenger of Allah)\s*\(ﷺ\)\s*(said|as saying)[,:]?\s*["“]?/i;
+const NOT_STANDALONE = /(similar|same as|another chain|this hadith|transmitted|with a slight variation)/i;
+/**
+ * Chapters daily reminders come from (hadith-api section numbers at the pinned commit; names checked in
+ * tests/enrich.test.ts). Bukhari: Belief, Knowledge, Virtues of the Qur'an, Good Manners (Al-Adab),
+ * Invocations, To make the Heart Tender (Ar-Riqaq), Oneness of Allah. Muslim: Faith, Manners and Etiquette,
+ * Virtue and Good Manners, Knowledge, Remembrance and Supplication, Repentance, Zuhd and Softening of Hearts.
+ */
+export const DAILY_HADITH_SECTIONS: Partial<Record<HadithBookId, number[]>> = {
+  bukhari: [2, 3, 66, 78, 80, 81, 97],
+  muslim: [1, 38, 45, 47, 48, 50, 55],
+};
 const CHIP_SECTIONS = 2;
 
 export class SearchEngine {
@@ -551,6 +571,8 @@ export class SearchEngine {
     if (req.kind === 'hadith') return this.hadithDetail(req.book, req.number);
     if (req.kind === 'topic') return this.extra?.topicDetail(req.id) ?? null;
     if (req.kind === 'graph') return this.graphDetail();
+    if (req.kind === 'hadith-daily') return this.dailyHadith(req.date);
+    if (req.kind === 'books') return this.booksDetail();
     if (req.kind === 'section') return this.sectionDetail(req.book, req.n);
     const s = q.surahs[req.surah - 1];
     if (!s) return null;
@@ -603,6 +625,55 @@ export class SearchEngine {
   private ayahLine(i: number, ayah: number): AyahLine {
     const q = this.quran!;
     return { ayah, ar: q.ar[i]!, en: q.en[i]!, footnotes: q.footnotes[i] ?? [] };
+  }
+
+  private dailyHadithPool?: [HadithBookId, number][];
+
+
+  /**
+   * Hadith of the day: from Bukhari and Muslim (sahih by consensus), of a length that fits a card, quoting
+   * the Prophet ﷺ, and not one of the "this hadith has been narrated through another chain" entries that
+   * only make sense next to the one before. A fixed hash of the date picks one.
+   */
+  private dailyHadith(date: string): HadithDetail | null {
+    if (!this.dailyHadithPool) {
+      this.dailyHadithPool = [];
+      for (const id of ['bukhari', 'muslim'] as const) {
+        const b = this.books.get(id);
+        if (!b) return null;
+        const sections = new Set(DAILY_HADITH_SECTIONS[id]);
+        b.chunk.hadiths.forEach(([number, section, en]) => {
+          if (sections.has(section) && en.length >= 90 && en.length <= 380 && SAYING_OPENING.test(en) && !NOT_STANDALONE.test(en))
+            this.dailyHadithPool!.push([id, number]);
+        });
+      }
+    }
+    if (!this.dailyHadithPool.length) return null;
+    let h = 0x811c9dc5;
+    for (let k = 0; k < date.length; k++) h = Math.imul(h ^ date.charCodeAt(k), 0x01000193) >>> 0;
+    const [book, number] = this.dailyHadithPool[h % this.dailyHadithPool.length]!;
+    return this.hadithDetail(book, number);
+  }
+
+  private booksDetail(): Detail {
+    return {
+      kind: 'books',
+      books: HADITH_BOOKS.flatMap((id) => {
+        const b = this.books.get(id);
+        if (!b) return [];
+        return [
+          {
+            id,
+            title: BOOKS[id].title,
+            short: BOOKS[id].short,
+            count: b.chunk.hadiths.length,
+            sections: [...b.sectionRows]
+              .sort((x, y) => x[0] - y[0])
+              .map(([n, rows]) => ({ n, name: b.chunk.sections[n] ?? '', count: rows.length })),
+          },
+        ];
+      }),
+    };
   }
 
   private sectionDetail(book: HadithBookId, n: number): SectionDetail | null {

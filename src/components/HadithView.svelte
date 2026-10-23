@@ -9,6 +9,9 @@
 
   const ref = $derived(`${d.title} ${d.number}`);
   const copyText = $derived(`${d.en}\n\n— ${ref}`);
+  const bookmark = $derived({ path: `${d.book}/${d.number}`, kind: 'hadith' as const, label: `${d.short} ${d.number}`, sublabel: d.section.name, text: d.en.slice(0, 220) });
+  // Cards carry the English; a hadith's Arabic includes its whole chain of narrators, too long for an image.
+  const card = $derived({ ar: '', arFont: 'arabic' as const, en: d.en, ref, sub: d.section.name });
 </script>
 
 <article class="hadith">
@@ -47,7 +50,7 @@
     <p class="note">Every hadith in {d.title} is considered sahih; the collection has no per-hadith gradings.</p>
   {/if}
 
-  <Actions text={copyText} title={ref} />
+  <Actions text={copyText} title={ref} {bookmark} {card} />
 
   <nav class="pager" aria-label="Neighbouring hadith">
     {#if d.prev !== undefined}<a href={hrefFor(`${d.book}/${d.prev}`)}><ChevronLeft size={18} aria-hidden="true" /> {d.short} {d.prev}</a>{:else}<span></span>{/if}

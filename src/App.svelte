@@ -9,7 +9,9 @@
   import FilterChips from './components/FilterChips.svelte';
   import ResultList from './components/ResultList.svelte';
   import SearchBar from './components/SearchBar.svelte';
-  import ThemeMenu from './components/ThemeMenu.svelte';
+  import MenuIcon from '@lucide/svelte/icons/menu';
+  import Menu from './components/Menu.svelte';
+  import { recordSearch } from './lib/store/history.svelte';
   import { back, navigate, route, type Corpus } from './lib/router.svelte';
   import { SearchClient } from './lib/search/client';
   import type { PresentedHit, SearchResponse } from './lib/search/types';
@@ -91,8 +93,17 @@
     return `#/${path}${params}`;
   }
 
+  let menuOpen = $state(false);
+
   function open(hit: PresentedHit): void {
+    recordSearch(route.q);
     navigate({ path: hit.path });
+  }
+
+  /** Run a search from history or elsewhere: back to the results with this query. */
+  function searchFor(q: string): void {
+    query = q;
+    navigate({ path: '', q });
   }
 
   function onFilter(patch: { corpus?: Corpus; sahih?: boolean }): void {
@@ -121,6 +132,8 @@
   }
 
   function onWindowKey(e: KeyboardEvent): void {
+    // An open drawer or sheet handles its own keys (Esc closes it, and must not also navigate back).
+    if (document.querySelector('[data-modal]')) return;
     const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
     if ((e.key === '/' && !typing) || (e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey))) {
       e.preventDefault();
@@ -142,8 +155,10 @@
   <section class="results" aria-label="Search">
     <div class="dock">
       <div class="row">
+        <button type="button" class="menu-button" onclick={() => (menuOpen = true)} aria-label="Menu" aria-expanded={menuOpen}>
+          <MenuIcon size={22} aria-hidden="true" />
+        </button>
         <FilterChips corpus={route.corpus} sahih={route.sahih} onchange={onFilter} />
-        <ThemeMenu />
       </div>
       <SearchBar bind:value={query} bind:input onkeydown={onInputKey} />
     </div>
@@ -175,15 +190,19 @@
   {#if wide}
     <section class="detail" aria-label="Selected result">
       {#if detailPath}
-        <DetailPane path={detailPath} {client} showBack={false} onback={() => navigate({ path: '' }, { replace: true })} {hrefFor} />
+        <DetailPane path={detailPath} {client} showBack={false} onback={() => navigate({ path: '' }, { replace: true })} {hrefFor} onsearch={searchFor} />
       {:else}
         <p class="note placeholder">Nothing selected.</p>
       {/if}
     </section>
   {:else if path}
     <section class="detail overlay" aria-label="Selected result" transition:fly={{ x: 48, duration: reducedMotion ? 0 : 200, opacity: 0 }}>
-      <DetailPane {path} {client} showBack={true} onback={back} {hrefFor} />
+      <DetailPane {path} {client} showBack={true} onback={back} {hrefFor} onsearch={searchFor} />
     </section>
+  {/if}
+
+  {#if menuOpen}
+    <Menu {client} ready={status.ready} onclose={() => (menuOpen = false)} onnavigate={(p) => navigate({ path: p })} />
   {/if}
 
   {#if graphRoute}
@@ -230,11 +249,23 @@
   .row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
+    gap: var(--space-1);
   }
-  .row > :global(:first-child) {
+  .row > :global(.chips) {
     min-width: 0;
+    flex: 1;
+  }
+  .menu-button {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--tap);
+    height: var(--tap);
+    border-radius: 50%;
+    color: var(--ink);
+  }
+  .menu-button:hover {
+    background: var(--surface-2);
   }
   .scroll {
     flex: 1;

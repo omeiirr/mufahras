@@ -56,10 +56,12 @@ Some things to try:
 | `qul huwa allahu ahad` | transliteration |
 | `الحمد لله رب العالمين` | Arabic, with or without diacritics |
 
-Every verse opens with its neighbours, a link to read the whole surah, and a button to copy or share it with its
-reference. Every hadith shows its book and chapter, the Arabic, and each grading by name. There's a verse of the day
-on the start screen, four colour themes (Paper, Sepia, Dusk and Night), and on a desktop the results and the text sit
-side by side, with the keyboard doing the rest (`/` to search, ↑ ↓ to move, Enter to open).
+Every verse opens with its neighbours, its explanation (Al-Mukhtasar), its topics, similar verses and repeated
+phrases, and a link to read the whole surah. Every hadith shows its book and chapter, the Arabic, and each grading by
+name. Save anything to your bookmarks with tags, or share it as text or as an image. The start screen has a verse
+and a hadith of the day and your recent searches; the menu has the surahs, the hadith collections chapter by chapter,
+a graph of similar verses, four colour themes (Paper, Sepia, Dusk and Night) and text sizes. On a desktop the results
+and the text sit side by side, with the keyboard doing the rest (`/` to search, ↑ ↓ to move, Enter to open).
 
 <p align="center">
   <img src="docs/screenshots/desktop.png" alt="Desktop: Arabic search results on the left, Al-Fatihah 1:2 on the right" width="760" />
@@ -89,7 +91,8 @@ in any app, share it to Mufahras, and it searches for the source.
 - **No accounts, no sign-in, no tracking, no analytics, no ads, no cookies.**
 - **Your searches never leave your device.** They're answered by code running on your phone or computer, not sent
   anywhere. The same goes for anything you share into the app.
-- **Only two things are stored, both on your device:** the texts kept for offline use, and the colour theme you picked.
+- **Everything stored stays on your device:** the texts kept for offline use, your settings, your bookmarks, and
+  your recent searches (which you can turn off or clear from the menu).
 - The app is plain files served by GitHub Pages. Like any website, GitHub sees the ordinary request for those files
   ([GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement));
   nothing else is sent, and fonts and icons come from the app itself, not from third parties.

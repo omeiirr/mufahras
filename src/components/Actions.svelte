@@ -1,13 +1,27 @@
 <script lang="ts">
-  // Copy and share for a verse or hadith. Share uses the system sheet where available.
+  // Copy, share, save (bookmark) and share-as-image for a verse or hadith.
+  // Share uses the system sheet where available.
+  import Bookmark from '@lucide/svelte/icons/bookmark';
+  import BookmarkCheck from '@lucide/svelte/icons/bookmark-check';
   import Check from '@lucide/svelte/icons/check';
   import Copy from '@lucide/svelte/icons/copy';
+  import ImageIcon from '@lucide/svelte/icons/image';
   import Share2 from '@lucide/svelte/icons/share-2';
+  import type { CardContent } from '../lib/card/render';
+  import { bookmarks, isBookmarked, toggleBookmark, type Bookmark as BookmarkRecord } from '../lib/store/bookmarks.svelte';
+  import CardSheet from './CardSheet.svelte';
 
-  let { text, title }: { text: string; title: string } = $props();
+  let {
+    text,
+    title,
+    bookmark,
+    card,
+  }: { text: string; title: string; bookmark: Omit<BookmarkRecord, 'tags' | 'created'>; card: CardContent } = $props();
 
   let copied = $state(false);
+  let cardOpen = $state(false);
   const canShare = typeof navigator !== 'undefined' && 'share' in navigator;
+  const saved = $derived(bookmarks.list.length >= 0 && isBookmarked(bookmark.path));
 
   async function copy() {
     try {
@@ -29,13 +43,19 @@
 </script>
 
 <div class="actions">
+  <button type="button" onclick={() => toggleBookmark(bookmark)} aria-pressed={saved} class:on={saved}>
+    {#if saved}<BookmarkCheck size={18} aria-hidden="true" /> Saved{:else}<Bookmark size={18} aria-hidden="true" /> Save{/if}
+  </button>
   <button type="button" onclick={copy} aria-live="polite">
     {#if copied}<Check size={18} aria-hidden="true" /> Copied{:else}<Copy size={18} aria-hidden="true" /> Copy{/if}
   </button>
   {#if canShare}
     <button type="button" onclick={share}><Share2 size={18} aria-hidden="true" /> Share</button>
   {/if}
+  <button type="button" onclick={() => (cardOpen = true)}><ImageIcon size={18} aria-hidden="true" /> Image</button>
 </div>
+
+{#if cardOpen}<CardSheet content={card} onclose={() => (cardOpen = false)} />{/if}
 
 <style>
   .actions {
@@ -60,5 +80,11 @@
   }
   button:active {
     background: var(--line);
+  }
+  button.on {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
   }
 </style>

@@ -3,7 +3,11 @@
   import type { Detail } from '../lib/data/views';
   import { detailFor } from '../lib/router.svelte';
   import type { SearchClient } from '../lib/search/client';
+  import AboutView from './AboutView.svelte';
+  import BooksView from './BooksView.svelte';
+  import BookmarksView from './BookmarksView.svelte';
   import HadithView from './HadithView.svelte';
+  import HistoryView from './HistoryView.svelte';
   import SectionView from './SectionView.svelte';
   import TopicView from './TopicView.svelte';
   import SurahIndex from './SurahIndex.svelte';
@@ -16,7 +20,19 @@
     showBack,
     onback,
     hrefFor,
-  }: { path: string; client: SearchClient; showBack: boolean; onback: () => void; hrefFor: (path: string) => string } = $props();
+    onsearch,
+  }: {
+    path: string;
+    client: SearchClient;
+    showBack: boolean;
+    onback: () => void;
+    hrefFor: (path: string) => string;
+    onsearch: (q: string) => void;
+  } = $props();
+
+  // Pages built from this device's own data (bookmarks, history) or static text; no worker request.
+  const LOCAL: Record<string, string> = { bookmarks: 'Bookmarks', history: 'Search history', about: 'About' };
+  const local = $derived(LOCAL[path] ? path : null);
 
   let detail = $state<Detail | null>(null);
   let loading = $state(false);
@@ -27,6 +43,12 @@
   $effect(() => {
     const t = target;
     missing = false;
+    if (local) {
+      detail = null;
+      loading = false;
+      scroller?.scrollTo({ top: 0 });
+      return;
+    }
     if (!t) {
       detail = null;
       missing = !!path;
@@ -53,6 +75,7 @@
   });
 
   const title = $derived.by(() => {
+    if (local) return LOCAL[local]!;
     if (!detail) return '';
     if (detail.kind === 'ayah') return `${detail.surah.n}:${detail.ayah} · ${detail.surah.nameSimple}`;
     if (detail.kind === 'surah') return `${detail.surah.n}. ${detail.surah.nameSimple}`;
@@ -60,6 +83,7 @@
     if (detail.kind === 'topic') return detail.name;
     if (detail.kind === 'section') return `${detail.short} · ${detail.name}`;
     if (detail.kind === 'graph') return 'Similar verses';
+    if (detail.kind === 'books') return 'Hadith collections';
     return `${detail.short} ${detail.number}`;
   });
 </script>
@@ -73,7 +97,13 @@
   {/if}
   <div class="scroll" bind:this={scroller}>
     <div class="content" aria-busy={loading}>
-      {#if missing}
+      {#if local === 'bookmarks'}
+        <BookmarksView {hrefFor} />
+      {:else if local === 'history'}
+        <HistoryView onpick={onsearch} />
+      {:else if local === 'about'}
+        <AboutView />
+      {:else if missing}
         <p class="missing">This reference doesn't exist. <button type="button" onclick={onback}>Back to search</button></p>
       {:else if detail?.kind === 'ayah'}
         <VerseView d={detail} {hrefFor} />
@@ -87,6 +117,8 @@
         <TopicView d={detail} {hrefFor} />
       {:else if detail?.kind === 'section'}
         <SectionView d={detail} {hrefFor} />
+      {:else if detail?.kind === 'books'}
+        <BooksView d={detail} {hrefFor} />
       {:else if loading}
         <p class="loading">Loading…</p>
       {/if}

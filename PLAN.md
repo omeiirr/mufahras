@@ -328,7 +328,15 @@ quran-search/
      occurrence. Loaded after the verse itself is shown.
    - The build writes spaces inside a QUL word as no-break spaces, so word positions in QUL data map exactly
      to our text (tested for all 6,236 ayahs).
-6. **Personal:** bookmarks + tags, history, verse/hadith of the day, picture cards, settings, about page.
+6. ✅ **Personal** (2026-10-24): a menu drawer (☰ in the dock, slides from the start edge) with Library
+   (bookmarks, search history, surahs, hadith collections, the graph), Theme, Reading (text size, Arabic size,
+   transliteration), Offline, Privacy (history on/off, clear) and About (install, about and credits, feedback).
+   Bookmarks with tags in IndexedDB, with export/import; recent searches on the start screen; hadith of the day
+   (direct sayings from Bukhari's and Muslim's reminder chapters, ~310 hadith); share as an image (square or
+   story, light or dark, through the system share sheet or a download). The build places hadith that
+   hadith-api left without a chapter by the chapters' number ranges (300 in Bukhari, 145 in Muslim).
+   **Still open:** the IndoPak script. Its text uses private-use glyphs (1,383 in 1,218 ayahs) that only QUL's
+   IndoPak font draws; it needs that font (QUL account download).
 
 Each milestone ends with something usable on a phone.
 

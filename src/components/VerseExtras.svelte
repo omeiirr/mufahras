@@ -197,7 +197,7 @@
     font-size: var(--text-sm);
   }
   .quran.small {
-    font-size: 1.35rem;
+    font-size: calc(1.35rem * var(--arabic-scale, 1));
     line-height: 2;
   }
   .en {

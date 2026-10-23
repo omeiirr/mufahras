@@ -85,3 +85,36 @@ describe.runIf(dataBuilt)('similar-verse graph', () => {
     expect(node.degree).toBeGreaterThan(5);
   });
 });
+
+describe.runIf(dataBuilt)('hadith of the day and collections index', () => {
+  const engine = loadEngine();
+  const daily = (date: string) => engine.detail({ kind: 'hadith-daily', date });
+
+  it('is stable for a date, varies across dates, and opens with a saying of the Prophet', () => {
+    expect(daily('2026-10-24')).toEqual(daily('2026-10-24'));
+    const picks = Array.from({ length: 40 }, (_, d) => daily(`2027-02-${d}`));
+    expect(new Set(picks.map((h) => (h?.kind === 'hadith' ? `${h.book}/${h.number}` : ''))).size).toBeGreaterThan(30);
+    for (const h of picks) {
+      expect(h?.kind).toBe('hadith');
+      if (h?.kind !== 'hadith') continue;
+      expect(['bukhari', 'muslim']).toContain(h.book);
+      expect(h.en).toMatch(/(The Prophet|Allah's Messenger|the Messenger of Allah) \(ﷺ\) (said|as saying)/i);
+    }
+  });
+
+  it('draws only from the reminder chapters, which still have the expected names', async () => {
+    const { DAILY_HADITH_SECTIONS } = await import('../src/lib/search/engine');
+    const names = (book: 'bukhari' | 'muslim') =>
+      DAILY_HADITH_SECTIONS[book]!.map((n) => (engine.detail({ kind: 'section', book, n }) as { name: string } | null)?.name ?? '');
+    for (const name of [...names('bukhari'), ...names('muslim')])
+      expect(name).toMatch(/belief|faith|knowledge|qur'an|manners|adab|invocations|heart|riqaq|oneness|tawheed|virtue|remembrance|repentance|zuhd/i);
+  });
+
+  it('lists every collection with its chapters', () => {
+    const d = engine.detail({ kind: 'books' });
+    expect(d?.kind).toBe('books');
+    if (d?.kind !== 'books') return;
+    expect(d.books.map((b) => b.id)).toEqual(['bukhari', 'muslim', 'abudawud', 'tirmidhi', 'nasai', 'ibnmajah']);
+    expect(d.books.every((b) => b.sections.reduce((n, s) => n + s.count, 0) === b.count)).toBe(true);
+  });
+});

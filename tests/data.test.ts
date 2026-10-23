@@ -86,3 +86,15 @@ describe.runIf(built)('generated data', () => {
     expect(t6[3].map(([s, g]) => `${tirmidhi.scholars[s]}: ${g}`)).toContain('Al-Albani: Sahih');
   });
 });
+
+describe.runIf(built)('hadith chapters', () => {
+  it('places hadith the source left without a chapter by their chapter number ranges', () => {
+    const bukhari = load<HadithChunk>('hadith-bukhari');
+    expect(bukhari.hadiths.filter((h) => h[1] === 0).length).toBeLessThan(10);
+    expect(bukhari.sections[0]).toBe('Not in a chapter');
+    // Bukhari 299 ("…take a bath from a single pot…") is in Menstrual Periods.
+    expect(bukhari.sections[bukhari.hadiths.find((h) => h[0] === 299)![1]]).toBe('Menstrual Periods');
+    const muslim = load<HadithChunk>('hadith-muslim');
+    expect(muslim.hadiths.filter((h) => h[1] === 0).every((h) => h[0] <= 92)).toBe(true);
+  });
+});

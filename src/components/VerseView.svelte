@@ -4,6 +4,7 @@
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import type { AyahDetail } from '../lib/data/views';
   import { splitLastWord } from '../lib/text/quran-display';
+  import { settings } from '../lib/store/settings.svelte';
   import { ayahMarker, placeName } from '../lib/ui/format';
   import Actions from './Actions.svelte';
   import VerseExtras from './VerseExtras.svelte';
@@ -12,6 +13,9 @@
 
   const ref = $derived(`${d.surah.n}:${d.ayah}`);
   const [head, last] = $derived(splitLastWord(d.ar));
+  const plainEn = $derived(d.en.replace(/[\u00B9\u00B2\u00B3\u2070-\u2079]/g, ''));
+  const bookmark = $derived({ path: ref, kind: 'ayah' as const, label: ref, sublabel: d.surah.nameSimple, text: plainEn.slice(0, 220) });
+  const card = $derived({ ar: `${d.ar} ${ayahMarker(d.ayah)}`, arFont: 'quran' as const, en: plainEn, ref: `Quran ${ref}`, sub: `${d.surah.nameSimple} · ${d.surah.nameAr}` });
   const copyText = $derived(`${d.ar}\n\n${d.en.replace(/[¹²³⁰-⁹]/g, '')}\n\n— Quran ${ref} (${d.surah.nameSimple})`);
 </script>
 
@@ -32,7 +36,7 @@
   </header>
 
   <p class="quran" lang="ar" dir="rtl">{head}<span class="nowrap">{last} <span class="marker">{ayahMarker(d.ayah)}</span></span></p>
-  {#if d.translit}<p class="translit">{d.translit}</p>{/if}
+  {#if d.translit && settings.translit}<p class="translit">{d.translit}</p>{/if}
   <p class="en">{d.en}</p>
 
   {#if d.footnotes.length}
@@ -42,7 +46,7 @@
   {/if}
   <p class="credit">Translation: Saheeh International</p>
 
-  <Actions text={copyText} title={`Quran ${ref}`} />
+  <Actions text={copyText} title={`Quran ${ref}`} {bookmark} {card} />
 
   {#if d.extra}
     <VerseExtras {d} extra={d.extra} {hrefFor} />

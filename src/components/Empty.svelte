@@ -3,6 +3,9 @@
   import BookOpen from '@lucide/svelte/icons/book-open';
   import Network from '@lucide/svelte/icons/network';
   import type { SearchClient } from '../lib/search/client';
+  import { history } from '../lib/store/history.svelte';
+  import { settings } from '../lib/store/settings.svelte';
+  import DailyHadith from './DailyHadith.svelte';
   import DailyVerse from './DailyVerse.svelte';
   import OfflinePanel from './OfflinePanel.svelte';
 
@@ -29,7 +32,16 @@
   <p class="brand"><img src="icons/icon-192.png" alt="" width="32" height="32" /><span class="name">Mufahras</span> <span class="ar" lang="ar" dir="rtl">مُفَهْرَس</span></p>
   <h1>Find any verse or hadith</h1>
   <p class="lede">The Quran and the six major hadith collections, searchable as you type. Works offline once loaded.</p>
+  {#if settings.history && history.list.length}
+    <div class="recent">
+      <h2>Recent</h2>
+      <ul>
+        {#each history.list.slice(0, 6) as e (e.q)}<li><button type="button" onclick={() => onpick(e.q)} dir="auto">{e.q}</button></li>{/each}
+      </ul>
+    </div>
+  {/if}
   <DailyVerse {client} {hrefFor} />
+  <DailyHadith {client} {hrefFor} />
   <ul>
     {#each examples as [q, note] (q)}
       <li>
@@ -109,6 +121,36 @@
     color: var(--ink-2);
     font-size: var(--text-sm);
     text-align: right;
+  }
+  .recent {
+    margin-bottom: var(--space-5);
+  }
+  .recent h2 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+  }
+  .recent ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .recent button {
+    min-height: 36px;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    background: var(--surface);
+    font-size: var(--text-sm);
+    max-width: 22ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .ctas {
     display: flex;

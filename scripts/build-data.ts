@@ -370,7 +370,8 @@ notes.push(`graph: ${graph.nodes.length} ayahs, ${graph.edges.length} similar pa
 // ---------------------------------------------------------------- hadith
 
 type ApiHadith = { hadithnumber: number; text: string; grades: { name: string; grade: string }[]; reference: { book: number; hadith: number } };
-type ApiEdition = { metadata: { name: string; sections: Record<string, string> }; hadiths: ApiHadith[] };
+type SectionRange = { hadithnumber_first: number; hadithnumber_last: number };
+type ApiEdition = { metadata: { name: string; sections: Record<string, string>; section_details?: Record<string, SectionRange> }; hadiths: ApiHadith[] };
 const readHadith = (file: string): ApiEdition => {
   try {
     return JSON.parse(readFileSync(join(HADITH, file), 'utf8'));
@@ -391,7 +392,23 @@ const hadithChunks: [HadithChunk, HadithArabicChunk][] = HADITH_BOOKS.map((id: H
     return i;
   };
   const sections: Record<number, string> = {};
-  for (const [n, name] of Object.entries(eng.metadata.sections)) sections[Number(n)] = name.trim() || (n === '0' ? 'Introduction' : `Book ${n}`);
+  for (const [n, name] of Object.entries(eng.metadata.sections)) sections[Number(n)] = name.trim() || (n === '0' ? 'Not in a chapter' : `Book ${n}`);
+
+  // hadith-api files some hadith under section 0 ("reference.book": 0) although their numbers fall inside
+  // a chapter's range in section_details: 305 of Bukhari's 311, and Muslim's beyond its real introduction
+  // (1–92). Place those by range; the rest stay in section 0, named "Not in a chapter" unless the source
+  // names it (Muslim's "Introduction").
+  const ranges = Object.entries(eng.metadata.section_details ?? {})
+    .map(([n, r]) => [Number(n), r.hadithnumber_first, r.hadithnumber_last] as const)
+    .filter(([, first, last]) => first > 0 && last >= first);
+  let placed = 0;
+  const sectionOf = (h: ApiHadith): number => {
+    if (h.reference.book !== 0) return h.reference.book;
+    const n = Math.floor(h.hadithnumber);
+    const hit = ranges.find(([, first, last]) => n >= first && n <= last);
+    if (hit && hit[0] !== 0) placed++;
+    return hit?.[0] ?? 0;
+  };
 
   let empty = 0;
   let enOnly = 0;
@@ -407,7 +424,8 @@ const hadithChunks: [HadithChunk, HadithArabicChunk][] = HADITH_BOOKS.map((id: H
     }
     if (!arText) enOnly++;
     if (!enText) arOnly++;
-    check(sections[h.reference.book] !== undefined, `${id} ${h.hadithnumber}: section ${h.reference.book} not in metadata`);
+    const section = sectionOf(h);
+    check(sections[section] !== undefined, `${id} ${h.hadithnumber}: section ${section} not in metadata`);
     const grades = h.grades
       .filter((g) => g.grade.trim() && g.grade.trim() !== '-')
       .map((g): [number, string] => {
@@ -415,13 +433,14 @@ const hadithChunks: [HadithChunk, HadithArabicChunk][] = HADITH_BOOKS.map((id: H
         if (classifyGrade(grade) === 'other') unclassifiedGrades.set(grade, (unclassifiedGrades.get(grade) ?? 0) + 1);
         return [scholarIndex(g.name.trim()), grade];
       });
-    hadiths.push([h.hadithnumber, h.reference.book, enText, grades]);
+    hadiths.push([h.hadithnumber, section, enText, grades]);
     arabic.push(arText);
   }
   const numbers = new Set(hadiths.map((h) => h[0]));
   check(numbers.size === hadiths.length, `${id}: duplicate hadith numbers`);
   check(hadiths.length > 3000, `${id}: only ${hadiths.length} hadiths, expected thousands`);
-  notes.push(`${id}: ${hadiths.length} hadiths; skipped ${empty} empty numbers; ${enOnly} without Arabic; ${arOnly} without English`);
+  const unplaced = hadiths.filter((h) => h[1] === 0).length;
+  notes.push(`${id}: ${hadiths.length} hadiths; skipped ${empty} empty numbers; ${enOnly} without Arabic; ${arOnly} without English; ${placed} placed in a chapter by number range; ${unplaced} in section 0`);
   return [{ id, name: eng.metadata.name, sections, scholars, hadiths }, arabic];
 });
 if (unclassifiedGrades.size)

@@ -83,6 +83,11 @@ Things that cost us time, so they don't cost you any:
   and at least one fragment is filed under an unrelated parent (topic 339 "nature of", under "Goddesses of
   the pagan Arabs", lists 2:255). The verse screen hides fragments whose parents don't contain the verse.
 - **Similar-ayah data covers 1,162 ayahs**, and most pairs are listed both ways (3,552 rows → 2,336 pairs).
+- **Hadith filed under section 0 aren't an introduction.** hadith-api's `reference.book` is 0 for 311 Bukhari
+  hadith scattered from 299 to 7495; its `section_details` give each chapter's number range, which places 300
+  of them. Muslim's section 0 mixes its real introduction (1–92) with 145 hadith that belong elsewhere.
+- **The IndoPak text uses Private Use Area glyphs** (U+E003–E022, 1,383 of them) that only QUL's own IndoPak
+  font draws; every other font shows empty boxes.
 
 <a id="gradings"></a>**Grading buckets.** The original text is always shown; buckets only drive the colour and the
 "Sahih only" filter. Order matters: check weakness first, so "Munkar Daif" never counts as authentic.
@@ -502,6 +507,24 @@ const update = () => document.documentElement.style.setProperty('--kb', `${Math.
   that every theme defines every token.
 - **No flash of the wrong theme:** a tiny inline script in `index.html` applies the saved theme before first
   paint; `theme.svelte.ts` takes over after.
+
+## 12b. Personal features: bookmarks, history, cards, the drawer
+
+- **Bookmarks in IndexedDB, history in localStorage.** Bookmarks are what someone would be upset to lose, so
+  they get the durable store and an export/import (nothing syncs); search history is a convenience.
+- **Esc belongs to the topmost layer.** The picture-card sheet closed on Esc, and the app's own Esc handler
+  also navigated back to the results, because both listened on `window`. Open layers carry `data-modal`, and
+  the app's handler stays out while one exists.
+- **Canvas text doesn't wait for web fonts.** Before drawing a card, load the font for exactly the characters
+  needed: `document.fonts.load('64px "Scheherazade New"', text)`. Arabic on canvas needs `ctx.direction = 'rtl'`
+  with right alignment, and wrapping by measuring word by word; the no-break spaces inside QUL words (§3) keep
+  pause marks with their words on cards too.
+- **"Of the day" picks need curation, not just a hash.** A first pass over short hadith picked rulings out of
+  context and a story about a temporary permission. Restricting to direct sayings ("The Prophet ﷺ said…") in
+  the chapters of manners, faith, knowledge, supplication and softening of hearts gave a pool that reads well.
+  The same happened with the verse of the day (§7).
+- **Text size as a root font scale** (`html { font-size: calc(100% * var(--text-scale)) }`) scales every rem,
+  like the system setting; Arabic sizes multiply by a separate `--arabic-scale`.
 
 ## 13. The similar-verses graph
 

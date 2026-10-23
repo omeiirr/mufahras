@@ -214,6 +214,8 @@ async function detail(req: DetailRequest): Promise<Detail | null> {
   if (req.kind === 'ayah' || req.kind === 'daily') await ensure('translit');
   if (req.kind === 'topic') await ensure('topics');
   if (req.kind === 'graph') await ensure('graph');
+  if (req.kind === 'hadith-daily') await Promise.all([ensure('hadith-bukhari'), ensure('hadith-muslim')]);
+  if (req.kind === 'books') await Promise.all(HADITH_BOOKS.map((b) => ensure(`hadith-${b}`)));
   if (req.kind === 'ayah' && req.extra) await Promise.all(EXTRA_CHUNKS.map(ensure));
   return engine.detail(req);
 }

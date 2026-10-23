@@ -13,7 +13,10 @@ export type DetailRequest =
   | { kind: 'graph' }
   | { kind: 'section'; book: HadithBookId; n: number }
   /** Verse of the day for a local date (YYYY-MM-DD); the same verse for everyone on that date. */
-  | { kind: 'daily'; date: string };
+  | { kind: 'daily'; date: string }
+  /** Hadith of the day (Bukhari or Muslim), the same for everyone on a date. */
+  | { kind: 'hadith-daily'; date: string }
+  | { kind: 'books' };
 
 export interface AyahLine {
   ayah: number;
@@ -127,7 +130,12 @@ export interface GraphDetail {
   edges: [number, number, number][];
 }
 
-export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail | TopicDetail | SectionDetail | GraphDetail;
+export interface BooksDetail {
+  kind: 'books';
+  books: { id: HadithBookId; title: string; short: string; count: number; sections: { n: number; name: string; count: number }[] }[];
+}
+
+export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail | TopicDetail | SectionDetail | GraphDetail | BooksDetail;
 
 /** Suggested browse links shown above results: a QUL topic, or a chapter (book) of a hadith collection. */
 export interface Chip {
