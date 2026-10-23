@@ -40,6 +40,24 @@ function format(s: RouteState): string {
   return `#/${s.path}${query ? `?${query}` : ''}`;
 }
 
+/**
+ * Text shared into the app (Android share target) arrives as ?text=…&title=…&url=… on the start URL.
+ * Turn it into a search and move it to the hash so the rest of the app sees a normal route.
+ */
+function takeSharedText(): void {
+  const params = new URLSearchParams(location.search);
+  if (!['text', 'title', 'url'].some((k) => params.has(k))) return;
+  const raw = params.get('text') || params.get('title') || '';
+  const q = raw
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/["“”«»]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 500);
+  history.replaceState(null, '', `${location.pathname}${format({ path: '', q, corpus: 'all', sahih: false })}`);
+}
+takeSharedText();
+
 export const route = $state<RouteState>(parse(location.hash));
 
 // Each entry this app pushes records its depth in history.state, so Back knows whether the previous

@@ -12,7 +12,18 @@ import type { SearchOptions, SearchResponse } from './types';
 export type WorkerRequest =
   | { type: 'init'; base: string }
   | { type: 'search'; id: number; query: string; opts: SearchOptions }
-  | { type: 'detail'; id: number; req: DetailRequest };
+  | { type: 'detail'; id: number; req: DetailRequest }
+  | { type: 'offline'; id: number; download: boolean };
+
+/** How much of the data is stored for offline use (by the service worker's caches). */
+export interface OfflineStatus {
+  /** Cache Storage exists and a service worker controls the page; otherwise nothing is stored. */
+  supported: boolean;
+  cached: number;
+  total: number;
+  /** Bytes still to download for everything to work offline. */
+  missingBytes: number;
+}
 
 export interface LoadStatus {
   /** Chunks loaded so far, by manifest name. */
@@ -27,7 +38,8 @@ export interface LoadStatus {
 export type WorkerResponse =
   | { type: 'status'; status: LoadStatus }
   | { type: 'results'; id: number; response: SearchResponse }
-  | { type: 'detail'; id: number; detail: Detail | null };
+  | { type: 'detail'; id: number; detail: Detail | null }
+  | { type: 'offline'; id: number; offline: OfflineStatus };
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope;
 const engine = new SearchEngine();
@@ -57,9 +69,7 @@ async function load(name: string): Promise<void> {
 
   const info = (await manifest!).chunks[name];
   if (!info) throw new Error(`chunk ${name} missing from manifest`);
-  const res = await fetch(new URL(info.file, base));
-  if (!res.ok) throw new Error(`${info.file}: HTTP ${res.status}`);
-  const data: unknown = await res.json();
+  const data: unknown = await (await fetchData(name, info.file)).json();
 
   if (name === 'quran') engine.addQuran(data as QuranChunk);
   else if (name === 'translit') engine.addTranslit(data as TranslitChunk);
@@ -77,9 +87,91 @@ function runSearch(req: Extract<WorkerRequest, { type: 'search' }>): void {
   post({ type: 'results', id: req.id, response: { ...r, partial: !status.ready } });
 }
 
+// ---- offline storage
+
+/** Chunks needed for everything the app does today; Arabic hadith included. */
+const OFFLINE_CHUNKS = ['quran', 'translit', ...HADITH_BOOKS.map((b) => `hadith-${b}`), ...HADITH_BOOKS.map((b) => `hadith-${b}-ar`)];
+// Runtime cache names, see vite.config.ts.
+const DATA_CACHE = 'mufahras-data';
+const MANIFEST_CACHE = 'mufahras-manifest';
+
+/**
+ * The manifest is network-first (so new data is picked up), with a cached copy for offline use.
+ * Stored here as well as by the service worker, for the same first-visit reason as fetchData.
+ */
+async function fetchManifest(): Promise<Manifest> {
+  const url = new URL('manifest.json', base);
+  let res: Response | undefined;
+  try {
+    res = await fetch(url);
+  } catch {
+    res = 'caches' in self ? await caches.match(url) : undefined;
+  }
+  if (!res?.ok) throw new Error(`manifest.json: ${res ? `HTTP ${res.status}` : 'offline and not cached'}`);
+  if ('caches' in self)
+    await caches
+      .open(MANIFEST_CACHE)
+      .then((c) => c.put(url, res.clone()))
+      .catch(() => {});
+  return res.json();
+}
+
+/**
+ * Fetches a data chunk, cache first (names are content-hashed, so a cached copy is never stale),
+ * and stores it for offline use. This doesn't rely on the service worker intercepting the worker's
+ * requests: a worker started before the service worker took control (the first visit) isn't.
+ * quran and translit are precached by the service worker; caches.match finds them there too.
+ */
+async function fetchData(name: string, file: string): Promise<Response> {
+  const url = new URL(file, base);
+  const cached = 'caches' in self ? await caches.match(url, { ignoreSearch: true }) : undefined;
+  if (cached) return cached;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${file}: HTTP ${res.status}`);
+  if ('caches' in self && name !== 'quran' && name !== 'translit')
+    await caches
+      .open(DATA_CACHE)
+      .then((c) => c.put(url, res.clone()))
+      .catch(() => {}); // storage full or blocked: still usable online
+  return res;
+}
+
+/** Drops cached chunks from older builds (their hashed names are no longer in the manifest). */
+async function pruneDataCache(m: Manifest): Promise<void> {
+  if (!('caches' in self)) return;
+  const current = new Set(Object.values(m.chunks).map((c) => c.file));
+  const cache = await caches.open(DATA_CACHE);
+  for (const req of await cache.keys()) {
+    const file = new URL(req.url).pathname.split('/').pop()!;
+    if (!current.has(file)) await cache.delete(req);
+  }
+}
+
+async function offlineStatus(download: boolean): Promise<OfflineStatus> {
+  const m = await manifest!;
+  const supported = 'caches' in self && !!(await caches.keys()).length;
+  const missing: string[] = [];
+  if (supported)
+    for (const name of OFFLINE_CHUNKS) {
+      const url = new URL(m.chunks[name]!.file, base).href;
+      if (!(await caches.match(url, { ignoreSearch: true }))) missing.push(name);
+    }
+  if (download && supported) {
+    // Stored, not parsed, so memory stays low; the engine loads them when needed.
+    for (const name of missing.splice(0)) await (await fetchData(name, m.chunks[name]!.file)).arrayBuffer();
+  }
+  return {
+    supported,
+    cached: OFFLINE_CHUNKS.length - missing.length,
+    total: OFFLINE_CHUNKS.length,
+    missingBytes: missing.reduce((n, name) => n + m.chunks[name]!.gzipBytes, 0),
+  };
+}
+
 async function init(): Promise<void> {
   const t0 = performance.now();
-  manifest = fetch(new URL('manifest.json', base)).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`manifest.json: HTTP ${r.status}`))));
+  manifest = fetchManifest();
+  manifest.then(pruneDataCache).catch(() => {});
   await ensure('quran');
   status.quranMs = Math.round(performance.now() - t0);
   post({ type: 'status', status: { ...status } });
@@ -107,6 +199,13 @@ ctx.onmessage = (e: MessageEvent<WorkerRequest>) => {
   if (msg.type === 'init') {
     base = msg.base;
     init().catch(fail);
+  } else if (msg.type === 'offline') {
+    offlineStatus(msg.download)
+      .then((offline) => post({ type: 'offline', id: msg.id, offline }))
+      .catch((err: Error) => {
+        fail(err);
+        post({ type: 'offline', id: msg.id, offline: { supported: false, cached: 0, total: 0, missingBytes: 0 } });
+      });
   } else if (msg.type === 'detail') {
     detail(msg.req)
       .then((d) => post({ type: 'detail', id: msg.id, detail: d }))

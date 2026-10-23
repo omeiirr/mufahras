@@ -1,8 +1,10 @@
 <script lang="ts">
   // Shown before typing: examples that demonstrate what the search understands.
   import BookOpen from '@lucide/svelte/icons/book-open';
+  import type { SearchClient } from '../lib/search/client';
+  import OfflinePanel from './OfflinePanel.svelte';
 
-  let { onpick, onbrowse }: { onpick: (q: string) => void; onbrowse: () => void } = $props();
+  let { onpick, onbrowse, client, ready }: { onpick: (q: string) => void; onbrowse: () => void; client: SearchClient; ready: boolean } = $props();
 
   const examples: [string, string][] = [
     ['patience prayer', 'words, in any order'],
@@ -16,6 +18,7 @@
 </script>
 
 <section class="empty" aria-label="Examples">
+  <p class="brand"><span class="name">Mufahras</span> <span class="ar" lang="ar" dir="rtl">مُفَهْرَس</span></p>
   <h1>Find any verse or hadith</h1>
   <p class="lede">The Quran and the six major hadith collections, searchable as you type. Works offline once loaded.</p>
   <ul>
@@ -29,12 +32,29 @@
     {/each}
   </ul>
   <button type="button" class="browse" onclick={onbrowse}><BookOpen size={18} aria-hidden="true" /> Browse surahs</button>
+  <OfflinePanel {client} {ready} />
 </section>
 
 <style>
   .empty {
     padding: var(--space-5) var(--space-4);
     max-width: var(--measure);
+  }
+  .brand {
+    margin: 0 0 var(--space-3);
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    color: var(--accent);
+  }
+  .brand .name {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .brand .ar {
+    font-family: var(--font-quran);
+    font-size: var(--text-xl);
+    line-height: 1;
   }
   h1 {
     font-size: var(--text-xl);

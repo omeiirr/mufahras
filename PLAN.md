@@ -1,4 +1,4 @@
-# Quran & Hadith Search — Plan
+# Mufahras — Plan
 
 A fast, offline, installable web app (PWA) for looking up Quran verses and hadith
 by fuzzy search, on desktop and mobile. Successor to
@@ -296,7 +296,12 @@ quran-search/
 2. ✅ **Search core** (2026-10-23): worker, query parser, fuzzy matching, reference jumps, ranking tests; plus a bare search page to try it.
 3. ✅ **UI shell** (2026-10-23): search page, results paged on scroll, verse / surah / surah index / hadith screens,
    hash routing, side-by-side desktop layout, four themes with a switcher, copy/share.
-4. **PWA:** offline caching, installability, share target, per-book downloads, deploy to Pages.
+4. ✅ **PWA** (2026-10-23): named **Mufahras** (repo `omeiirr/mufahras`), app icon (م on the accent green), installable
+   web manifest, Android share target, offline support, deploy to GitHub Pages via `.github/workflows/deploy.yml`.
+   Offline: the service worker precaches the app, fonts, icons and the Quran; the worker stores every other data
+   chunk itself, reads cache first (filenames are content-hashed), and deletes chunks no longer in the manifest.
+   This doesn't depend on the service worker intercepting the worker, which it doesn't on a first visit.
+   The start screen shows what's stored, with a one-tap download of the rest (hadith Arabic, ~5 MB).
 5. **Enrichment:** topics, similar ayahs, tafsir summary, aliases, transliteration search, source-finder mode.
 6. **Personal:** bookmarks + tags, history, verse/hadith of the day, picture cards, settings, about page.
 
