@@ -398,7 +398,7 @@ highlighted; on a hadith screen, "Verses in this hadith" as links. Hidden in Sak
 
 ## Search by meaning (planned 2026-10-24; spike done)
 
-**Decisions (2026-10-24):** version 1 covers **the Quran and the hadith together** (~35–45 MB); **off by default**,
+**Decisions (2026-10-24):** version 1 covers **the Quran and the hadith together** (~55 MB with the chosen model); **off by default**,
 switched on in the menu; **English queries only**; evaluation queries drafted by Claude and reviewed by the owner
 (`eval/meaning-queries.json`, readable as `eval/meaning-queries.md`; 60 queries, every expected text checked
 against the data). Phase 1 below therefore merges the "Quran only" and "Hadith" phases.
@@ -440,6 +440,31 @@ Eight models on all 40,393 English texts (translation as is, hadith in full, 256
   JS ~25 ms. On a phone the scan, not the model, is the slow part (estimated 100–200 ms), so scoring should
   use int8 with a WebAssembly SIMD dot product, or be limited to a candidate set.
 
+### Spike round 2: what to embed (2026-10-24)
+Three models, `eval/meaning-spike-2.ipynb`. The evaluation set now has 66 **accepted alternatives** (`also`: the
+same hadith in other books, and correct texts the first draft missed). **hit@10** counts them; **strict** counts
+only the original answers; recall@10 only the originals. Keyword search scores 57% / 50% strict on this set.
+
+| arctic-s (34 MB) | hit@10 | strict | recall@10 | MRR |
+|---|---|---|---|---|
+| translation as is, hadith in full (round 1) | 72% | 60% | 57% | 0.50 |
+| **+ verse explanation, one vector per verse** | **82%** | **72%** | **65%** | **0.55** |
+| + explanation as a second vector per verse | 80% | 72% | 65% | 0.54 |
+| hadith without the narrator opening | 70% | 60% | 57% | 0.48 |
+| hadith split into passages (no opening) | 70% | 60% | 57% | 0.48 |
+| explanation + passages + keyword blend (semantic ×2) | 83% | 73% | 65% | 0.54 |
+
+- **The verse explanation is the big gain**, most for arctic-s (+10 points); bge-small gains 3 and e5-small is
+  mixed. With it, **arctic-s leads** (bge-small best 70% / 65%, e5-small 70% / 63%).
+- **Removing the narrator opening hurts slightly** for every model (bge-small 67% → 62%), and splitting long
+  hadith changes nothing: the famous hadith people paraphrase are short. Both are dropped.
+- **Blending with keyword search adds about one query** at best; differences of 1–2 queries (2–3 points) are
+  within the noise of a 60-query set.
+- **What's still missed is mostly hadith** (8 of 12): good or keep quiet, honour your guest, the neighbour,
+  your mother then your mother, the last third of the night. Verses gained the explanation; hadith have no
+  equivalent (hadith-api has only book-level section titles such as "Patients"). Keyword search finds 3 of
+  these, which the separate word-match section already shows.
+
 ### Approach
 - **An embedding model runs in the browser** (transformers.js on ONNX Runtime WebAssembly), as an **optional
   download** switched on in the menu. The main app doesn't grow.
@@ -449,18 +474,18 @@ Eight models on all 40,393 English texts (translation as is, hadith in full, 256
   closest as "Similar in meaning".
 
 ### Choosing the model
-- Candidates: small English retrieval models with 384-dimensional output, about 22–33M parameters:
-  bge-small-en-v1.5, snowflake-arctic-embed-xs, e5-small-v2, all-MiniLM-L6-v2, each as int8 ONNX (~23–34 MB).
-- Choose by measurement, not reputation: recall@10 and MRR on our own evaluation set (below), size, and query
-  latency on a low-end phone. Check each licence (MIT / Apache 2.0) before shipping.
-- Use each model's query instruction where it has one (bge: "Represent this sentence for searching relevant passages: ").
+- **Chosen: snowflake-arctic-embed-s** (Apache 2.0, 33M parameters, 384 dimensions, 8-bit ONNX 34 MB,
+  `onnx/model_quantized.onnx`), with its query instruction "Represent this sentence for searching relevant
+  passages: " and no document prefix. Chosen by the two spike rounds above, not by reputation.
+- Still to measure on the phone (Moto g82): download, first load, memory, query latency.
 
 ### What gets embedded
-- **Verses:** the translation **plus its Al-Mukhtasar explanation**. The explanation states the meaning in
-  plain words, which is what a meaning query matches; tested both ways in evaluation.
-- **Hadith:** the English without the "Narrated X:" opening. Hadith longer than the model's window (~256–512
-  tokens) are split into overlapping passages, and a hadith scores as its best passage.
-- **About 40,000 texts → ~45,000 vectors** with passages.
+- **Verses:** the translation followed by its **Al-Mukhtasar explanation**, one vector per verse (round 2: +10
+  points). Verses in a group share the group's explanation.
+- **Hadith:** the English as is, opening included, one vector each (round 2: removing openings and splitting
+  long hadith didn't help).
+- **40,393 vectors**, 15.5 MB as int8.
+- **To try later for hadith:** prefixing the book's section title, or a short summary per famous hadith.
 
 ### Size (optional download, cached for offline)
 | Part | Size |
@@ -468,8 +493,8 @@ Eight models on all 40,393 English texts (translation as is, hadith in full, 256
 | Model (int8 ONNX) | ~23–34 MB |
 | Runtime (transformers.js + ONNX WASM) | ~4 MB compressed |
 | Vectors, Quran only (6,236 × 384, int8) | ~2.4 MB |
-| Vectors, all hadith (~38,000 × 384, int8) | ~13 MB; ~6–8 MB at 256 dimensions if the model supports truncation |
-| **Total** | **~30 MB for the Quran; ~35–45 MB with hadith** |
+| Vectors, all hadith (34,157 × 384, int8) | ~13 MB |
+| **Total** | **~55 MB** (model 34 + runtime ~4 + vectors 15.5; about 40 MB over the wire, since the vectors and runtime compress) |
 
 ### Build pipeline
 - `scripts/embed.ts` runs the chosen model in Node (`@huggingface/transformers` / onnxruntime-node).
@@ -489,7 +514,7 @@ Eight models on all 40,393 English texts (translation as is, hadith in full, 256
 - **Results:** a separate **"Similar in meaning"** section below the word matches, marked as found by meaning
   ("may not contain your words"). Duplicates of word matches are removed; a text found both ways ranks higher.
   Later: fuse the two rankings (reciprocal rank fusion) once evaluation shows it helps.
-- **Menu:** "Search by meaning (beta), ~40 MB" with a short explanation, download progress, and Remove.
+- **Menu:** "Search by meaning (beta), ~55 MB" with a short explanation, download progress, and Remove.
   Available in Sakinah mode, since it's search. The offline panel counts it.
 - **Low memory:** turned off by default on devices reporting little memory (`navigator.deviceMemory` < 3), and
   degrades to word search if the model fails to load.

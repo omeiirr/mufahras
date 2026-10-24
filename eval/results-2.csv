@@ -1,0 +1,41 @@
+model,variant,hit@10,strict hit@10,recall@10,MRR,feeling,concept,paraphrase,story,question,hadith-paraphrase
+keyword (today),,57,50,48,0.39,0/2,8/18,9/12,1/2,1/4,15/22
+bge-small,base,67,63,58,0.5,0/2,11/18,10/12,2/2,1/4,16/22
+bge-small,verse+tafsir,70,65,60,0.51,1/2,12/18,12/12,2/2,1/4,14/22
+bge-small,verse|tafsir,67,63,60,0.51,0/2,11/18,11/12,2/2,1/4,15/22
+bge-small,no-opening,62,57,53,0.42,0/2,11/18,9/12,2/2,1/4,14/22
+bge-small,passages,62,57,53,0.42,0/2,11/18,9/12,2/2,1/4,14/22
+bge-small,all (verse+tafsir),70,65,60,0.45,1/2,12/18,12/12,2/2,1/4,14/22
+bge-small,all (verse|tafsir),65,60,56,0.45,0/2,12/18,10/12,2/2,1/4,14/22
+bge-small,all (verse+tafsir) + keyword (semantic ×0.5),62,55,51,0.43,1/2,9/18,9/12,1/2,1/4,16/22
+bge-small,all (verse+tafsir) + keyword (semantic ×1.0),72,65,59,0.45,1/2,13/18,11/12,2/2,1/4,15/22
+bge-small,all (verse+tafsir) + keyword (semantic ×2.0),72,67,62,0.45,1/2,13/18,12/12,2/2,1/4,14/22
+bge-small,all (verse|tafsir) + keyword (semantic ×0.5),60,53,51,0.45,0/2,9/18,9/12,1/2,1/4,16/22
+bge-small,all (verse|tafsir) + keyword (semantic ×1.0),68,62,57,0.45,0/2,13/18,10/12,2/2,1/4,15/22
+bge-small,all (verse|tafsir) + keyword (semantic ×2.0),65,60,56,0.44,0/2,12/18,10/12,2/2,1/4,14/22
+e5-small,base,67,62,56,0.38,0/2,13/18,9/12,2/2,1/4,15/22
+e5-small,verse+tafsir,70,63,56,0.41,1/2,13/18,9/12,1/2,1/4,17/22
+e5-small,verse|tafsir,63,58,54,0.37,0/2,13/18,9/12,2/2,1/4,13/22
+e5-small,no-opening,63,57,52,0.38,0/2,13/18,7/12,2/2,2/4,14/22
+e5-small,passages,63,57,52,0.38,0/2,13/18,7/12,2/2,2/4,14/22
+e5-small,all (verse+tafsir),57,50,47,0.37,0/2,9/18,8/12,1/2,1/4,15/22
+e5-small,all (verse|tafsir),62,55,51,0.37,0/2,12/18,7/12,2/2,2/4,14/22
+e5-small,all (verse+tafsir) + keyword (semantic ×0.5),63,57,53,0.43,0/2,10/18,9/12,1/2,1/4,17/22
+e5-small,all (verse+tafsir) + keyword (semantic ×1.0),67,60,56,0.43,0/2,12/18,9/12,2/2,1/4,16/22
+e5-small,all (verse+tafsir) + keyword (semantic ×2.0),67,58,54,0.41,0/2,12/18,9/12,2/2,1/4,16/22
+e5-small,all (verse|tafsir) + keyword (semantic ×0.5),62,55,52,0.43,0/2,9/18,9/12,1/2,1/4,17/22
+e5-small,all (verse|tafsir) + keyword (semantic ×1.0),67,60,56,0.44,0/2,12/18,9/12,2/2,1/4,16/22
+e5-small,all (verse|tafsir) + keyword (semantic ×2.0),70,62,57,0.42,0/2,14/18,9/12,2/2,2/4,15/22
+arctic-s,base,72,60,57,0.5,1/2,10/18,10/12,2/2,3/4,17/22
+arctic-s,verse+tafsir,82,72,65,0.55,1/2,14/18,11/12,2/2,3/4,18/22
+arctic-s,verse|tafsir,80,72,65,0.54,1/2,15/18,11/12,2/2,3/4,16/22
+arctic-s,no-opening,70,60,57,0.48,1/2,10/18,10/12,2/2,3/4,16/22
+arctic-s,passages,70,60,57,0.48,1/2,10/18,10/12,2/2,3/4,16/22
+arctic-s,all (verse+tafsir),78,70,63,0.52,1/2,14/18,11/12,2/2,3/4,16/22
+arctic-s,all (verse|tafsir),80,72,64,0.54,1/2,15/18,11/12,2/2,3/4,16/22
+arctic-s,all (verse+tafsir) + keyword (semantic ×0.5),67,58,54,0.51,1/2,10/18,9/12,1/2,2/4,17/22
+arctic-s,all (verse+tafsir) + keyword (semantic ×1.0),78,68,62,0.5,1/2,12/18,10/12,2/2,3/4,19/22
+arctic-s,all (verse+tafsir) + keyword (semantic ×2.0),80,70,62,0.52,1/2,14/18,10/12,2/2,3/4,18/22
+arctic-s,all (verse|tafsir) + keyword (semantic ×0.5),67,58,54,0.53,1/2,10/18,9/12,1/2,2/4,17/22
+arctic-s,all (verse|tafsir) + keyword (semantic ×1.0),78,68,63,0.53,1/2,11/18,11/12,2/2,3/4,19/22
+arctic-s,all (verse|tafsir) + keyword (semantic ×2.0),83,73,65,0.54,1/2,15/18,11/12,2/2,3/4,18/22
