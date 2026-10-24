@@ -109,6 +109,23 @@ export interface HadithChunk {
   hadiths: HadithRow[];
 }
 
+/**
+ * Search by meaning: how to read meaning-vectors (written by scripts/build-meaning.ts). Rows are the
+ * verses in index order, then each book in turn: its hadith rows in order, except those in its skip list
+ * (rows with no English).
+ */
+export interface MeaningChunk {
+  /** Model files under models/<dir>/: [path, bytes]; runtime: bytes of ONNX Runtime's WebAssembly. */
+  model: { dir: string; files: [string, number][]; runtime: number };
+  queryPrefix: string;
+  dims: number;
+  /** int8 value = round(component × scale). */
+  scale: number;
+  quran: number;
+  /** [book, rows in its HadithChunk, rows without a vector]. */
+  books: [HadithBookId, number, number[]][];
+}
+
 export interface ChunkInfo {
   file: string;
   items: number;

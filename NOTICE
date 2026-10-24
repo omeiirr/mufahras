@@ -8,3 +8,6 @@ Tafsir: "Abridged Explanation of the Quran" (Al-Mukhtasar fi Tafsir al-Quran), T
 Word-by-word English meanings, transliteration, topics, ayah themes, similar ayahs, mutashabihat and surah metadata: Quranic Universal Library (QUL), https://qul.tarteel.ai.
 The 99 Names of Allah (Arabic, transliteration, English names and meanings): UmmahAPI, https://ummahapi.com/asma-ul-husna-api (provided as sadaqah jariah).
 Hadith (Sahih al-Bukhari, Sahih Muslim, Sunan Abu Dawud, Jami at-Tirmidhi, Sunan an-Nasa'i, Sunan Ibn Majah), English and Arabic text and gradings: fawazahmed0/hadith-api, https://github.com/fawazahmed0/hadith-api (Unlicense).
+Search-by-meaning model: snowflake-arctic-embed-s by Snowflake, https://huggingface.co/Snowflake/snowflake-arctic-embed-s (Apache License 2.0), served unmodified in its 8-bit ONNX form. The vectors in data-src/vectors/ were computed with it from the texts above.
+
+Search by meaning also uses ONNX Runtime Web by Microsoft (MIT License) and Tokenizers.js by Hugging Face (Apache License 2.0), included in the app's code.

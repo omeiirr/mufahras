@@ -7,11 +7,14 @@
   import DetailPane from './components/DetailPane.svelte';
   import Empty from './components/Empty.svelte';
   import FilterChips from './components/FilterChips.svelte';
-  import ResultList from './components/ResultList.svelte';
+  import ResultList, { MEANING_FIRST } from './components/ResultList.svelte';
   import SearchBar from './components/SearchBar.svelte';
   import MenuIcon from '@lucide/svelte/icons/menu';
   import Menu from './components/Menu.svelte';
+  import { meaning, searchMeaning, startMeaning } from './lib/meaning/meaning.svelte';
   import { recordSearch } from './lib/store/history.svelte';
+  import { settings } from './lib/store/settings.svelte';
+  import { hasArabic } from './lib/text/normalize';
   import { backToast, closeLayer, openLayer } from './lib/back.svelte';
   import { back, navigate, route, type Corpus } from './lib/router.svelte';
   import { SearchClient } from './lib/search/client';
@@ -76,9 +79,46 @@
     client.search(route.q, { corpus: route.corpus, minGrade: route.sahih ? 'sahih' : undefined, limit: PAGE * pageCount });
   });
 
+  // ---- search by meaning (when switched on): English queries of two or more words, after typing pauses
+
+  const MEANING_SHOWN = 20;
+  if (settings.meaning) startMeaning();
+  const meaningQuery = $derived.by(() => {
+    const q = route.q.trim();
+    if (!settings.meaning || hasArabic(q) || /\d/.test(q) || !/[a-z]/i.test(q)) return '';
+    return q.split(/\s+/).length >= 2 ? q : '';
+  });
+  const meaningKey = $derived(`${meaningQuery}|${route.corpus}|${route.sahih}`);
+  let meaningResult = $state<{ key: string; hits: PresentedHit[] } | null>(null);
+  $effect(() => {
+    const q = meaningQuery;
+    const key = meaningKey;
+    const opts = { corpus: route.corpus, minGrade: route.sahih ? ('sahih' as const) : undefined, limit: MEANING_SHOWN };
+    if (!q) return;
+    const timer = setTimeout(async () => {
+      const found = await searchMeaning(q);
+      if (!found) return; // a newer query was sent
+      const hits = await client.present(
+        found.map((h) => h.ref),
+        opts,
+      );
+      // Keys of their own: the same text may also be among the word matches.
+      meaningResult = { key, hits: hits.map((h) => ({ ...h, key: `m${h.key}` })) };
+    }, 350);
+    return () => clearTimeout(timer);
+  });
+  const meaningShown = $derived(meaningQuery ? { hits: meaningResult?.key === meaningKey ? meaningResult.hits : null, status: meaning.status } : null);
+  // "More by meaning" opens the list for this query only.
+  let meaningOpen = $state(false);
+  $effect(() => {
+    void meaningKey;
+    meaningOpen = false;
+  });
+  const meaningVisible = $derived(meaningShown?.hits?.slice(0, meaningOpen ? undefined : MEANING_FIRST) ?? []);
+
   const hasQuery = $derived(route.q.trim() !== '');
   const shown = $derived(hasQuery && response ? response : null);
-  const allHits = $derived<PresentedHit[]>(shown ? [...shown.pinned, ...shown.hits] : []);
+  const allHits = $derived<PresentedHit[]>(shown ? [...shown.pinned, ...meaningVisible, ...shown.hits] : []);
 
   // The graph is its own full-window page (lazy-loaded), not a detail in the pane.
   const graphRoute = $derived(route.path === 'graph' || route.path.startsWith('graph/'));
@@ -195,6 +235,8 @@
           onmore={() => (pages = { key: searchKey, n: pageCount + 1 })}
           onsuggest={(patch) => navigate(patch, { replace: true })}
           {hrefFor}
+          meaning={meaningShown}
+          bind:meaningOpen
         />
       {/if}
       {#if !hasQuery && status.loaded.includes('quran') && !status.ready}

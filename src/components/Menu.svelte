@@ -18,6 +18,7 @@
   import X from '@lucide/svelte/icons/x';
   import { fly, fade } from 'svelte/transition';
   import { install, promptInstall } from '../lib/install.svelte';
+  import { checkMeaning, meaning, removeMeaning, startMeaning, stopMeaning } from '../lib/meaning/meaning.svelte';
   import type { SearchClient } from '../lib/search/client';
   import { bookmarks } from '../lib/store/bookmarks.svelte';
   import { clearHistory, history } from '../lib/store/history.svelte';
@@ -42,6 +43,25 @@
     ...THEMES.map((t) => ({ id: t.id, label: t.label, swatch: t.swatch })),
   ];
   const sizeLabels = ['Small', 'Default', 'Large', 'Larger'];
+
+  // Search by meaning: learn its download size and whether it's stored (cheap: no model is loaded).
+  checkMeaning();
+  const mb = (n: number) => `${Math.round(n / 1e6)} MB`;
+  // Chrome reports memory in GB, rounded down; the model needs a few hundred MB while it runs.
+  const lowMemory = ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) < 3;
+  let removing = $state(false);
+
+  function toggleMeaning(on: boolean): void {
+    updateSettings({ meaning: on });
+    if (on) startMeaning();
+    else stopMeaning();
+  }
+
+  async function remove(): Promise<void> {
+    removing = true;
+    await removeMeaning();
+    removing = false;
+  }
 
   const go = (path: string) => {
     onnavigate(path);
@@ -68,6 +88,37 @@
       </span>
       <input type="checkbox" checked={settings.sakinah} onchange={(e) => updateSettings({ sakinah: e.currentTarget.checked })} />
     </label>
+  </section>
+
+  <section class="meaning" aria-live="polite">
+    <label class="row toggle">
+      <span>
+        <strong>Search by meaning <span class="beta">beta</span></strong>
+        <small>
+          Also finds verses and hadith that say what you typed in other words, like “dealing with worry” or “kindness to parents”.
+          English only. Runs on this device{meaning.status.total ? `, after a one-time download of ${mb(meaning.status.total)}` : ''}.
+        </small>
+      </span>
+      <input type="checkbox" checked={settings.meaning} onchange={(e) => toggleMeaning(e.currentTarget.checked)} />
+    </label>
+    {#if settings.meaning}
+      {#if meaning.status.state === 'downloading'}
+        <progress max={meaning.status.total} value={meaning.status.loaded} aria-label="Downloading search by meaning"></progress>
+        <p class="note">Downloading: {mb(meaning.status.loaded)} of {mb(meaning.status.total)}. You can keep searching meanwhile.</p>
+      {:else if meaning.status.state === 'loading'}
+        <p class="note">Preparing…</p>
+      {:else if meaning.status.state === 'ready'}
+        <p class="note">Ready, and works offline.</p>
+      {:else if meaning.status.state === 'error'}
+        <p class="note error">Couldn't load: {meaning.status.error}</p>
+        <button type="button" class="plain" onclick={startMeaning}>Try again</button>
+      {/if}
+    {:else if lowMemory}
+      <p class="note">This device reports little memory, so search by meaning may be slow or fail to load.</p>
+    {/if}
+    {#if meaning.status.stored && !settings.meaning}
+      <button type="button" class="plain" onclick={remove} disabled={removing}>{removing ? 'Removing…' : `Remove its download (${mb(meaning.status.total)})`}</button>
+    {/if}
   </section>
 
   <section>
@@ -331,8 +382,24 @@
     background: var(--accent-soft);
     border-radius: var(--radius-sm);
   }
-  .sakinah strong {
+  .sakinah strong,
+  .meaning strong {
     display: block;
+  }
+  .beta {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-left: var(--space-1);
+  }
+  .meaning progress {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+  .note.error {
+    color: var(--daif);
   }
   .note {
     margin: var(--space-1) 0 0;

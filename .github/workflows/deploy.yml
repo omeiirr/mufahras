@@ -1,5 +1,5 @@
-# Builds the data and the app, runs the checks (types, unit and data tests, browser tests), and deploys to
-# GitHub Pages on every push to main. Nothing deploys if any check fails.
+# Builds the data and the app, runs the checks (types, unit and data tests, the search-by-meaning evaluation,
+# browser tests), and deploys to GitHub Pages on every push to main. Nothing deploys if any check fails.
 name: Deploy
 
 on:
@@ -31,6 +31,11 @@ jobs:
         with:
           path: data-src/hadith
           key: hadith-${{ hashFiles('scripts/sources.ts') }}
+      # The search-by-meaning model (34 MB) is pinned to a revision and checksums in scripts/meaning.ts.
+      - uses: actions/cache@v6
+        with:
+          path: data-src/model
+          key: model-${{ hashFiles('scripts/meaning.ts') }}
       - run: npm run data:fetch
       - run: npm run build
       - run: npm run check

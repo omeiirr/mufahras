@@ -46,7 +46,8 @@
     <p class="sub">Data built {built}.</p>
   {/if}
   <p class="sub">
-    Fonts: Scheherazade New (SIL), Noto Naskh Arabic, Amiri (logo). Icons: Lucide. Not affiliated with or endorsed by any of these
+    Fonts: Scheherazade New (SIL), Noto Naskh Arabic, Amiri (logo). Icons: Lucide. Search by meaning runs on ONNX Runtime Web (Microsoft)
+    and Tokenizers.js (Hugging Face). Not affiliated with or endorsed by any of these
     sources; may Allah reward them for making this knowledge open.
   </p>
 

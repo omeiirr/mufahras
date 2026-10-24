@@ -22,14 +22,17 @@ import {
   type WordsChunk,
   type NamesOfAllahChunk,
 } from '../data/types';
+import { DATA_CACHE, fetchManifest } from '../data/fetch';
 import { SearchEngine } from './engine';
-import type { SearchOptions, SearchResponse } from './types';
+import type { DocRef, PresentedHit, SearchOptions, SearchResponse } from './types';
 
 export type WorkerRequest =
   | { type: 'init'; base: string }
   | { type: 'search'; id: number; query: string; opts: SearchOptions }
   | { type: 'detail'; id: number; req: DetailRequest }
-  | { type: 'offline'; id: number; download: boolean };
+  | { type: 'offline'; id: number; download: boolean }
+  /** Search-by-meaning results (texts found by the meaning worker), to be filtered and prepared for display. */
+  | { type: 'present'; id: number; refs: DocRef[]; opts: SearchOptions };
 
 /** How much of the data is stored for offline use (by the service worker's caches). */
 export interface OfflineStatus {
@@ -55,7 +58,8 @@ export type WorkerResponse =
   | { type: 'status'; status: LoadStatus }
   | { type: 'results'; id: number; response: SearchResponse }
   | { type: 'detail'; id: number; detail: Detail | null }
-  | { type: 'offline'; id: number; offline: OfflineStatus };
+  | { type: 'offline'; id: number; offline: OfflineStatus }
+  | { type: 'present'; id: number; hits: PresentedHit[] };
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope;
 const engine = new SearchEngine();
@@ -118,30 +122,6 @@ const EXTRA_CHUNKS = ['tafsir', 'themes', 'topics', 'similar', 'mutashabihat', '
 
 /** Chunks needed for everything the app does today; Arabic hadith included. */
 const OFFLINE_CHUNKS = ['quran', 'translit', 'words', 'names-of-allah', ...EXTRA_CHUNKS, ...HADITH_BOOKS.map((b) => `hadith-${b}`), ...HADITH_BOOKS.map((b) => `hadith-${b}-ar`)];
-// Runtime cache names, see vite.config.ts.
-const DATA_CACHE = 'mufahras-data';
-const MANIFEST_CACHE = 'mufahras-manifest';
-
-/**
- * The manifest is network-first (so new data is picked up), with a cached copy for offline use.
- * Stored here as well as by the service worker, for the same first-visit reason as fetchData.
- */
-async function fetchManifest(): Promise<Manifest> {
-  const url = new URL('manifest.json', base);
-  let res: Response | undefined;
-  try {
-    res = await fetch(url);
-  } catch {
-    res = 'caches' in self ? await caches.match(url) : undefined;
-  }
-  if (!res?.ok) throw new Error(`manifest.json: ${res ? `HTTP ${res.status}` : 'offline and not cached'}`);
-  if ('caches' in self)
-    await caches
-      .open(MANIFEST_CACHE)
-      .then((c) => c.put(url, res.clone()))
-      .catch(() => {});
-  return res.json();
-}
 
 /**
  * Fetches a data chunk, cache first (names are content-hashed, so a cached copy is never stale),
@@ -197,7 +177,7 @@ async function offlineStatus(download: boolean): Promise<OfflineStatus> {
 
 async function init(): Promise<void> {
   const t0 = performance.now();
-  manifest = fetchManifest();
+  manifest = fetchManifest(base);
   manifest.then(pruneDataCache).catch(() => {});
   await ensure('quran');
   status.quranMs = Math.round(performance.now() - t0);
@@ -244,6 +224,14 @@ ctx.onmessage = (e: MessageEvent<WorkerRequest>) => {
       .catch((err: Error) => {
         fail(err);
         post({ type: 'offline', id: msg.id, offline: { supported: false, cached: 0, total: 0, missingBytes: 0 } });
+      });
+  } else if (msg.type === 'present') {
+    const books = [...new Set(msg.refs.flatMap((r) => (r.kind === 'hadith' ? [r.book] : [])))];
+    Promise.all([ensure('quran'), ...books.map((b) => ensure(`hadith-${b}`))])
+      .then(() => post({ type: 'present', id: msg.id, hits: engine.presentRefs(msg.refs, msg.opts, msg.opts.limit) }))
+      .catch((err: Error) => {
+        fail(err);
+        post({ type: 'present', id: msg.id, hits: [] });
       });
   } else if (msg.type === 'detail') {
     detail(msg.req)

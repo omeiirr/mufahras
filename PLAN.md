@@ -396,7 +396,7 @@ over recall; the build reports counts per kind.
 quotations; Bukhari and Muslim first within each), each with a snippet, its grading and the quoted part
 highlighted; on a hadith screen, "Verses in this hadith" as links. Hidden in Sakinah mode.
 
-## Search by meaning (planned 2026-10-24; spike done)
+## Search by meaning (version 1 built 2026-10-24, in beta)
 
 **Decisions (2026-10-24):** version 1 covers **the Quran and the hadith together** (~55 MB with the chosen model); **off by default**,
 switched on in the menu; **English queries only**; evaluation queries drafted by Claude and reviewed by the owner
@@ -472,8 +472,8 @@ only the original answers; recall@10 only the originals. Keyword search scores 5
   only) ranks the models the same way: 72% / 65% / 63%.
 
 ### Approach
-- **An embedding model runs in the browser** (transformers.js on ONNX Runtime WebAssembly), as an **optional
-  download** switched on in the menu. The main app doesn't grow.
+- **An embedding model runs in the browser** (ONNX Runtime Web's WebAssembly build, with Tokenizers.js; not
+  Transformers.js, which brings the 6.6 MB WebGPU runtime), as an **optional download** switched on in the menu. The main app doesn't grow.
 - **Every verse and hadith gets a vector at build time** with the same model and quantization the browser uses,
   so query and corpus embeddings match exactly.
 - **Search compares the query's vector with all of them** (dot product of normalized vectors) and shows the
@@ -518,32 +518,42 @@ only the original answers; recall@10 only the originals. Keyword search scores 5
   third parties. They're fetched in CI at the pinned revision with a checksum and copied into `dist/`, not
   committed (34 MB).
 
-### In the app
-- A separate **meaning worker**, so the search worker stays light. It loads the runtime and model on first use.
-- **Queries:** embed after typing pauses (~350 ms) and only for queries of 3+ words; matching words already
-  updates on every keystroke.
-- **Scoring:** int8 dot product over all vectors, ~15M multiply-adds, about 10–30 ms on a phone; keep the top 30.
-- **Results:** a separate **"Similar in meaning"** section below the word matches, marked as found by meaning
-  ("may not contain your words"). Duplicates of word matches are removed; a text found both ways ranks higher.
-  Later: fuse the two rankings (reciprocal rank fusion) once evaluation shows it helps.
-- **Menu:** "Search by meaning (beta), ~55 MB" with a short explanation, download progress, and Remove.
-  Available in Sakinah mode, since it's search. The offline panel counts it.
-- **Low memory:** turned off by default on devices reporting little memory (`navigator.deviceMemory` < 3), and
-  degrades to word search if the model fails to load.
+### In the app (as built)
+- A separate **meaning worker** (`src/lib/meaning/`), so word search never waits on it. It starts when the
+  setting is on, or when the menu asks whether its files are stored; the runtime code loads only on start.
+- **Downloads:** model 34 MB, runtime 14 MB, vectors 15.5 MB (~64 MB, less over the wire), into their own
+  cache (`mufahras-meaning`); `navigator.storage.persist()` is requested. The worker's code (~110 KB) is
+  precached so it starts offline. Files are content-hashed or carry the model revision in their path.
+- **Queries:** English, two or more words, no digits or Arabic; embedded 350 ms after typing pauses. Word
+  matching still updates on every keystroke.
+- **Scoring:** int8 dot products in WebAssembly SIMD (`dot.wat`), 1.6 ms for all 40,393 vectors on a laptop;
+  plain JS fallback (25 ms). The top 60 are filtered by the search worker like word results (Quran/Hadith,
+  Sahih only) and the first 20 kept.
+- **Results:** a **"By meaning"** section ("may not contain your words") after any "Go to" match and *before*
+  the word matches (below them it would sit under hundreds of hits): 5 results, then "More by meaning" for up
+  to 20; then "With your words". The same text can appear in both. Arrow keys move through both sections.
+- **Menu:** "Search by meaning (beta)" switch with the download size, progress, "Ready, and works offline",
+  errors with "Try again", and "Remove its download" while it's off. A note on devices reporting < 3 GB
+  memory. Available in Sakinah mode, since it's search.
+- **Measured (laptop, Chromium):** opening with the files stored → first results 1.4 s; a new query 45–60 ms
+  after the pause; with 6× CPU throttling 1.8 s and 80–170 ms (throttling may not slow workers fully).
+  **Still to measure on the Moto g82.**
+- **Later:** fuse the two rankings once evaluation shows it helps (round 2: about one query).
 
 ### Evaluation
 - A set of ~60 meaning queries with expected results, written by hand and checked against the texts:
   paraphrases of famous hadith, concepts ("patience in hardship", "treatment of orphans' wealth", "the
   afterlife for the righteous"), and questions people actually ask.
-- **Gate in CI:** recall@10 ≥ a threshold set from the chosen baseline; the report shows per-query hits so
-  regressions are visible.
+- **Gate in CI** (`tests/meaning.test.ts`): the real 8-bit model embeds the 60 queries in Node against the
+  built vectors; hit@10 ≥ 85% and strict ≥ 68% (measured 90% / 73%, MRR 0.61), with the misses printed.
 - **Measure on a low-end Android phone:** download size, first-load time, memory, query latency.
 
 ### Phases
-0. **Spike:** embed the Quran with 2–3 candidate models in Node, evaluate, pick one. No app changes.
-1. **Quran only:** ~30 MB optional download, "Similar in meaning" for verses.
-2. **Hadith:** passages for long hadith, vectors per book downloaded with the book.
-3. **Ranking:** hybrid fusion with word search, tuned on the evaluation set.
+0. **Spike:** done (rounds 1 and 2 above).
+1. **Quran and hadith together:** done 2026-10-24, in beta.
+2. **Phone check:** download time, first load, memory and query speed on a Moto g82.
+3. **Ranking:** hybrid fusion with word search, tuned on the evaluation set; hadith summaries or section titles
+   for the hadith that are still missed.
 4. (Optional) **Multilingual:** Arabic and Urdu meaning queries with a larger model, if there's demand.
 
 ### Risks
@@ -558,7 +568,6 @@ only the original answers; recall@10 only the originals. Keyword search scores 5
 - **"Report a mistake" link** on each verse and hadith screen: opens the repo's "Mistake in a text" issue form
   (`.github/ISSUE_TEMPLATE/1-text-mistake.yml`) with the reference, the text shown and a link back already filled in
   (via the `template=` and field query parameters). Nothing is sent automatically; submitting needs a GitHub account.
-- **Search by meaning** ("dealing with anxiety") with a small on-device embedding model (optional ~20–30 MB download)
 - Ayah audio recitation (streamed), with a choice of reciter and verse-by-verse highlighting
 - More translations and side-by-side view (Urdu, Bengali, Indonesian, … are already in the sources)
 - Word-by-word translation and morphology / root explorer (QUL)

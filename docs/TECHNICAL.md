@@ -21,6 +21,7 @@ Contents
 12. [Themes, colour and contrast](#12-themes-colour-and-contrast)
 12b. [Personal features: bookmarks, history, cards, the drawer](#12b-personal-features-bookmarks-history-cards-the-drawer)
 13. [The similar-verses graph](#13-the-similar-verses-graph)
+13b. [Search by meaning](#13b-search-by-meaning)
 14. [Icons and link previews](#14-icons-and-link-previews)
 15. [Testing](#15-testing)
 16. [Lessons, in one list](#16-lessons-in-one-list)
@@ -600,6 +601,44 @@ const update = () => document.documentElement.style.setProperty('--kb', `${Math.
 - **What it shows:** recurring refrains become dense clusters; Ar-Rahman's "Which of the favours of your Lord
   would you deny?" is the big one.
 
+## 13b. Search by meaning
+
+An optional mode (menu → Search by meaning, off by default) that also finds texts that say what you typed in
+other words. A small embedding model turns each verse and hadith into 384 numbers once, ahead of time; in the
+app it does the same to the query, and the closest texts are shown as "By meaning". Retrieval only: the texts
+are shown as they are, nothing is generated. The model choice and its evaluation are in PLAN.md.
+
+- **Choose the model by measuring on your own texts.** Eight small models, scored on 60 queries with known
+  answers (`eval/`, GPU notebooks): the popular default (bge-small) came second; snowflake-arctic-embed-s won,
+  and won by more once each verse was embedded **with its Al-Mukhtasar explanation**: the explanation states
+  the meaning in plain words, which is what people type (72% → 82% of queries with an answer in the top 10).
+  Removing hadith narrator chains, which looked like obvious noise, made results slightly *worse*.
+- **The evaluation set undercounts until you read the misses.** Many "misses" were correct texts the set
+  didn't list (the same hadith in another book, or a better verse). Reading every top 10 added 83 accepted
+  alternatives; scores are reported both with them and "strict" (original answers only), and the model order
+  must hold on the strict one, since the alternatives came from one model's results.
+- **8-bit dynamic quantization is batch-dependent.** The ONNX model quantizes activations with a scale computed
+  over the whole batch, padding included, so a text embedded in a batch gets a slightly different vector
+  (cosine ~0.995) than alone. The app embeds one query at a time, so the vectors are made one text at a time
+  too (in parallel across cores). Processors differ a little as well (native x86 vs WebAssembly, cosine ~0.998),
+  which doesn't change rankings: the CI evaluation gives the notebook's numbers exactly.
+- **Check the tokenizer, not just the model.** Tokenizers.js has no truncation option; it truncates by hand
+  like the Python tokenizer (`[CLS]`, the first 254 tokens, `[SEP]`). A test compared token ids for 2,060
+  texts, the longest hadith among them: identical.
+- **Smaller runtime: skip the bundler-friendly library.** Transformers.js pulls in ONNX Runtime's WebGPU build
+  (6.6 MB of `.wasm`, compressed); the plain WebAssembly build is 3.7 MB, and one sentence doesn't need a GPU.
+  `onnxruntime-web/wasm` plus `@huggingface/tokenizers` (8 KB) and 40 lines of pooling is all it takes.
+- **Score in WebAssembly SIMD.** 40,393 × 384 int8 dot products: 25 ms in plain JS, **1.6 ms** with
+  `i16x8.extend_*_i8x16_s` + `i32x4.dot_i16x8_s` (`src/lib/meaning/dot.wat`, 236 bytes compiled, inlined as
+  base64 with a test that it matches the source). Plain JS remains the fallback.
+- **Downloads on demand, offline after.** The model (34 MB), runtime (14 MB) and vectors (15.5 MB) go into their
+  own cache only when switched on, so "Remove" is one cache delete; the worker's code (~110 KB) is precached,
+  or it couldn't start offline (a browser test caught this). The model is served from the app's own site at a
+  pinned revision with checksums, never from a model hub at run time.
+- **Vectors are committed, re-embedded only where texts change.** Each vector carries a hash of its text; the
+  build copies matching vectors and re-embeds the rest with the same 8-bit model in Node (WebAssembly build),
+  so a corrected translation costs seconds, not a 40-minute CI run.
+
 ## 14. Icons and link previews
 
 - **Centre glyphs by their ink, not their font box.** SVG `getBBox()` on text returns the em box (ascent to
@@ -616,7 +655,7 @@ const update = () => document.documentElement.style.setProperty('--kb', `${Math.
 
 ## 15. Testing
 
-392 tests in Vitest (2 of them `it.todo`), most of them against the real generated data:
+405 tests in Vitest (2 of them `it.todo`), most of them against the real generated data:
 
 - **Ranking:** a fixed list of queries with the result that must appear in the top N (typos, abbreviations,
   transliteration, Arabic without diacritics, other translations). The test prints every query's time.
@@ -635,7 +674,11 @@ const update = () => document.documentElement.style.setProperty('--kb', `${Math.
   everything, go offline, reload, search, open a hadith with its Arabic). These began as one-off scripts
   around screenshots; making them assertions is what stops a layout bug from reaching a phone again.
 
-`it.todo` keeps known gaps visible (paraphrases that need search by meaning) instead of hiding them.
+`it.todo` keeps known gaps visible (paraphrases word search can't find) instead of hiding them.
+
+**Search by meaning** has its own gate (`tests/meaning.test.ts`): the real 8-bit model embeds the 60 evaluation
+queries in Node, and at least 85% must find an accepted answer in the top 10 (68% strict); measured 90% / 73%.
+A browser test switches it on, searches, goes offline and reloads, searches again, then removes the download.
 
 ## 16. Lessons, in one list
 
@@ -654,3 +697,5 @@ const update = () => document.documentElement.style.setProperty('--kb', `${Math.
 - Look in the source's metadata before writing a workaround for its data.
 - Read data that comes from crowd-sourced or converted sources defensively: QUL and hadith-api are excellent,
   and they still had fragments, mis-filed topics, split words and empty records.
+- Evaluate a model on your own data and read its misses: the evaluation set was wrong more often than the model.
+- Quantized models aren't deterministic across batching; compute stored vectors exactly as queries are computed.

@@ -234,6 +234,30 @@ export class SearchEngine {
     return { query, pinned: offset ? [] : pinned, chips, hits, total: ranked.length, ms: performance.now() - t0 };
   }
 
+  /**
+   * Search-by-meaning results ready for display: the given texts in order, filtered like a search
+   * (collection, grade), up to limit. No highlights: they may not contain the query's words.
+   */
+  presentRefs(refs: DocRef[], opts: SearchOptions = {}, limit = 20): PresentedHit[] {
+    const out: PresentedHit[] = [];
+    for (const ref of refs) {
+      if (out.length === limit) break;
+      if (ref.kind === 'ayah') {
+        if (!this.quran || !this.corpusAllowed('quran', opts)) continue;
+        if (opts.surah) {
+          const s = this.quran.surahs[opts.surah - 1]!;
+          if (ref.i < s.start || ref.i >= s.start + s.count) continue;
+        }
+      } else {
+        const book = this.books.get(ref.book);
+        if (!book || !this.corpusAllowed(ref.book, opts)) continue;
+        if (opts.minGrade && gradeRank(book.grade[ref.row]!) < gradeRank(opts.minGrade)) continue;
+      }
+      out.push(this.present({ ref, score: 0, tier: 3, field: 'en' }, []));
+    }
+    return out;
+  }
+
   private corpusAllowed(corpus: Segment['corpus'], opts: SearchOptions): boolean {
     // A surah filter means Quran only; a book filter means those books only.
     if (opts.surah) return corpus === 'quran';

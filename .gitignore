@@ -7,3 +7,5 @@ public/data/
 test-results/
 playwright-report/
 data-src/vectors/*.fp32.i8
+data-src/model/
+public/models/

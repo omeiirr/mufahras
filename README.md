@@ -58,6 +58,20 @@ Some things to try:
 | `الحمد لله رب العالمين` | Arabic, with or without diacritics |
 | `fasting` · `orphans` | topics in the Quran and chapters of the hadith books |
 | a sentence you remember, in any translation | the source, even when the wording differs ("close matches") |
+| `dealing with anxiety` · `kindness to parents` | with **Search by meaning** on: texts that say it in other words |
+
+## Search by meaning
+
+Words only go so far: the verse you're thinking of may not use the word you remember. Switch on **Search by
+meaning** in the ☰ menu (it's in beta, and English only) and Mufahras also shows the verses and hadith closest
+in *meaning* to what you typed, under "By meaning": "dealing with anxiety" finds *with hardship will be ease*
+(94:6) and the Prophet's ﷺ dua against worry and grief; "Allah is near and answers when I call" finds 2:186;
+"visiting the sick" finds the hadith of the fruit garden of Paradise (Muslim 6551).
+
+It runs entirely on your device, with a small language model (snowflake-arctic-embed-s) that turns your words
+into numbers and compares them with every verse, read together with its explanation, and every hadith. It's a
+one-time download of about 64 MB, from this app's own site, and then it works offline too. It only finds and
+shows the texts themselves; it never writes or summarizes anything. You can remove the download from the menu.
 
 ## What else is inside
 
@@ -110,7 +124,8 @@ in any app, share it to Mufahras, and it searches for the source.
 
 - **No accounts, no sign-in, no tracking, no analytics, no ads, no cookies.**
 - **Your searches never leave your device.** They're answered by code running on your phone or computer, not sent
-  anywhere. The same goes for anything you share into the app.
+  anywhere. The same goes for anything you share into the app, and for Search by meaning: its model runs on
+  your device, downloaded from this app's own site, not a third party.
 - **Everything stored stays on your device:** the texts kept for offline use, your settings, your bookmarks, and
   your recent searches (which you can turn off or clear from the menu).
 - The app is plain files served by GitHub Pages. Like any website, GitHub sees the ordinary request for those files
@@ -150,9 +165,9 @@ JSON chunks; a Web Worker indexes them and runs every search, so the page itself
 
 ```sh
 npm install
-npm run data:fetch   # download the hadith collections (pinned version)
+npm run data:fetch   # download the hadith collections and the search-by-meaning model (pinned versions)
 npm run dev          # http://localhost:5173 (add -- --host to open it from a phone)
-npm test             # search ranking, data integrity and colour-contrast checks
+npm test             # search ranking, search-by-meaning evaluation, data integrity and colour contrast
 npm run build        # data + app into dist/
 ```
 

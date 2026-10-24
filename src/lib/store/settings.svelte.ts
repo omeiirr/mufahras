@@ -14,13 +14,15 @@ export interface Settings {
    * verse extras (explanation, topics, similar verses, phrases) and picture cards; their data isn't fetched.
    */
   sakinah: boolean;
+  /** Search by meaning: an optional ~50 MB download (src/lib/meaning/). */
+  meaning: boolean;
 }
 
 export const TEXT_SCALES = [0.9, 1, 1.12, 1.25] as const;
 export const ARABIC_SCALES = [0.85, 1, 1.2, 1.4] as const;
 
 const KEY = 'settings';
-const DEFAULTS: Settings = { textScale: 1, arabicScale: 1, translit: true, history: true, sakinah: false };
+const DEFAULTS: Settings = { textScale: 1, arabicScale: 1, translit: true, history: true, sakinah: false, meaning: false };
 
 function load(): Settings {
   try {

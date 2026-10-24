@@ -1,7 +1,7 @@
 // Main-thread side of the search worker. Only the response to the latest query is delivered;
 // answers to queries typed over are dropped. Detail requests resolve independently.
 import type { Detail, DetailRequest } from '../data/views';
-import type { SearchOptions, SearchResponse } from './types';
+import type { DocRef, PresentedHit, SearchOptions, SearchResponse } from './types';
 import type { LoadStatus, OfflineStatus, WorkerRequest, WorkerResponse } from './worker';
 
 export class SearchClient {
@@ -10,6 +10,7 @@ export class SearchClient {
   private detailId = 0;
   private pending = new Map<number, (d: Detail | null) => void>();
   private pendingOffline = new Map<number, (s: OfflineStatus) => void>();
+  private pendingPresent = new Map<number, (h: PresentedHit[]) => void>();
 
   constructor(
     dataBase: string,
@@ -21,6 +22,9 @@ export class SearchClient {
       if (msg.type === 'status') this.onStatus(msg.status);
       else if (msg.type === 'results') {
         if (msg.id === this.searchId) this.onResults(msg.response);
+      } else if (msg.type === 'present') {
+        this.pendingPresent.get(msg.id)?.(msg.hits);
+        this.pendingPresent.delete(msg.id);
       } else if (msg.type === 'offline') {
         this.pendingOffline.get(msg.id)?.(msg.offline);
         this.pendingOffline.delete(msg.id);
@@ -41,6 +45,15 @@ export class SearchClient {
     return new Promise((resolve) => {
       this.pending.set(id, resolve);
       this.send({ type: 'detail', id, req });
+    });
+  }
+
+  /** Search-by-meaning results, filtered like a search and prepared for display (opts.limit of them). */
+  present(refs: DocRef[], opts: SearchOptions): Promise<PresentedHit[]> {
+    const id = ++this.detailId;
+    return new Promise((resolve) => {
+      this.pendingPresent.set(id, resolve);
+      this.send({ type: 'present', id, refs, opts });
     });
   }
 

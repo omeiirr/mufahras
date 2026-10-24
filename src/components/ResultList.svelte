@@ -1,6 +1,12 @@
+<script lang="ts" module>
+  /** Results by meaning shown before "More by meaning". */
+  export const MEANING_FIRST = 5;
+</script>
+
 <script lang="ts">
   import BookMarked from '@lucide/svelte/icons/book-marked';
   import Tag from '@lucide/svelte/icons/tag';
+  import type { MeaningStatus } from '../lib/meaning/meaning-worker';
   import type { PresentedHit, SearchResponse } from '../lib/search/types';
   import { settings } from '../lib/store/settings.svelte';
   import GradeBadge from './GradeBadge.svelte';
@@ -13,8 +19,14 @@
     onmore,
     onsuggest,
     hrefFor,
+    meaning = null,
+    meaningOpen = $bindable(false),
   }: {
     response: SearchResponse;
+    /** Search by meaning for this query: its results (null while pending) and the model's status. */
+    meaning?: { hits: PresentedHit[] | null; status: MeaningStatus } | null;
+    /** All results by meaning shown, not just the first MEANING_FIRST. */
+    meaningOpen?: boolean;
     selectedKey: string | null;
     onopen: (hit: PresentedHit) => void;
     onmore: () => void;
@@ -22,7 +34,8 @@
     hrefFor: (path: string) => string;
   } = $props();
 
-  const items = $derived([...response.pinned.map((h) => ({ hit: h, pinned: true })), ...response.hits.map((h) => ({ hit: h, pinned: false }))]);
+  const meaningHits = $derived(meaning?.hits ? meaning.hits.slice(0, meaningOpen ? undefined : MEANING_FIRST) : []);
+  const mb = (n: number) => `${Math.round(n / 1e6)} MB`;
   const more = $derived(response.hits.length < response.total);
   // Source-finder matches come after all strict matches; a divider introduces them.
   const firstNear = $derived(response.hits.findIndex((h) => h.overlap));
@@ -45,7 +58,9 @@
 
 <p class="summary" aria-live="polite">
   {#if response.total}
-    {response.total.toLocaleString()} {response.total === 1 ? 'result' : 'results'}{response.partial ? ' so far, still loading hadith…' : ''}
+    {response.total.toLocaleString()} {response.total === 1 ? 'result' : 'results'}{meaning ? ' with your words' : ''}{response.partial ? ' so far, still loading hadith…' : ''}
+  {:else if meaning?.hits?.length}
+    No texts with your words{response.partial ? ' yet, still loading hadith…' : ''}
   {:else if !response.pinned.length}
     No results{response.partial ? ' yet, still loading hadith…' : ''}
   {/if}
@@ -65,7 +80,7 @@
   </ul>
 {/if}
 
-{#if !response.total && !response.pinned.length && !response.partial}
+{#if !response.total && !response.pinned.length && !response.partial && !meaning?.hits?.length}
   <div class="none">
     <p>Nothing matched <strong dir="auto">“{response.query}”</strong>.</p>
     <ul>
@@ -81,43 +96,85 @@
   </div>
 {/if}
 
+{#snippet item(hit: PresentedHit, pinned: boolean)}
+  <li id={pinned ? undefined : `hit-${hit.key}`}>
+    <a
+      href={hrefFor(hit.path)}
+      class="hit"
+      class:pinned
+      class:selected={selectedKey === hit.key}
+      aria-current={selectedKey === hit.key ? 'true' : undefined}
+      onclick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+        e.preventDefault();
+        onopen(hit);
+      }}
+    >
+      <span class="meta">
+        {#if pinned}<span class="go">Go to</span>{/if}
+        <strong>{hit.label}</strong>
+        <span class="sub">{hit.sublabel}</span>
+        {#if hit.grade && hit.ref.kind === 'hadith'}<GradeBadge grade={hit.grade} />{/if}
+        {#if hit.overlap}<span class="tier">{hit.overlap[0]} of {hit.overlap[1]} words</span>
+        {:else if tierNote[hit.tier]}<span class="tier">{tierNote[hit.tier]}</span>{/if}
+      </span>
+      {#if hit.field === 'ar'}
+        <span class={hit.ref.kind === 'ayah' ? 'quran text' : 'arabic text'} lang="ar" dir="rtl"><Highlighted text={hit.text} ranges={hit.ranges} /></span>
+      {:else}
+        <span class="text" class:translit={hit.field === 'translit'}><Highlighted text={hit.text} ranges={hit.ranges} /></span>
+      {/if}
+      {#if hit.secondary}<span class="secondary">{hit.secondary}</span>{/if}
+    </a>
+  </li>
+{/snippet}
+
 <ol class="list">
-  {#each items as { hit, pinned } (`${pinned ? 'p' : 'h'}${hit.key}`)}
-    {#if !pinned && hit === response.hits[firstNear]}
+  {#each response.pinned as hit (`p${hit.key}`)}
+    {@render item(hit, true)}
+  {/each}
+
+  {#if meaning}
+    <li class="divider meaning" aria-hidden="true">
+      <span>By meaning</span>
+      <span class="why">may not contain your words</span>
+    </li>
+    {#each meaningHits as hit (hit.key)}
+      {@render item(hit, false)}
+    {/each}
+    {#if !meaning.hits}
+      <li class="pending" role="status">
+        {#if meaning.status.state === 'downloading'}
+          Downloading search by meaning: {mb(meaning.status.loaded)} of {mb(meaning.status.total)}…
+        {:else if meaning.status.state === 'error'}
+          Search by meaning couldn't load: {meaning.status.error}
+        {:else if meaning.status.state === 'ready'}
+          Searching by meaning…
+        {:else}
+          Preparing search by meaning…
+        {/if}
+      </li>
+    {:else if !meaning.hits.length}
+      <li class="pending">Nothing close in meaning with these filters.</li>
+    {:else if meaning.hits.length > MEANING_FIRST}
+      <li>
+        <button type="button" class="more" aria-expanded={meaningOpen} onclick={() => (meaningOpen = !meaningOpen)}>
+          {meaningOpen ? 'Fewer by meaning' : `More by meaning (${meaning.hits.length - MEANING_FIRST})`}
+        </button>
+      </li>
+    {/if}
+    {#if response.hits.length}
+      <li class="divider" aria-hidden="true"><span>With your words</span></li>
+    {/if}
+  {/if}
+
+  {#each response.hits as hit, k (`h${hit.key}`)}
+    {#if k === firstNear}
       <li class="divider" aria-hidden="true">
         <span>Close matches</span>
         <span class="why">most of your words, maybe worded differently</span>
       </li>
     {/if}
-    <li id={pinned ? undefined : `hit-${hit.key}`}>
-      <a
-        href={hrefFor(hit.path)}
-        class="hit"
-        class:pinned
-        class:selected={selectedKey === hit.key}
-        aria-current={selectedKey === hit.key ? 'true' : undefined}
-        onclick={(e) => {
-          if (e.metaKey || e.ctrlKey || e.shiftKey) return;
-          e.preventDefault();
-          onopen(hit);
-        }}
-      >
-        <span class="meta">
-          {#if pinned}<span class="go">Go to</span>{/if}
-          <strong>{hit.label}</strong>
-          <span class="sub">{hit.sublabel}</span>
-          {#if hit.grade && hit.ref.kind === 'hadith'}<GradeBadge grade={hit.grade} />{/if}
-          {#if hit.overlap}<span class="tier">{hit.overlap[0]} of {hit.overlap[1]} words</span>
-          {:else if tierNote[hit.tier]}<span class="tier">{tierNote[hit.tier]}</span>{/if}
-        </span>
-        {#if hit.field === 'ar'}
-          <span class={hit.ref.kind === 'ayah' ? 'quran text' : 'arabic text'} lang="ar" dir="rtl"><Highlighted text={hit.text} ranges={hit.ranges} /></span>
-        {:else}
-          <span class="text" class:translit={hit.field === 'translit'}><Highlighted text={hit.text} ranges={hit.ranges} /></span>
-        {/if}
-        {#if hit.secondary}<span class="secondary">{hit.secondary}</span>{/if}
-      </a>
-    </li>
+    {@render item(hit, false)}
   {/each}
 </ol>
 {#if more}<div bind:this={sentinel} class="sentinel" aria-hidden="true"></div>{/if}
@@ -281,5 +338,21 @@
   }
   .sentinel {
     height: 1px;
+  }
+  .divider.meaning {
+    margin-top: 0;
+    border-top: 0;
+  }
+  .pending {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--ink-2);
+  }
+  .more {
+    min-height: var(--tap);
+    padding: 0 var(--space-3);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: var(--text-sm);
   }
 </style>
