@@ -1,0 +1,614 @@
+[
+  {
+    "id": "w0",
+    "text": "You",
+    "start": 0,
+    "end": 0.24
+  },
+  {
+    "id": "w1",
+    "text": "remember",
+    "start": 0.24,
+    "end": 0.64
+  },
+  {
+    "id": "w2",
+    "text": "a",
+    "start": 0.64,
+    "end": 0.8
+  },
+  {
+    "id": "w3",
+    "text": "few",
+    "start": 0.8,
+    "end": 1.04
+  },
+  {
+    "id": "w4",
+    "text": "words",
+    "start": 1.04,
+    "end": 1.36
+  },
+  {
+    "id": "w5",
+    "text": "of",
+    "start": 1.36,
+    "end": 1.52
+  },
+  {
+    "id": "w6",
+    "text": "a",
+    "start": 1.52,
+    "end": 1.76
+  },
+  {
+    "id": "w7",
+    "text": "verse,",
+    "start": 1.76,
+    "end": 2.4
+  },
+  {
+    "id": "w8",
+    "text": "but",
+    "start": 2.4,
+    "end": 2.64
+  },
+  {
+    "id": "w9",
+    "text": "where",
+    "start": 2.64,
+    "end": 2.96
+  },
+  {
+    "id": "w10",
+    "text": "is",
+    "start": 2.96,
+    "end": 3.12
+  },
+  {
+    "id": "w11",
+    "text": "it",
+    "start": 3.12,
+    "end": 3.36
+  },
+  {
+    "id": "w12",
+    "text": "from?",
+    "start": 3.36,
+    "end": 3.92
+  },
+  {
+    "id": "w13",
+    "text": "Mufaras,",
+    "start": 3.92,
+    "end": 5.12
+  },
+  {
+    "id": "w14",
+    "text": "the",
+    "start": 5.12,
+    "end": 5.28
+  },
+  {
+    "id": "w15",
+    "text": "Uran",
+    "start": 5.28,
+    "end": 5.6
+  },
+  {
+    "id": "w16",
+    "text": "and",
+    "start": 5.92,
+    "end": 6.08
+  },
+  {
+    "id": "w17",
+    "text": "Hadith,",
+    "start": 6.08,
+    "end": 6.88
+  },
+  {
+    "id": "w18",
+    "text": "indexed.",
+    "start": 6.88,
+    "end": 7.84
+  },
+  {
+    "id": "w19",
+    "text": "Type",
+    "start": 7.84,
+    "end": 8.24
+  },
+  {
+    "id": "w20",
+    "text": "it",
+    "start": 8.24,
+    "end": 8.48
+  },
+  {
+    "id": "w21",
+    "text": "the",
+    "start": 8.48,
+    "end": 8.64
+  },
+  {
+    "id": "w22",
+    "text": "way",
+    "start": 8.64,
+    "end": 8.8
+  },
+  {
+    "id": "w23",
+    "text": "you",
+    "start": 8.8,
+    "end": 8.96
+  },
+  {
+    "id": "w24",
+    "text": "remember",
+    "start": 8.96,
+    "end": 9.44
+  },
+  {
+    "id": "w25",
+    "text": "it.",
+    "start": 9.44,
+    "end": 9.92
+  },
+  {
+    "id": "w26",
+    "text": "Misspelled,",
+    "start": 9.92,
+    "end": 10.8
+  },
+  {
+    "id": "w27",
+    "text": "in",
+    "start": 10.8,
+    "end": 10.96
+  },
+  {
+    "id": "w28",
+    "text": "Arabic,",
+    "start": 10.96,
+    "end": 11.68
+  },
+  {
+    "id": "w29",
+    "text": "in",
+    "start": 11.68,
+    "end": 11.84
+  },
+  {
+    "id": "w30",
+    "text": "transliteration.",
+    "start": 11.84,
+    "end": 13.12
+  },
+  {
+    "id": "w31",
+    "text": "The",
+    "start": 13.12,
+    "end": 13.36
+  },
+  {
+    "id": "w32",
+    "text": "source",
+    "start": 13.36,
+    "end": 13.84
+  },
+  {
+    "id": "w33",
+    "text": "appears",
+    "start": 13.84,
+    "end": 14.4
+  },
+  {
+    "id": "w34",
+    "text": "as",
+    "start": 14.4,
+    "end": 14.56
+  },
+  {
+    "id": "w35",
+    "text": "you",
+    "start": 14.56,
+    "end": 14.8
+  },
+  {
+    "id": "w36",
+    "text": "type.",
+    "start": 14.8,
+    "end": 15.44
+  },
+  {
+    "id": "w37",
+    "text": "Half",
+    "start": 15.44,
+    "end": 15.76
+  },
+  {
+    "id": "w38",
+    "text": "a",
+    "start": 15.76,
+    "end": 15.92
+  },
+  {
+    "id": "w39",
+    "text": "hadith,",
+    "start": 15.92,
+    "end": 16.56
+  },
+  {
+    "id": "w40",
+    "text": "someone",
+    "start": 16.56,
+    "end": 16.88
+  },
+  {
+    "id": "w41",
+    "text": "quoted?",
+    "start": 16.88,
+    "end": 17.6
+  },
+  {
+    "id": "w42",
+    "text": "Found",
+    "start": 17.6,
+    "end": 18.08
+  },
+  {
+    "id": "w43",
+    "text": "with",
+    "start": 18.24,
+    "end": 18.48
+  },
+  {
+    "id": "w44",
+    "text": "every",
+    "start": 18.48,
+    "end": 18.8
+  },
+  {
+    "id": "w45",
+    "text": "scholar's",
+    "start": 18.8,
+    "end": 19.44
+  },
+  {
+    "id": "w46",
+    "text": "grading.",
+    "start": 19.44,
+    "end": 20.24
+  },
+  {
+    "id": "w47",
+    "text": "Can't",
+    "start": 20.24,
+    "end": 20.56
+  },
+  {
+    "id": "w48",
+    "text": "recall",
+    "start": 20.56,
+    "end": 20.96
+  },
+  {
+    "id": "w49",
+    "text": "the",
+    "start": 20.96,
+    "end": 21.04
+  },
+  {
+    "id": "w50",
+    "text": "words",
+    "start": 21.04,
+    "end": 21.36
+  },
+  {
+    "id": "w51",
+    "text": "at",
+    "start": 21.36,
+    "end": 21.52
+  },
+  {
+    "id": "w52",
+    "text": "all?",
+    "start": 21.52,
+    "end": 22
+  },
+  {
+    "id": "w53",
+    "text": "Describe",
+    "start": 22,
+    "end": 22.56
+  },
+  {
+    "id": "w54",
+    "text": "it.",
+    "start": 22.56,
+    "end": 22.88
+  },
+  {
+    "id": "w55",
+    "text": "It",
+    "start": 22.88,
+    "end": 23.12
+  },
+  {
+    "id": "w56",
+    "text": "can",
+    "start": 23.12,
+    "end": 23.36
+  },
+  {
+    "id": "w57",
+    "text": "search",
+    "start": 23.36,
+    "end": 23.76
+  },
+  {
+    "id": "w58",
+    "text": "by",
+    "start": 23.76,
+    "end": 23.92
+  },
+  {
+    "id": "w59",
+    "text": "meaning",
+    "start": 23.92,
+    "end": 24.4
+  },
+  {
+    "id": "w60",
+    "text": "and",
+    "start": 24.4,
+    "end": 24.56
+  },
+  {
+    "id": "w61",
+    "text": "find",
+    "start": 24.56,
+    "end": 24.88
+  },
+  {
+    "id": "w62",
+    "text": "what",
+    "start": 24.88,
+    "end": 25.12
+  },
+  {
+    "id": "w63",
+    "text": "speaks",
+    "start": 25.12,
+    "end": 25.52
+  },
+  {
+    "id": "w64",
+    "text": "to",
+    "start": 25.52,
+    "end": 25.68
+  },
+  {
+    "id": "w65",
+    "text": "it",
+    "start": 25.68,
+    "end": 25.84
+  },
+  {
+    "id": "w66",
+    "text": "right",
+    "start": 25.92,
+    "end": 26.24
+  },
+  {
+    "id": "w67",
+    "text": "on",
+    "start": 26.24,
+    "end": 26.4
+  },
+  {
+    "id": "w68",
+    "text": "your",
+    "start": 26.4,
+    "end": 26.64
+  },
+  {
+    "id": "w69",
+    "text": "device.",
+    "start": 26.64,
+    "end": 27.52
+  },
+  {
+    "id": "w70",
+    "text": "Every",
+    "start": 27.52,
+    "end": 28
+  },
+  {
+    "id": "w71",
+    "text": "verse",
+    "start": 28,
+    "end": 28.4
+  },
+  {
+    "id": "w72",
+    "text": "explained",
+    "start": 28.56,
+    "end": 29.36
+  },
+  {
+    "id": "w73",
+    "text": "word",
+    "start": 29.36,
+    "end": 29.68
+  },
+  {
+    "id": "w74",
+    "text": "by",
+    "start": 29.76,
+    "end": 30.08
+  },
+  {
+    "id": "w75",
+    "text": "word.",
+    "start": 30.08,
+    "end": 30.64
+  },
+  {
+    "id": "w76",
+    "text": "Browse",
+    "start": 30.64,
+    "end": 31.12
+  },
+  {
+    "id": "w77",
+    "text": "the",
+    "start": 31.12,
+    "end": 31.28
+  },
+  {
+    "id": "w78",
+    "text": "surahs,",
+    "start": 31.28,
+    "end": 31.84
+  },
+  {
+    "id": "w79",
+    "text": "hadith",
+    "start": 31.92,
+    "end": 32.56
+  },
+  {
+    "id": "w80",
+    "text": "collections,",
+    "start": 32.56,
+    "end": 33.2
+  },
+  {
+    "id": "w81",
+    "text": "the",
+    "start": 33.2,
+    "end": 33.36
+  },
+  {
+    "id": "w82",
+    "text": "names",
+    "start": 33.36,
+    "end": 33.68
+  },
+  {
+    "id": "w83",
+    "text": "of",
+    "start": 33.68,
+    "end": 33.84
+  },
+  {
+    "id": "w84",
+    "text": "Allah",
+    "start": 33.84,
+    "end": 34.48
+  },
+  {
+    "id": "w85",
+    "text": "in",
+    "start": 34.48,
+    "end": 34.64
+  },
+  {
+    "id": "w86",
+    "text": "the",
+    "start": 34.64,
+    "end": 34.72
+  },
+  {
+    "id": "w87",
+    "text": "theme",
+    "start": 34.72,
+    "end": 35.28
+  },
+  {
+    "id": "w88",
+    "text": "you",
+    "start": 35.28,
+    "end": 35.52
+  },
+  {
+    "id": "w89",
+    "text": "like.",
+    "start": 35.52,
+    "end": 36.16
+  },
+  {
+    "id": "w90",
+    "text": "Free,",
+    "start": 36.16,
+    "end": 36.88
+  },
+  {
+    "id": "w91",
+    "text": "no",
+    "start": 36.88,
+    "end": 37.12
+  },
+  {
+    "id": "w92",
+    "text": "ads,",
+    "start": 37.12,
+    "end": 37.68
+  },
+  {
+    "id": "w93",
+    "text": "no",
+    "start": 37.68,
+    "end": 37.92
+  },
+  {
+    "id": "w94",
+    "text": "accounts.",
+    "start": 37.92,
+    "end": 38.72
+  },
+  {
+    "id": "w95",
+    "text": "World.",
+    "start": 38.72,
+    "end": 40
+  },
+  {
+    "id": "w96",
+    "text": "Mufa's.",
+    "start": 40,
+    "end": 41.28
+  },
+  {
+    "id": "w97",
+    "text": "Find",
+    "start": 41.28,
+    "end": 41.68
+  },
+  {
+    "id": "w98",
+    "text": "any",
+    "start": 41.68,
+    "end": 41.84
+  },
+  {
+    "id": "w99",
+    "text": "verse",
+    "start": 42,
+    "end": 42.32
+  },
+  {
+    "id": "w100",
+    "text": "or",
+    "start": 42.32,
+    "end": 42.56
+  },
+  {
+    "id": "w101",
+    "text": "hadith.",
+    "start": 42.56,
+    "end": 43.2
+  }
+]

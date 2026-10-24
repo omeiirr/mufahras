@@ -1,0 +1,132 @@
+<template>
+  <style>
+    @font-face { font-family: 'Amiri'; src: url('assets/fonts/amiri.woff2') format('woff2'); }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #faf8f3; font-family: 'Inter', sans-serif; }
+    .ground { position: absolute; inset: 0; }
+    .card { position: absolute; width: 824px; border-radius: 44px; overflow: hidden; background: #faf8f3;
+      border: 1px solid #e4dfd3; box-shadow: 0 40px 90px rgba(31, 29, 26, 0.18); }
+    .cam { position: absolute; inset: 0; }
+    .fr { position: absolute; inset: 0; opacity: 0; }
+    .shot { position: absolute; left: 0; background-repeat: no-repeat; background-size: 824px auto; }
+    .fade { position: absolute; left: 0; width: 100%; height: 80px; background: linear-gradient(rgba(250, 248, 243, 0), #faf8f3); }
+    .lift { position: absolute; border-radius: 22px; overflow: hidden; background: #faf8f3;
+      box-shadow: 0 30px 70px rgba(31, 29, 26, 0.22); }
+    .k { position: absolute; left: 120px; width: 800px; color: #1f1d1a; letter-spacing: -0.03em; }
+    .k span, .w { display: inline-block; }
+
+    #root { background: #1f242c; }
+    #mn-hit, #mn-tag .w, #mn-q .w, #mn-ghost .w { opacity: 0; }
+    .dot { position: absolute; left: 0; top: 0; border-radius: 50%; background: #e6c77e; opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="meaning" data-width="1920" data-height="1080" data-layout-allow-overlap data-layout-allow-overflow>
+    <div id="mn-card" class="card" style="left:1000px;top:60px;height:728px;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/type-meaning-03.png);background-position:0px 0px"></div><div id="mn-mark" style="position:absolute;left:12px;top:244px;width:800px;height:156px;border:5px solid #e6c77e;border-radius:22px;opacity:0"></div></div>
+    <div id="mn-bar" class="card" style="left:548px;top:640px;height:148px"><div id="mn-b0" class="fr" style="opacity:1"><div class="shot" style="top:0px;width:824px;height:148px;background-image:url(assets/screens/start-paper.png);background-position:0px -1676px"></div></div><div id="mn-b1" class="fr" style="opacity:0"><div class="shot" style="top:0px;width:824px;height:148px;background-image:url(assets/screens/type-meaning-01.png);background-position:0px -1676px"></div></div><div id="mn-b2" class="fr" style="opacity:0"><div class="shot" style="top:0px;width:824px;height:148px;background-image:url(assets/screens/type-meaning-02.png);background-position:0px -1676px"></div></div><div id="mn-b3" class="fr" style="opacity:0"><div class="shot" style="top:0px;width:824px;height:148px;background-image:url(assets/screens/type-meaning-03.png);background-position:0px -1676px"></div></div></div>
+    <div id="mn-q" style="position:absolute;left:0;width:1920px;top:330px;text-align:center;font-size:130px;font-weight:900;letter-spacing:-0.03em;color:#faf8f3;line-height:1"><span class="w">dealing</span> <span class="w">with</span> <span class="w">anxiety</span></div>
+    <div id="mn-dots" class="ground"></div>
+    <div id="mn-ghost" class="ground" style="color:#4f5764;font-weight:700;font-size:60px"><span class="w" style="position:absolute;left:260px;top:250px">patiance</span><span class="w" style="position:absolute;left:1080px;top:170px">the face of your brother</span><span class="w" dir="rtl" style="position:absolute;left:1230px;top:800px;font-family:Amiri;font-weight:400;font-size:76px">الحمد لله</span></div>    <div id="mn-hit" class="lift" style="left:1008px;top:300px;width:808px;height:164px;border:5px solid #e6c77e"><div style="position:absolute;left:-5px;top:-5px"><div class="shot" style="top:0px;width:808px;height:164px;background-image:url(assets/screens/type-meaning-03.png);background-position:-8px -240px"></div></div></div>
+    <div id="mn-tag" style="position:absolute;left:0;width:1920px;text-align:center;top:650px;font-size:44px;font-weight:700;color:#d3d9e1"><span class="w">On</span> <span class="w">your</span> <span class="w">device.</span> <span class="w">Works</span> <span class="w">offline.</span> <span class="w" style="color:#e6c77e;font-size:30px;letter-spacing:0.1em;vertical-align:6px">BETA</span></div>
+  </div>
+  <script>
+    (() => {
+      const tl = gsap.timeline({ paused: true });
+      // One frame of the real app at a time: each appears as the previous one goes.
+      const steps = (list) => list.forEach(([id, t], k) => {
+        tl.set(id, { opacity: 1 }, t);
+        if (k) tl.set(list[k - 1][0], { opacity: 0 }, t);
+      });
+      const blurIn = (sel, t, d = 0.2, stagger = 0, px = 8) => tl.fromTo(sel, { opacity: 0, filter: `blur(${px}px)` },
+        { opacity: 1, filter: 'blur(0px)', duration: d, stagger, ease: 'power2.out' }, t);
+      const blurOut = (sel, t, d = 0.2, stagger = 0) => tl.to(sel, { opacity: 0, filter: 'blur(8px)', duration: d, stagger, ease: 'power2.in' }, t);
+
+      // The khatam: the eight-pointed star of two squares, as in the app's icon.
+      const NS = 'http://www.w3.org/2000/svg';
+      const khatam = (cx, cy, r, rot = 0) => Array.from({ length: 16 }, (_, k) => {
+        const a = ((rot - 90 + k * 22.5) * Math.PI) / 180, rr = k % 2 ? r * 0.7654 : r;
+        return `${(cx + rr * Math.cos(a)).toFixed(1)},${(cy + rr * Math.sin(a)).toFixed(1)}`;
+      }).join(' ');
+      const diamond = (cx, cy, h) => `${cx},${cy - h} ${cx + h},${cy} ${cx},${cy + h} ${cx - h},${cy}`;
+      const poly = (parent, points, attrs = {}) => {
+        const p = document.createElementNS(NS, 'polygon');
+        p.setAttribute('points', points);
+        p.setAttribute('pathLength', 1);
+        for (const [k, v] of Object.entries(attrs)) p.setAttribute(k, v);
+        parent.appendChild(p);
+        return p;
+      };
+      // An 8-fold tessellation: stars touching tip to tip, diamonds where four stars meet.
+      // keep(x, y) decides which cells are drawn; each piece remembers its distance from (ox, oy).
+      const tessellate = (parent, T, keep, ox, oy) => {
+        const out = [];
+        for (let j = -5; j <= 5; j++) for (let i = -8; i <= 8; i++) {
+          const x = 960 + i * T, y = 540 + j * T;
+          if (keep(x, y)) out.push(Object.assign(poly(parent, khatam(x, y, T / 2)), { d: Math.hypot(x - ox, y - oy), cx: x, cy: y }));
+          const dx = x + T / 2, dy = y + T / 2;
+          if (keep(dx, dy)) out.push(Object.assign(poly(parent, diamond(dx, dy, (T / 2) * (Math.SQRT2 - 1) * 1.0)), { d: Math.hypot(dx - ox, dy - oy), cx: dx, cy: dy }));
+        }
+        return out.sort((a, b) => a.d - b.d);
+      };
+
+      document.fonts.ready.then(() => {
+      tl.fromTo('#mn-bar', { y: 160, opacity: 0, filter: 'blur(10px)' }, { y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.7, ease: 'expo.out' }, 0.05);
+      // "Can't recall the words": what was typed before drifts up and fades out of reach.
+      blurIn('#mn-ghost .w', 0.2, 0.3, 0.2, 10);
+      tl.to('#mn-ghost .w', { y: -40, opacity: 0, filter: 'blur(10px)', duration: 0.5, stagger: 0.1, ease: 'power2.in' }, 1.2);
+      // "Describe it": the description is typed, and grows above the bar.
+      [['#mn-b1', 1.8], ['#mn-b2', 2.15], ['#mn-b3', 2.5]].forEach(([id, t], k) => {
+        tl.set(id, { opacity: 1 }, t);
+        tl.set(`#mn-b${k}`, { opacity: 0 }, t);
+      });
+      blurIn('#mn-q .w', 1.8, 0.16, 0.35, 8);
+      // The bar docks into the phone, and the screen grows up out of it.
+      tl.to('#mn-bar', { x: 452, y: 148, duration: 0.65, ease: 'power2.inOut' }, 3.0);
+      gsap.set('#mn-bar', { borderTopLeftRadius: 44, borderTopRightRadius: 44 });
+      tl.to('#mn-bar', { borderTopLeftRadius: 0, borderTopRightRadius: 0, duration: 0.2 }, 3.5);
+      tl.fromTo('#mn-card', { clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0% 0 0 0)', duration: 0.6, ease: 'power3.out' }, 3.55);
+      // "search by meaning": the words come apart into points and gather on the verse they meant.
+      const rnd = ((a) => () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; })(1994);
+      // Points start inside each word's box. The scene is hidden while this runs, so the boxes come from
+      // text metrics (centred line, 130 px, -3% tracking) rather than layout.
+      const m = document.createElement('canvas').getContext('2d'), dots = [];
+      m.font = '900 130px Inter';
+      const words = ['dealing', 'with', 'anxiety'], wid = (t) => m.measureText(t).width - 3.9 * t.length;
+      const gap = wid('a b') - wid('ab');
+      let x = 960 - (words.reduce((a, w) => a + wid(w), 0) + gap * 2) / 2;
+      for (const w of words) {
+        for (let k = 0, n = Math.round(wid(w) / 2.4); k < n; k++) dots.push({ x: x + rnd() * wid(w), y: 352 + rnd() * 92 });
+        x += wid(w) + gap;
+      }
+      const T = { x: 1016, y: 308, w: 792, h: 148 };
+      for (const d of dots) {
+        d.tx = T.x + rnd() * T.w; d.ty = T.y + rnd() * T.h;
+        d.cy = Math.min(d.y, d.ty) - 90 - rnd() * 220;
+        d.delay = (d.x / 1920) * 0.35 + rnd() * 0.15; d.r = 2 + rnd() * 2;
+      }
+      // Each point is its own element: x and y travel on different eases, so the path arcs up and over.
+      const layer = document.getElementById('mn-dots');
+      for (const d of dots) {
+        const el = document.createElement('i');
+        el.className = 'dot';
+        Object.assign(el.style, { width: `${2 * d.r}px`, height: `${2 * d.r}px` });
+        layer.appendChild(el);
+        const t0 = 3.1 + d.delay;
+        tl.fromTo(el, { x: d.x, y: d.y }, { x: d.tx, duration: 0.95, ease: 'power2.inOut', immediateRender: true }, t0);
+        tl.to(el, { opacity: 1, duration: 0.01 }, 3.1);
+        tl.to(el, { y: d.cy, duration: 0.45, ease: 'power2.out' }, t0);
+        tl.to(el, { y: d.ty, duration: 0.5, ease: 'power2.in' }, t0 + 0.45);
+        tl.to(el, { opacity: 0, duration: 0.3, ease: 'power2.in' }, 4.35 + d.delay * 0.3);
+      }
+      tl.set('#mn-q', { opacity: 0 }, 3.12);
+      tl.to('#mn-mark', { opacity: 1, duration: 0.25, ease: 'power2.out' }, 4.25);
+      // "find what speaks to it": the verse it found comes forward.
+      tl.to('#mn-card, #mn-bar', { x: 420, opacity: 0, filter: 'blur(8px)', duration: 0.55, ease: 'power3.in' }, 4.5);
+      tl.fromTo('#mn-hit', { opacity: 0 }, { opacity: 1, duration: 0.01 }, 4.5);
+      tl.to('#mn-hit', { x: -654, y: 60, scale: 1.5, transformOrigin: '0% 0%', duration: 0.8, ease: 'power3.inOut' }, 4.5);
+      blurIn('#mn-tag .w', 5.3, 0.15, 0.07, 6);
+      // The verse becomes the next page: it grows past the frame.
+      blurOut('#mn-tag', 6.7, 0.2);
+      tl.to('#mn-hit', { x: -2876, y: -391, scale: 7, duration: 0.5, ease: 'power3.in' }, 6.75);
+        window.__timelines['meaning'] = tl;
+      });
+    })();
+  </script>
+</template>

@@ -1,0 +1,85 @@
+<template>
+  <style>
+    @font-face { font-family: 'Amiri'; src: url('assets/fonts/amiri.woff2') format('woff2'); }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #faf8f3; font-family: 'Inter', sans-serif; }
+    .ground { position: absolute; inset: 0; }
+    .card { position: absolute; width: 824px; border-radius: 44px; overflow: hidden; background: #faf8f3;
+      border: 1px solid #e4dfd3; box-shadow: 0 40px 90px rgba(31, 29, 26, 0.18); }
+    .cam { position: absolute; inset: 0; }
+    .fr { position: absolute; inset: 0; opacity: 0; }
+    .shot { position: absolute; left: 0; background-repeat: no-repeat; background-size: 824px auto; }
+    .fade { position: absolute; left: 0; width: 100%; height: 80px; background: linear-gradient(rgba(250, 248, 243, 0), #faf8f3); }
+    .lift { position: absolute; border-radius: 22px; overflow: hidden; background: #faf8f3;
+      box-shadow: 0 30px 70px rgba(31, 29, 26, 0.22); }
+    .k { position: absolute; left: 120px; width: 800px; color: #1f1d1a; letter-spacing: -0.03em; }
+    .k span, .w { display: inline-block; }
+
+    #root { background: #1f242c; }
+    #en-tess polygon { fill: none; stroke: #e6c77e; stroke-width: 2; stroke-opacity: 0.45; }
+    #en-tag .w, #en-url, #en-oss { opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="end" data-width="1920" data-height="1080" data-layout-allow-overlap data-layout-allow-overflow>
+
+    <svg id="en-tess" class="ground" viewBox="0 0 1920 1080" width="1920" height="1080"></svg>
+    <img id="en-icon" src="assets/icon-512.png" alt="Mufahras icon" style="position:absolute;left:855px;top:120px;width:210px;height:210px;border-radius:46px">
+    <div id="en-word" style="position:absolute;left:0;width:1920px;top:360px;text-align:center;font-weight:900;font-size:150px;letter-spacing:-0.035em;color:#faf8f3;line-height:1"><span>M</span><span>u</span><span>f</span><span>a</span><span>h</span><span>r</span><span>a</span><span>s</span></div>
+    <div id="en-ar" dir="rtl" style="position:absolute;left:0;width:1920px;top:520px;text-align:center;font-family:Amiri;font-size:76px;color:#e6c77e;line-height:1.2">مُفَهْرَس</div>
+    <div id="en-tag" style="position:absolute;left:0;width:1920px;top:680px;text-align:center;font-weight:700;font-size:56px;color:#d3d9e1"><span class="w">Find</span> <span class="w">any</span> <span class="w">verse</span> <span class="w">or</span> <span class="w">hadith.</span></div>
+    <div id="en-url" style="position:absolute;left:0;width:1920px;top:790px;text-align:center;font-weight:700;font-size:44px;color:#e6c77e">omeiirr.github.io/mufahras</div>
+    <div id="en-oss" style="position:absolute;left:0;width:1920px;top:856px;text-align:center;font-weight:400;font-size:32px;color:#9aa3ae">Free and open source</div>
+  </div>
+  <script>
+    (() => {
+      const tl = gsap.timeline({ paused: true });
+      // One frame of the real app at a time: each appears as the previous one goes.
+      const steps = (list) => list.forEach(([id, t], k) => {
+        tl.set(id, { opacity: 1 }, t);
+        if (k) tl.set(list[k - 1][0], { opacity: 0 }, t);
+      });
+      const blurIn = (sel, t, d = 0.2, stagger = 0, px = 8) => tl.fromTo(sel, { opacity: 0, filter: `blur(${px}px)` },
+        { opacity: 1, filter: 'blur(0px)', duration: d, stagger, ease: 'power2.out' }, t);
+      const blurOut = (sel, t, d = 0.2, stagger = 0) => tl.to(sel, { opacity: 0, filter: 'blur(8px)', duration: d, stagger, ease: 'power2.in' }, t);
+
+      // The khatam: the eight-pointed star of two squares, as in the app's icon.
+      const NS = 'http://www.w3.org/2000/svg';
+      const khatam = (cx, cy, r, rot = 0) => Array.from({ length: 16 }, (_, k) => {
+        const a = ((rot - 90 + k * 22.5) * Math.PI) / 180, rr = k % 2 ? r * 0.7654 : r;
+        return `${(cx + rr * Math.cos(a)).toFixed(1)},${(cy + rr * Math.sin(a)).toFixed(1)}`;
+      }).join(' ');
+      const diamond = (cx, cy, h) => `${cx},${cy - h} ${cx + h},${cy} ${cx},${cy + h} ${cx - h},${cy}`;
+      const poly = (parent, points, attrs = {}) => {
+        const p = document.createElementNS(NS, 'polygon');
+        p.setAttribute('points', points);
+        p.setAttribute('pathLength', 1);
+        for (const [k, v] of Object.entries(attrs)) p.setAttribute(k, v);
+        parent.appendChild(p);
+        return p;
+      };
+      // An 8-fold tessellation: stars touching tip to tip, diamonds where four stars meet.
+      // keep(x, y) decides which cells are drawn; each piece remembers its distance from (ox, oy).
+      const tessellate = (parent, T, keep, ox, oy) => {
+        const out = [];
+        for (let j = -5; j <= 5; j++) for (let i = -8; i <= 8; i++) {
+          const x = 960 + i * T, y = 540 + j * T;
+          if (keep(x, y)) out.push(Object.assign(poly(parent, khatam(x, y, T / 2)), { d: Math.hypot(x - ox, y - oy), cx: x, cy: y }));
+          const dx = x + T / 2, dy = y + T / 2;
+          if (keep(dx, dy)) out.push(Object.assign(poly(parent, diamond(dx, dy, (T / 2) * (Math.SQRT2 - 1) * 1.0)), { d: Math.hypot(dx - ox, dy - oy), cx: dx, cy: dy }));
+        }
+        return out.sort((a, b) => a.d - b.d);
+      };
+
+      // The pattern closes in from the edges and stops short of the name.
+      const tess = tessellate(document.getElementById('en-tess'), 170, (x, y) => ((x - 960) / 820) ** 2 + ((y - 520) / 520) ** 2 > 1, 960, 520);
+      gsap.set('#en-tess polygon', { strokeDasharray: 1, strokeDashoffset: 1 });
+      const far = tess[tess.length - 1].d;
+      tess.forEach((p) => tl.to(p, { strokeDashoffset: 0, duration: 0.6, ease: 'power2.out' }, 0.05 + (1 - p.d / far) * 1.0));
+      tl.fromTo('#en-icon', { opacity: 0, scale: 0.55, filter: 'blur(8px)' }, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.8, ease: 'expo.out' }, 0);
+      tl.fromTo('#en-word span', { opacity: 0.0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.25, stagger: 0.05, ease: 'power2.out' }, 0.2);
+      blurIn('#en-ar', 0.7, 0.35);
+      blurIn('#en-tag .w', 1.28, 0.14, 0.08, 6);
+      blurIn('#en-url', 2.1, 0.25);
+      blurIn('#en-oss', 2.4, 0.25);
+      window.__timelines['end'] = tl;
+    })();
+  </script>
+</template>

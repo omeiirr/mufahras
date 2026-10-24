@@ -1,0 +1,38 @@
+{
+  "smile-hit": {
+    "x": 8,
+    "y": 91,
+    "width": 396,
+    "height": 222
+  },
+  "search-input": {
+    "x": 57,
+    "y": 850,
+    "width": 282,
+    "height": 52
+  },
+  "grades": {
+    "x": 16,
+    "y": 588,
+    "width": 380,
+    "height": 150
+  },
+  "meaning-hit": {
+    "x": 8,
+    "y": 124,
+    "width": 396,
+    "height": 74
+  },
+  "word-3": {
+    "x": 214,
+    "y": 164,
+    "width": 45,
+    "height": 59
+  },
+  "word-2": {
+    "x": 267,
+    "y": 164,
+    "width": 60,
+    "height": 59
+  }
+}

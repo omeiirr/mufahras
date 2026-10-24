@@ -1,0 +1,95 @@
+<template>
+  <style>
+    @font-face { font-family: 'Amiri'; src: url('assets/fonts/amiri.woff2') format('woff2'); }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #faf8f3; font-family: 'Inter', sans-serif; }
+    .ground { position: absolute; inset: 0; }
+    .card { position: absolute; width: 824px; border-radius: 44px; overflow: hidden; background: #faf8f3;
+      border: 1px solid #e4dfd3; box-shadow: 0 40px 90px rgba(31, 29, 26, 0.18); }
+    .cam { position: absolute; inset: 0; }
+    .fr { position: absolute; inset: 0; opacity: 0; }
+    .shot { position: absolute; left: 0; background-repeat: no-repeat; background-size: 824px auto; }
+    .fade { position: absolute; left: 0; width: 100%; height: 80px; background: linear-gradient(rgba(250, 248, 243, 0), #faf8f3); }
+    .lift { position: absolute; border-radius: 22px; overflow: hidden; background: #faf8f3;
+      box-shadow: 0 30px 70px rgba(31, 29, 26, 0.22); }
+    .k { position: absolute; left: 120px; width: 800px; color: #1f1d1a; letter-spacing: -0.03em; }
+    .k span, .w { display: inline-block; }
+
+    #root { background: #faf8f3; }
+    #ty-r1, #ty-r2 { opacity: 0; }
+    #ty-l2, #ty-l3 .w { opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="typing" data-width="1920" data-height="1080" data-layout-allow-overlap data-layout-allow-overflow>
+    <div id="ty-card" class="card" style="left:1000px;top:60px;height:876px;"><div id="ty-card-cam" class="cam"><div id="ty-f0" class="fr"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/start-paper.png);background-position:0px 0px"></div><div class="fade" style="top:648px"></div><div class="shot" style="top:728px;width:824px;height:148px;background-image:url(assets/screens/start-paper.png);background-position:0px -1676px"></div></div><div id="ty-p0" class="fr"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/type-patiance-01.png);background-position:0px 0px"></div><div class="fade" style="top:648px"></div><div class="shot" style="top:728px;width:824px;height:148px;background-image:url(assets/screens/type-patiance-01.png);background-position:0px -1676px"></div></div><div id="ty-p1" class="fr"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/type-patiance-02.png);background-position:0px 0px"></div><div class="fade" style="top:648px"></div><div class="shot" style="top:728px;width:824px;height:148px;background-image:url(assets/screens/type-patiance-02.png);background-position:0px -1676px"></div></div><div id="ty-p2" class="fr"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/type-patiance-03.png);background-position:0px 0px"></div><div class="fade" style="top:648px"></div><div class="shot" style="top:728px;width:824px;height:148px;background-image:url(assets/screens/type-patiance-03.png);background-position:0px -1676px"></div></div><div id="ty-p3" class="fr"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/type-patiance-04.png);background-position:0px 0px"></div><div class="fade" style="top:648px"></div><div class="shot" style="top:728px;width:824px;height:148px;background-image:url(assets/screens/type-patiance-04.png);background-position:0px -1676px"></div></div><div id="ty-p4" class="fr"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/type-patiance-05.png);background-position:0px 0px"></div><div class="fade" style="top:648px"></div><div class="shot" style="top:728px;width:824px;height:148px;background-image:url(assets/screens/type-patiance-05.png);background-position:0px -1676px"></div></div><div id="ty-p5" class="fr"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/type-patiance-06.png);background-position:0px 0px"></div><div class="fade" style="top:648px"></div><div class="shot" style="top:728px;width:824px;height:148px;background-image:url(assets/screens/type-patiance-06.png);background-position:0px -1676px"></div></div><div id="ty-p6" class="fr"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/type-patiance-07.png);background-position:0px 0px"></div><div class="fade" style="top:648px"></div><div class="shot" style="top:728px;width:824px;height:148px;background-image:url(assets/screens/type-patiance-07.png);background-position:0px -1676px"></div></div><div id="ty-p7" class="fr"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/type-patiance-08.png);background-position:0px 0px"></div><div class="fade" style="top:648px"></div><div class="shot" style="top:728px;width:824px;height:148px;background-image:url(assets/screens/type-patiance-08.png);background-position:0px -1676px"></div></div><div id="ty-a0" class="fr"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/type-arabic-01.png);background-position:0px 0px"></div><div class="fade" style="top:648px"></div><div class="shot" style="top:728px;width:824px;height:148px;background-image:url(assets/screens/type-arabic-01.png);background-position:0px -1676px"></div></div><div id="ty-a1" class="fr"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/type-arabic-02.png);background-position:0px 0px"></div><div class="fade" style="top:648px"></div><div class="shot" style="top:728px;width:824px;height:148px;background-image:url(assets/screens/type-arabic-02.png);background-position:0px -1676px"></div></div><div id="ty-a2" class="fr"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/type-arabic-03.png);background-position:0px 0px"></div><div class="fade" style="top:648px"></div><div class="shot" style="top:728px;width:824px;height:148px;background-image:url(assets/screens/type-arabic-03.png);background-position:0px -1676px"></div></div><div id="ty-a3" class="fr"><div class="shot" style="top:0px;width:824px;height:728px;background-image:url(assets/screens/type-arabic-04.png);background-position:0px 0px"></div><div class="fade" style="top:648px"></div><div class="shot" style="top:728px;width:824px;height:148px;background-image:url(assets/screens/type-arabic-04.png);background-position:0px -1676px"></div></div></div></div>
+    <div id="ty-l1" class="k" style="top:150px;font-size:150px;font-weight:900;line-height:1"><span class="ch">p</span><span class="ch">a</span><span class="ch">t</span><span class="ch">i</span><span style="position:relative"><span id="ty-bad" class="ch" style="position:relative">a<i id="ty-strike" style="position:absolute;left:-6px;right:-6px;top:52%;height:12px;background:#1f1d1a"></i></span><span id="ty-good" style="position:absolute;left:0;top:0;color:#1f6b57">e</span></span><span class="ch ch2">n</span><span class="ch ch2">c</span><span class="ch ch2">e</span></div>
+    <div id="ty-l2" class="k" dir="rtl" style="top:380px;font-family:Amiri;font-size:100px;letter-spacing:0;text-align:left;line-height:1.3">الحمد لله رب العالمين</div>
+    <div id="ty-l3" class="k" style="top:600px;font-size:58px;font-weight:900;line-height:1.1;white-space:nowrap"><span class="w">alhamdu</span> <span class="w">lillahi</span> <span class="w">rabbil</span> <span class="w">ʿalamin</span></div>
+    <div id="ty-r2" class="lift" style="left:1000px;top:510px;width:824px;height:350px"><div class="shot" style="top:0px;width:824px;height:350px;background-image:url(assets/screens/type-arabic-04.png);background-position:0px -450px"></div></div>
+    <div id="ty-r1" class="lift" style="left:1000px;top:260px;width:824px;height:210px"><div class="shot" style="top:0px;width:824px;height:210px;background-image:url(assets/screens/type-arabic-04.png);background-position:0px -200px"></div></div>
+  </div>
+  <script>
+    (() => {
+      const tl = gsap.timeline({ paused: true });
+      // One frame of the real app at a time: each appears as the previous one goes.
+      const steps = (list) => list.forEach(([id, t], k) => {
+        tl.set(id, { opacity: 1 }, t);
+        if (k) tl.set(list[k - 1][0], { opacity: 0 }, t);
+      });
+      const blurIn = (sel, t, d = 0.2, stagger = 0, px = 8) => tl.fromTo(sel, { opacity: 0, filter: `blur(${px}px)` },
+        { opacity: 1, filter: 'blur(0px)', duration: d, stagger, ease: 'power2.out' }, t);
+      const blurOut = (sel, t, d = 0.2, stagger = 0) => tl.to(sel, { opacity: 0, filter: 'blur(8px)', duration: d, stagger, ease: 'power2.in' }, t);
+
+      // The khatam: the eight-pointed star of two squares, as in the app's icon.
+      const NS = 'http://www.w3.org/2000/svg';
+      const khatam = (cx, cy, r, rot = 0) => Array.from({ length: 16 }, (_, k) => {
+        const a = ((rot - 90 + k * 22.5) * Math.PI) / 180, rr = k % 2 ? r * 0.7654 : r;
+        return `${(cx + rr * Math.cos(a)).toFixed(1)},${(cy + rr * Math.sin(a)).toFixed(1)}`;
+      }).join(' ');
+      const diamond = (cx, cy, h) => `${cx},${cy - h} ${cx + h},${cy} ${cx},${cy + h} ${cx - h},${cy}`;
+      const poly = (parent, points, attrs = {}) => {
+        const p = document.createElementNS(NS, 'polygon');
+        p.setAttribute('points', points);
+        p.setAttribute('pathLength', 1);
+        for (const [k, v] of Object.entries(attrs)) p.setAttribute(k, v);
+        parent.appendChild(p);
+        return p;
+      };
+      // An 8-fold tessellation: stars touching tip to tip, diamonds where four stars meet.
+      // keep(x, y) decides which cells are drawn; each piece remembers its distance from (ox, oy).
+      const tessellate = (parent, T, keep, ox, oy) => {
+        const out = [];
+        for (let j = -5; j <= 5; j++) for (let i = -8; i <= 8; i++) {
+          const x = 960 + i * T, y = 540 + j * T;
+          if (keep(x, y)) out.push(Object.assign(poly(parent, khatam(x, y, T / 2)), { d: Math.hypot(x - ox, y - oy), cx: x, cy: y }));
+          const dx = x + T / 2, dy = y + T / 2;
+          if (keep(dx, dy)) out.push(Object.assign(poly(parent, diamond(dx, dy, (T / 2) * (Math.SQRT2 - 1) * 1.0)), { d: Math.hypot(dx - ox, dy - oy), cx: dx, cy: dy }));
+        }
+        return out.sort((a, b) => a.d - b.d);
+      };
+
+      steps([["#ty-f0", 0], ["#ty-p0", 0.5], ["#ty-p1", 0.7], ["#ty-p2", 0.9], ["#ty-p3", 1.1], ["#ty-p4", 1.3], ["#ty-p5", 1.5], ["#ty-p6", 1.7000000000000002], ["#ty-p7", 1.9000000000000001], ["#ty-a0", 3.1], ["#ty-a1", 3.25], ["#ty-a2", 3.4], ["#ty-a3", 3.55]]);
+      tl.fromTo('#ty-card', { opacity: 0, y: 90, filter: 'blur(10px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.7, ease: 'expo.out' }, 0);
+      // The big word is typed with the phone, letter for letter.
+      const chars = gsap.utils.toArray('#ty-l1 .ch');
+      chars.forEach((c, k) => tl.fromTo(c, { opacity: 0 }, { opacity: 1, duration: 0.06 }, 0.5 + 0.2 * k));
+      // "misspelled": the stray a is struck and an e drops into its place, as the app reads it.
+      tl.fromTo('#ty-strike', { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, duration: 0.22, ease: 'power3.out' }, 2.05);
+      tl.to('#ty-bad', { y: 70, opacity: 0, duration: 0.3, ease: 'power3.in' }, 2.35);
+      tl.fromTo('#ty-good', { y: -120, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: 'expo.out' }, 2.45);
+      // "in Arabic", "in transliteration": each way of asking stacks under the last.
+      tl.to('#ty-l1', { opacity: 0.22, duration: 0.3, ease: 'power2.inOut' }, 3.05);
+      blurIn('#ty-l2', 3.11, 0.25);
+      tl.to('#ty-l2', { opacity: 0.22, duration: 0.3, ease: 'power2.inOut' }, 3.95);
+      blurIn('#ty-l3 .w', 3.99, 0.15, 0.08, 6);
+      blurOut('#ty-l1, #ty-l2, #ty-l3', 5.05, 0.2, 0.06);
+      // "The source appears": the first results lift out of the phone toward the viewer.
+      tl.to('#ty-card', { opacity: 0.55, duration: 0.5, ease: 'power2.inOut' }, 5.25);
+      tl.fromTo('#ty-r1', { opacity: 0 }, { opacity: 1, duration: 0.01 }, 5.25);
+      tl.fromTo('#ty-r2', { opacity: 0 }, { opacity: 1, duration: 0.01 }, 5.35);
+      tl.to('#ty-r1', { x: -880, y: 30, scale: 1.04, duration: 0.8, ease: 'power3.inOut' }, 5.25);
+      tl.to('#ty-r2', { x: -820, y: 120, scale: 0.92, opacity: 0.75, duration: 0.8, ease: 'power3.inOut' }, 5.4);
+      // A whip up into the next search.
+      tl.to('#ty-card, #ty-r1, #ty-r2', { y: '-=1250', filter: 'blur(18px)', duration: 0.42, ease: 'power3.in' }, 7.18);
+      window.__timelines['typing'] = tl;
+    })();
+  </script>
+</template>

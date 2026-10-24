@@ -1,0 +1,66 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    .cap { position: absolute; left: 0; width: 1920px; top: 962px; text-align: center; font-family: 'Inter', sans-serif;
+      font-weight: 700; font-size: 44px; line-height: 1.2; opacity: 0; margin: 0; }
+  </style>
+  <div id="root" data-composition-id="captions" data-width="1920" data-height="1080">
+    <p id="cap0" class="cap clip" data-start="0.25" data-duration="2.37" style="color:#faf8f3">You remember a few words of a verse,</p>
+    <p id="cap1" class="cap clip" data-start="2.65" data-duration="1.49" style="color:#faf8f3">but where is it from?</p>
+    <p id="cap2" class="cap clip" data-start="5.37" data-duration="2.23" style="color:#faf8f3">the Quran and hadith, indexed.</p>
+    <p id="cap3" class="cap clip" data-start="8.09" data-duration="2.05" style="color:#1f1d1a">Type it the way you remember it.</p>
+    <p id="cap4" class="cap clip" data-start="10.17" data-duration="3.17" style="color:#1f1d1a">Misspelled, in Arabic, in transliteration.</p>
+    <p id="cap5" class="cap clip" data-start="13.37" data-duration="2.29" style="color:#1f1d1a">The source appears as you type.</p>
+    <p id="cap6" class="cap clip" data-start="15.69" data-duration="2.13" style="color:#1f1d1a">Half a hadith someone quoted?</p>
+    <p id="cap7" class="cap clip" data-start="17.85" data-duration="2.15" style="color:#1f1d1a">Found, with every scholar's grading.</p>
+    <p id="cap8" class="cap clip" data-start="20.49" data-duration="1.73" style="color:#faf8f3">Can't recall the words at all?</p>
+    <p id="cap9" class="cap clip" data-start="22.25" data-duration="0.85" style="color:#faf8f3">Describe it.</p>
+    <p id="cap10" class="cap clip" data-start="23.13" data-duration="1.49" style="color:#faf8f3">It can search by meaning</p>
+    <p id="cap11" class="cap clip" data-start="24.65" data-duration="1.49" style="color:#faf8f3">and find what speaks to it,</p>
+    <p id="cap12" class="cap clip" data-start="26.17" data-duration="1.13" style="color:#faf8f3">right on your device.</p>
+    <p id="cap13" class="cap clip" data-start="27.77" data-duration="3.09" style="color:#1f1d1a">Every verse explained, word by word.</p>
+    <p id="cap14" class="cap clip" data-start="30.89" data-duration="2.53" style="color:#faf8f3">Browse the surahs, hadith collections,</p>
+    <p id="cap15" class="cap clip" data-start="33.45" data-duration="1.25" style="color:#faf8f3">the Names of Allah</p>
+    <p id="cap16" class="cap clip" data-start="34.73" data-duration="1.65" style="color:#faf8f3">in the theme you like.</p>
+  </div>
+  <script>
+    (() => {
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo('#cap0', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 0.25);
+      tl.to('#cap0', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 2.52);
+      tl.fromTo('#cap1', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 2.65);
+      tl.to('#cap1', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 4.04);
+      tl.fromTo('#cap2', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 5.37);
+      tl.to('#cap2', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 7.50);
+      tl.fromTo('#cap3', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 8.09);
+      tl.to('#cap3', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 10.04);
+      tl.fromTo('#cap4', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 10.17);
+      tl.to('#cap4', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 13.24);
+      tl.fromTo('#cap5', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 13.37);
+      tl.to('#cap5', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 15.56);
+      tl.fromTo('#cap6', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 15.69);
+      tl.to('#cap6', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 17.72);
+      tl.fromTo('#cap7', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 17.85);
+      tl.to('#cap7', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 19.90);
+      tl.fromTo('#cap8', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 20.49);
+      tl.to('#cap8', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 22.12);
+      tl.fromTo('#cap9', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 22.25);
+      tl.to('#cap9', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 23.00);
+      tl.fromTo('#cap10', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 23.13);
+      tl.to('#cap10', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 24.52);
+      tl.fromTo('#cap11', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 24.65);
+      tl.to('#cap11', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 26.04);
+      tl.fromTo('#cap12', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 26.17);
+      tl.to('#cap12', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 27.20);
+      tl.fromTo('#cap13', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 27.77);
+      tl.to('#cap13', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 30.76);
+      tl.fromTo('#cap14', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 30.89);
+      tl.to('#cap14', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 33.32);
+      tl.fromTo('#cap15', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 33.45);
+      tl.to('#cap15', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 34.60);
+      tl.fromTo('#cap16', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.16, ease: 'power2.out' }, 34.73);
+      tl.to('#cap16', { opacity: 0, duration: 0.1, ease: 'power2.in' }, 36.28);
+      window.__timelines['captions'] = tl;
+    })();
+  </script>
+</template>
