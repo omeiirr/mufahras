@@ -12,6 +12,7 @@
   import MenuIcon from '@lucide/svelte/icons/menu';
   import Menu from './components/Menu.svelte';
   import { recordSearch } from './lib/store/history.svelte';
+  import { backToast, closeLayer, openLayer } from './lib/back.svelte';
   import { back, navigate, route, type Corpus } from './lib/router.svelte';
   import { SearchClient } from './lib/search/client';
   import type { PresentedHit, SearchResponse } from './lib/search/types';
@@ -94,6 +95,15 @@
   }
 
   let menuOpen = $state(false);
+  // The menu has a history entry while open, so Android Back closes it (back.svelte.ts).
+  function openMenu(): void {
+    menuOpen = true;
+    openLayer('menu', () => (menuOpen = false));
+  }
+  function closeMenu(): void {
+    menuOpen = false;
+    closeLayer('menu');
+  }
 
   function open(hit: PresentedHit): void {
     recordSearch(route.q);
@@ -152,14 +162,10 @@
 <svelte:window onkeydown={onWindowKey} />
 
 <div class="app" class:wide>
-  <section class="results" aria-label="Search">
+  <!-- On phones a detail screen covers the results; keep keyboard and screen readers out from underneath. -->
+  <section class="results" aria-label="Search" inert={!wide && !!path}>
     <div class="dock">
-      <div class="row">
-        <button type="button" class="menu-button" onclick={() => (menuOpen = true)} aria-label="Menu" aria-expanded={menuOpen}>
-          <MenuIcon size={22} aria-hidden="true" />
-        </button>
-        <FilterChips corpus={route.corpus} sahih={route.sahih} onchange={onFilter} />
-      </div>
+      <FilterChips corpus={route.corpus} sahih={route.sahih} onchange={onFilter} />
       <SearchBar bind:value={query} bind:input onkeydown={onInputKey} />
     </div>
 
@@ -185,9 +191,23 @@
         <p class="note small">Loading hadith collections ({hadithLoaded}/6)…</p>
       {/if}
     </div>
+
+    {#if !wide}
+      <!-- ☰ sits top right on every screen: here, in the same bar the reading screens have. -->
+      <header class="topbar">
+        <img src="icons/icon-192.png" alt="" width="28" height="28" />
+        <span class="name">Mufahras</span>
+        <button type="button" class="menu-button" onclick={openMenu} aria-label="Menu" aria-expanded={menuOpen}>
+          <MenuIcon size={22} aria-hidden="true" />
+        </button>
+      </header>
+    {/if}
   </section>
 
   {#if wide}
+    <button type="button" class="menu-button corner" onclick={openMenu} aria-label="Menu" aria-expanded={menuOpen}>
+      <MenuIcon size={22} aria-hidden="true" />
+    </button>
     <section class="detail" aria-label="Selected result">
       {#if detailPath}
         <DetailPane path={detailPath} {client} showBack={false} onback={() => navigate({ path: '' }, { replace: true })} {hrefFor} onsearch={searchFor} />
@@ -197,12 +217,16 @@
     </section>
   {:else if path}
     <section class="detail overlay" aria-label="Selected result" transition:fly={{ x: 48, duration: reducedMotion ? 0 : 200, opacity: 0 }}>
-      <DetailPane {path} {client} showBack={true} onback={back} {hrefFor} onsearch={searchFor} onmenu={() => (menuOpen = true)} />
+      <DetailPane {path} {client} showBack={true} onback={back} {hrefFor} onsearch={searchFor} onmenu={openMenu} />
     </section>
   {/if}
 
   {#if menuOpen}
-    <Menu {client} ready={status.ready} onclose={() => (menuOpen = false)} onnavigate={(p) => navigate({ path: p })} />
+    <Menu {client} ready={status.ready} onclose={closeMenu} onnavigate={(p) => navigate({ path: p })} />
+  {/if}
+
+  {#if backToast.visible}
+    <div class="toast" role="status">Press back again to exit</div>
   {/if}
 
   {#if graphRoute}
@@ -213,7 +237,7 @@
         onback={back}
         onopen={(p) => navigate({ path: p })}
         onfocus={(ref) => navigate({ path: ref ? `graph/${ref}` : 'graph' }, { replace: true })}
-        onmenu={() => (menuOpen = true)}
+        onmenu={openMenu}
       />
     {/await}
   {/if}
@@ -247,14 +271,30 @@
     position: relative;
     z-index: 1;
   }
-  .row {
+  .topbar {
     display: flex;
     align-items: center;
-    gap: var(--space-1);
+    gap: var(--space-2);
+    padding: calc(env(safe-area-inset-top) + var(--space-1)) var(--space-2) var(--space-1) var(--space-3);
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
   }
-  .row > :global(.chips) {
-    min-width: 0;
+  .topbar img {
+    border-radius: 7px;
+  }
+  .topbar .name {
     flex: 1;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .menu-button.corner {
+    position: fixed;
+    top: var(--space-3);
+    right: var(--space-3);
+    z-index: 15;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
   }
   .menu-button {
     display: grid;
@@ -273,7 +313,6 @@
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding-top: env(safe-area-inset-top);
   }
 
   .overlay {
@@ -306,6 +345,20 @@
     min-height: 0;
   }
 
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(env(safe-area-inset-bottom) + 96px);
+    transform: translateX(-50%);
+    z-index: 50;
+    padding: var(--space-2) var(--space-4);
+    border-radius: 99px;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: var(--text-sm);
+    box-shadow: var(--shadow);
+    white-space: nowrap;
+  }
   .note {
     color: var(--ink-2);
     padding: var(--space-3) var(--space-4);

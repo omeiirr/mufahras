@@ -1,6 +1,6 @@
 <script lang="ts">
   // Word by word under a verse: the tapped word, its transliteration and meaning, and stepping through
-  // the ayah. Next goes to the following word, which in Arabic is to the left.
+  // the ayah. Next goes to the following word, which in Arabic is to the left; the buttons are laid out to match.
   import ChevronLeft from '@lucide/svelte/icons/chevron-left';
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import X from '@lucide/svelte/icons/x';
@@ -23,10 +23,12 @@
         {#if w.meaning}<p class="meaning">{w.meaning}</p>{:else if !hasMeanings}<p class="sub">Transliteration only; meanings aren't available.</p>{/if}
       </div>
     </div>
+    <!-- Laid out right to left like the verse: the next word is to the left, so Next is on the left and
+         points left, Previous on the right and points right. -->
     <div class="nav">
-      <button type="button" onclick={() => onpick(index - 1)} disabled={index === 0} aria-label="Previous word"><ChevronRight size={18} aria-hidden="true" /> Previous</button>
+      <button type="button" onclick={() => onpick(index + 1)} disabled={index === words.length - 1} aria-label="Next word"><ChevronLeft size={18} aria-hidden="true" /> Next</button>
       <span class="sub">Word {index + 1} of {words.length}</span>
-      <button type="button" onclick={() => onpick(index + 1)} disabled={index === words.length - 1} aria-label="Next word">Next <ChevronLeft size={18} aria-hidden="true" /></button>
+      <button type="button" onclick={() => onpick(index - 1)} disabled={index === 0} aria-label="Previous word">Previous <ChevronRight size={18} aria-hidden="true" /></button>
       <button type="button" class="x" onclick={onclose} aria-label="Close word by word"><X size={18} aria-hidden="true" /></button>
     </div>
   {/if}

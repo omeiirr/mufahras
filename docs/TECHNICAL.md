@@ -551,6 +551,23 @@ const update = () => document.documentElement.style.setProperty('--kb', `${Math.
 - **A second version of the same data must not reset the UI.** The verse arrives again with its extras a
   moment after it opens; resetting the tapped word on every new `d` cleared it. Reset on a change of verse
   (compare the reference), not of object.
+- **Android Back in the installed app** (`back.svelte.ts`). Back at the start of the app's history closes the
+  app, which happened by accident often. A guard entry on top of the first one catches the first press and
+  shows "Press back again to exit"; a second press within 2 s lets it close, otherwise the guard is re-armed.
+  Only when installed (`display-mode: standalone`); in a tab, leaving with Back is expected. Open layers (the
+  menu, the image sheet) also get a history entry, so Back closes them before anything else. Two details:
+  every `replaceState` must keep the other fields on `history.state` (typing replaces the entry on each
+  keystroke and was wiping the guard flag), and a layer closed from its own UI calls `history.back()` to
+  drop its entry. The browser test fakes installed mode by overriding `matchMedia` in an init script, so the
+  app has no test-only code.
+- **One place for the menu.** ☰ moved between the dock and the header depending on the screen; it's now top
+  right everywhere (a phone top bar matching the reading screens' header, a corner button on desktop), and a
+  test checks its position on each screen.
+- **Covered content is `inert`.** On phones a reading screen covers the results; making the results `inert`
+  keeps keyboard focus and screen readers off what's underneath (the browser test found it: it was clicking a
+  covered ☰).
+- **Controls follow the reading direction.** In the word card, "next word" moves left in Arabic, so Next is on
+  the left pointing left; an English left-to-right layout made the arrows look broken.
 - **Export/import merges.** Importing keeps existing bookmarks and unions their tags; nothing is overwritten
   or lost by importing an older file.
 

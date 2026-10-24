@@ -70,7 +70,8 @@ export function navigate(patch: Partial<RouteState>, opts: { replace?: boolean }
   const next = { ...route, ...patch };
   const url = format(next);
   if (url === location.hash) return;
-  if (opts.replace) history.replaceState({ depth: depth() }, '', url);
+  // Keep other state on the entry (the exit guard and open layers in back.svelte.ts mark entries too).
+  if (opts.replace) history.replaceState({ ...(history.state as object | null), depth: depth() }, '', url);
   else history.pushState({ depth: depth() + 1 }, '', url);
   Object.assign(route, next);
 }

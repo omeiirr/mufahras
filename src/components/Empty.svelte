@@ -112,6 +112,10 @@
     padding: var(--space-5) var(--space-4);
     max-width: var(--measure);
   }
+  /* On phones the top bar shows the name already. */
+  :global(.app:not(.wide)) .brand {
+    display: none;
+  }
   .brand {
     margin: 0 0 var(--space-3);
     display: flex;

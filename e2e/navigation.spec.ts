@@ -1,0 +1,61 @@
+import { expect, test, type Page } from '@playwright/test';
+import { isPhone, openApp } from './helpers';
+
+/** The menu button the user can actually tap (on phones the reading screen's own, on top). */
+const menuButton = (page: Page) => (isPhone(page) && page.url().match(/#\/[^?]/) ? page.locator('.overlay button[aria-label=Menu]') : page.locator('button[aria-label=Menu]:visible').first());
+
+async function menuCorner(page: Page) {
+  const box = (await menuButton(page).boundingBox())!;
+  const vw = page.viewportSize()!.width;
+  expect(box.x + box.width, 'menu at the right edge').toBeGreaterThan(vw - 80);
+  expect(box.y, 'menu at the top').toBeLessThan(70);
+}
+
+test('the menu button is top right on every screen', async ({ page }) => {
+  await openApp(page);
+  await menuCorner(page);
+  await page.fill('input[type=search]', 'patience');
+  await menuCorner(page);
+  await page.locator('a.hit').first().click();
+  await expect(page.locator('.verse')).toBeVisible();
+  await menuCorner(page);
+});
+
+test('word card: Next on the left, Previous on the right (right-to-left like the verse)', async ({ page }) => {
+  await openApp(page, '#/2:255?q=x');
+  await page.locator('.verse .quran button.w').nth(3).click();
+  const next = (await page.getByRole('button', { name: 'Next word' }).boundingBox())!;
+  const prev = (await page.getByRole('button', { name: 'Previous word' }).boundingBox())!;
+  expect(next.x).toBeLessThan(prev.x);
+});
+
+test('Back closes the menu first, then the image sheet, without leaving the screen', async ({ page }) => {
+  await openApp(page, '#/2:255?q=x');
+  await menuButton(page).click();
+  await expect(page.locator('nav.drawer')).toBeVisible();
+  await page.goBack();
+  await expect(page.locator('nav.drawer')).toHaveCount(0);
+  await expect(page).toHaveURL(/#\/2:255/);
+  await page.getByRole('button', { name: 'Image' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.locator('.verse')).toBeVisible();
+});
+
+test('installed app: the first Back at the start asks, the second closes', async ({ page }) => {
+  test.skip(!isPhone(page), 'the Back button matters on phones');
+  // Pretend to be the installed app: display-mode: standalone.
+  await page.addInitScript(() => {
+    const original = window.matchMedia.bind(window);
+    window.matchMedia = (q: string) =>
+      q.includes('display-mode: standalone') ? ({ matches: true, media: q, addEventListener() {}, removeEventListener() {} } as unknown as MediaQueryList) : original(q);
+  });
+  await page.goto('about:blank');
+  await openApp(page);
+  await page.goBack();
+  await expect(page.getByRole('status').filter({ hasText: 'Press back again to exit' })).toBeVisible();
+  await expect(page.locator('input[type=search]')).toBeVisible(); // still in the app
+  await page.goBack();
+  await expect(page).toHaveURL('about:blank'); // left the app
+});

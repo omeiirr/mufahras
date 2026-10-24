@@ -10,6 +10,7 @@
   import type { CardContent } from '../lib/card/render';
   import { bookmarks, isBookmarked, toggleBookmark, type Bookmark as BookmarkRecord } from '../lib/store/bookmarks.svelte';
   import { settings } from '../lib/store/settings.svelte';
+  import { closeLayer, openLayer } from '../lib/back.svelte';
   import CardSheet from './CardSheet.svelte';
 
   let {
@@ -54,11 +55,25 @@
     <button type="button" onclick={share}><Share2 size={18} aria-hidden="true" /> Share</button>
   {/if}
   {#if !settings.sakinah}
-    <button type="button" onclick={() => (cardOpen = true)}><ImageIcon size={18} aria-hidden="true" /> Image</button>
+    <button
+    type="button"
+    onclick={() => {
+      cardOpen = true;
+      openLayer('card', () => (cardOpen = false));
+    }}><ImageIcon size={18} aria-hidden="true" /> Image</button
+  >
   {/if}
 </div>
 
-{#if cardOpen}<CardSheet content={card} onclose={() => (cardOpen = false)} />{/if}
+{#if cardOpen}
+  <CardSheet
+    content={card}
+    onclose={() => {
+      cardOpen = false;
+      closeLayer('card');
+    }}
+  />
+{/if}
 
 <style>
   .actions {

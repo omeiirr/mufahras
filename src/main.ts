@@ -4,6 +4,7 @@ import '@fontsource-variable/noto-naskh-arabic/wght.css';
 import './styles/tokens.css';
 import './styles/base.css';
 import './lib/install.svelte';
+import './lib/back.svelte';
 import { loadBookmarks } from './lib/store/bookmarks.svelte';
 import App from './App.svelte';
 
