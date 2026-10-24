@@ -1,25 +1,33 @@
 """Writes the showcase film (index.html, compositions/*.html) from one description, so every scene uses the
 same crops, card sizes and voice timings. Run from the project root: python3 tools/build.py
 
+With --portrait it writes the 9:16 cut instead (index-9x16.html, compositions/9x16/): the same scenes, timings and
+sounds, laid out for a 1080 x 1920 frame. L(landscape, portrait) picks each layout value.
+
 Times inside a scene are local to it. Scene starts come from the voice-over's word timings
 (assets/vo/transcript.json), with the voice placed at VO = 0.3 s."""
 
 import json
-import math
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+PORTRAIT = '--portrait' in sys.argv
+L = lambda landscape, portrait: portrait if PORTRAIT else landscape
+W, H = L(1920, 1080), L(1080, 1920)
+CX, CY = W // 2, H // 2
+SUB = L('', '9x16/')  # where the scene files go, under compositions/
 BOXES = json.loads((ROOT / 'assets/screens/boxes.json').read_text())
 WORDS = json.loads((ROOT / 'assets/vo/transcript.json').read_text())
 VO = 0.3
 S = 2  # screenshot CSS px -> frame px: the app at twice its size, so its body text is 28 px
-TOP, BAR_Y, BAR_H = 364, 838, 74  # the part of a typing screen shown above its search bar, in CSS px
-CARD_X, CARD_Y = 1000, 60
+TOP, BAR_Y, BAR_H = L(364, 330), 838, 74  # the part of a typing screen shown above its search bar, in CSS px
+CARD_X, CARD_Y = L(1000, 128), L(60, 660)
 CARD_W, CARD_H = 412 * S, (TOP + BAR_H) * S
 
 NIGHT, PAPER, GOLD, GREEN, INK, INK_NIGHT = '#1f242c', '#faf8f3', '#e6c77e', '#1f6b57', '#1f1d1a', '#d3d9e1'
 
-# Scenes: id, file, start, duration. Each starts on the voice's first word of its line.
+# Scenes: id, start, duration. Each starts on the voice's first word of its line.
 SCENES = [
     ('open', 0.0, 8.15),
     ('typing', 8.15, 7.6),
@@ -51,7 +59,7 @@ BASE_CSS = f"""
     .fade {{ position: absolute; left: 0; width: 100%; height: 80px; background: linear-gradient(rgba(250, 248, 243, 0), {PAPER}); }}
     .lift {{ position: absolute; border-radius: 22px; overflow: hidden; background: {PAPER};
       box-shadow: 0 30px 70px rgba(31, 29, 26, 0.22); }}
-    .k {{ position: absolute; left: 120px; width: 800px; color: {INK}; letter-spacing: -0.03em; }}
+    .k {{ position: absolute; left: 120px; width: {L(800, 840)}px; color: {INK}; letter-spacing: -0.03em; }}
     .k span, .w {{ display: inline-block; }}
 """
 
@@ -84,34 +92,35 @@ STEPS_JS = """
       const blurOut = (sel, t, d = 0.2, stagger = 0) => tl.to(sel, { opacity: 0, filter: 'blur(8px)', duration: d, stagger, ease: 'power2.in' }, t);
 """
 
-GEO_JS = """
+GEO_JS = f"""
+      const W = {W}, H = {H};
       // The khatam: the eight-pointed star of two squares, as in the app's icon.
       const NS = 'http://www.w3.org/2000/svg';
-      const khatam = (cx, cy, r, rot = 0) => Array.from({ length: 16 }, (_, k) => {
+      const khatam = (cx, cy, r, rot = 0) => Array.from({{ length: 16 }}, (_, k) => {{
         const a = ((rot - 90 + k * 22.5) * Math.PI) / 180, rr = k % 2 ? r * 0.7654 : r;
-        return `${(cx + rr * Math.cos(a)).toFixed(1)},${(cy + rr * Math.sin(a)).toFixed(1)}`;
-      }).join(' ');
-      const diamond = (cx, cy, h) => `${cx},${cy - h} ${cx + h},${cy} ${cx},${cy + h} ${cx - h},${cy}`;
-      const poly = (parent, points, attrs = {}) => {
+        return `${{(cx + rr * Math.cos(a)).toFixed(1)}},${{(cy + rr * Math.sin(a)).toFixed(1)}}`;
+      }}).join(' ');
+      const diamond = (cx, cy, h) => `${{cx}},${{cy - h}} ${{cx + h}},${{cy}} ${{cx}},${{cy + h}} ${{cx - h}},${{cy}}`;
+      const poly = (parent, points, attrs = {{}}) => {{
         const p = document.createElementNS(NS, 'polygon');
         p.setAttribute('points', points);
         p.setAttribute('pathLength', 1);
         for (const [k, v] of Object.entries(attrs)) p.setAttribute(k, v);
         parent.appendChild(p);
         return p;
-      };
+      }};
       // An 8-fold tessellation: stars touching tip to tip, diamonds where four stars meet.
       // keep(x, y) decides which cells are drawn; each piece remembers its distance from (ox, oy).
-      const tessellate = (parent, T, keep, ox, oy) => {
-        const out = [];
-        for (let j = -5; j <= 5; j++) for (let i = -8; i <= 8; i++) {
-          const x = 960 + i * T, y = 540 + j * T;
-          if (keep(x, y)) out.push(Object.assign(poly(parent, khatam(x, y, T / 2)), { d: Math.hypot(x - ox, y - oy), cx: x, cy: y }));
+      const tessellate = (parent, T, keep, ox, oy) => {{
+        const out = [], ni = Math.ceil(W / 2 / T) + 1, nj = Math.ceil(H / 2 / T) + 1;
+        for (let j = -nj; j <= nj; j++) for (let i = -ni; i <= ni; i++) {{
+          const x = W / 2 + i * T, y = H / 2 + j * T;
+          if (keep(x, y)) out.push(Object.assign(poly(parent, khatam(x, y, T / 2)), {{ d: Math.hypot(x - ox, y - oy), cx: x, cy: y }}));
           const dx = x + T / 2, dy = y + T / 2;
-          if (keep(dx, dy)) out.push(Object.assign(poly(parent, diamond(dx, dy, (T / 2) * (Math.SQRT2 - 1) * 1.0)), { d: Math.hypot(dx - ox, dy - oy), cx: dx, cy: dy }));
-        }
+          if (keep(dx, dy)) out.push(Object.assign(poly(parent, diamond(dx, dy, (T / 2) * (Math.SQRT2 - 1))), {{ d: Math.hypot(dx - ox, dy - oy), cx: dx, cy: dy }}));
+        }}
         return out.sort((a, b) => a.d - b.d);
-      };
+      }};
 """
 
 
@@ -135,7 +144,7 @@ def scene(sid, body, script, css='', ground=PAPER, asyncb=False):
   <style>{BASE_CSS}
     #root {{ background: {ground}; }}{css}
   </style>
-  <div id="root" data-composition-id="{sid}" data-width="1920" data-height="1080" data-layout-allow-overlap data-layout-allow-overflow>
+  <div id="root" data-composition-id="{sid}" data-width="{W}" data-height="{H}" data-layout-allow-overlap data-layout-allow-overflow>
 {body}
   </div>
   <script>{js}
@@ -145,7 +154,8 @@ def scene(sid, body, script, css='', ground=PAPER, asyncb=False):
 
 
 def write(name, html):
-    (ROOT / 'compositions' / f'{name}.html').write_text(html)
+    (ROOT / 'compositions' / SUB).mkdir(exist_ok=True)
+    (ROOT / 'compositions' / SUB / f'{name}.html').write_text(html)
 
 
 def card(cid, inner, x=CARD_X, y=CARD_Y, h=CARD_H, style=''):
@@ -157,13 +167,16 @@ def lift(lid, src, y, h, x, top, left, w=412):
 
 
 # ---------------------------------------------------------------- 1. open: the star, the icon, the name (0–8.15)
-ICON_X, ICON_Y = 586, 540  # icon centre once the wordmark is beside it
+ICON_X, ICON_Y = L((586, 540), (540, 760))  # icon centre once the wordmark is beside (or under) it
+VIEW = f'viewBox="0 0 {W} {H}" width="{W}" height="{H}"'
+WORD_POS = L('left:754px;top:388px', f'left:0;width:{W}px;text-align:center;top:930px')
+AR_POS = L('left:754px;top:580px;width:690px;text-align:left', f'left:0;width:{W}px;text-align:center;top:1110px')
 open_body = f"""
     <div id="open-cam" class="ground">
-      <svg id="open-tess" class="ground" viewBox="0 0 1920 1080" width="1920" height="1080"></svg>
-      <svg id="open-geo" class="ground" viewBox="0 0 1920 1080" width="1920" height="1080">
+      <svg id="open-tess" class="ground" {VIEW}></svg>
+      <svg id="open-geo" class="ground" {VIEW}>
         <g id="open-build">
-          <circle id="open-circle" class="guide" cx="960" cy="540" r="300" pathLength="1"></circle>
+          <circle id="open-circle" class="guide" cx="{CX}" cy="{CY}" r="300" pathLength="1"></circle>
           <g id="open-axes"></g>
           <polygon id="open-sq1" class="mid" pathLength="1"></polygon>
           <polygon id="open-sq2" class="mid" pathLength="1"></polygon>
@@ -172,10 +185,10 @@ open_body = f"""
         <polygon id="open-rosette" pathLength="1" stroke-width="3"></polygon>
       </svg>
     </div>
-    <svg id="open-tess2" class="ground" viewBox="0 0 1920 1080" width="1920" height="1080"></svg>
-    <img id="open-icon" src="assets/icon-512.png" alt="Mufahras icon" style="position:absolute;left:{960 - 130}px;top:{540 - 130}px;width:260px;height:260px;border-radius:56px">
-    <div id="open-word" style="position:absolute;left:754px;top:388px;font-weight:900;font-size:168px;letter-spacing:-0.035em;color:{PAPER};line-height:1">{''.join(f'<span>{c}</span>' for c in 'Mufahras')}</div>
-    <div id="open-ar" dir="rtl" style="position:absolute;left:754px;top:580px;width:690px;text-align:left;font-family:Amiri;font-size:92px;color:{GOLD};line-height:1.2">مُفَهْرَس</div>
+    <svg id="open-tess2" class="ground" {VIEW}></svg>
+    <img id="open-icon" src="assets/icon-512.png" alt="Mufahras icon" style="position:absolute;left:{CX - 130}px;top:{CY - 130}px;width:260px;height:260px;border-radius:56px">
+    <div id="open-word" style="position:absolute;{WORD_POS};font-weight:900;font-size:168px;letter-spacing:-0.035em;color:{PAPER};line-height:1">{''.join(f'<span>{c}</span>' for c in 'Mufahras')}</div>
+    <div id="open-ar" dir="rtl" style="position:absolute;{AR_POS};font-family:Amiri;font-size:92px;color:{GOLD};line-height:1.2">مُفَهْرَس</div>
     <div id="open-iris" class="ground" style="background:{PAPER}"></div>"""
 open_css = f"""
     #open-geo *, #open-tess *, #open-tess2 * {{ fill: none; stroke: {GOLD}; stroke-linejoin: miter; stroke-linecap: round; }}
@@ -184,7 +197,7 @@ open_css = f"""
     #open-tess polygon, #open-tess2 polygon {{ stroke-width: 2; stroke-opacity: 0.5; }}"""
 open_js = f"""
       const geo = document.getElementById('open-geo');
-      const P = (k, r = 300) => {{ const a = ((k * 45 - 90) * Math.PI) / 180; return [960 + r * Math.cos(a), 540 + r * Math.sin(a)]; }};
+      const P = (k, r = 300) => {{ const a = ((k * 45 - 90) * Math.PI) / 180; return [{CX} + r * Math.cos(a), {CY} + r * Math.sin(a)]; }};
       const pts = (l) => l.map(([x, y]) => `${{x.toFixed(1)}},${{y.toFixed(1)}}`).join(' ');
       const axes = document.getElementById('open-axes');
       for (let k = 0; k < 4; k++) {{
@@ -194,11 +207,11 @@ open_js = f"""
       }}
       document.getElementById('open-sq1').setAttribute('points', pts([0, 2, 4, 6].map((k) => P(k))));
       document.getElementById('open-sq2').setAttribute('points', pts([1, 3, 5, 7].map((k) => P(k))));
-      document.getElementById('open-star').setAttribute('points', khatam(960, 540, 300));
-      document.getElementById('open-rosette').setAttribute('points', khatam(960, 540, 126, 22.5));
+      document.getElementById('open-star').setAttribute('points', khatam({CX}, {CY}, 300));
+      document.getElementById('open-rosette').setAttribute('points', khatam({CX}, {CY}, 126, 22.5));
       // The pattern grows out of the star; a second copy, clear of the name, waits behind the icon.
-      const tess = tessellate(document.getElementById('open-tess'), 170, (x, y) => Math.hypot(x - 960, y - 540) > 330, 960, 540);
-      const tess2 = tessellate(document.getElementById('open-tess2'), 170, (x, y) => Math.abs(y - 540) > 250 || x < 330 || x > 1640, {ICON_X}, {ICON_Y});
+      const tess = tessellate(document.getElementById('open-tess'), 170, (x, y) => Math.hypot(x - {CX}, y - {CY}) > 330, {CX}, {CY});
+      const tess2 = tessellate(document.getElementById('open-tess2'), 170, (x, y) => {L('Math.abs(y - 540) > 250 || x < 330 || x > 1640', 'y < 560 || y > 1300')}, {ICON_X}, {ICON_Y});
       gsap.set('#open-geo [pathLength], #open-tess polygon, #open-tess2 polygon', {{ strokeDasharray: 1, strokeDashoffset: 1 }});
 
       const draw = (sel, t, d, ease = 'power2.inOut', stagger = 0) => tl.to(sel, {{ strokeDashoffset: 0, duration: d, ease, stagger }}, t);
@@ -212,11 +225,11 @@ open_js = f"""
       tl.to('#open-build', {{ opacity: 0.25, duration: 0.6, ease: 'power2.inOut' }}, 2.2);
       tess.forEach((p) => draw(p, 1.9 + p.d / 1300, 0.55, 'power2.out'));
       // "...where is it from?": the camera falls through the star's centre.
-      tl.to('#open-cam', {{ scale: 9, transformOrigin: '960px 540px', filter: 'blur(6px)', duration: 0.8, ease: 'power3.in' }}, 3.35);
+      tl.to('#open-cam', {{ scale: 9, transformOrigin: '{CX}px {CY}px', filter: 'blur(6px)', duration: 0.8, ease: 'power3.in' }}, 3.35);
       tl.set('#open-cam', {{ opacity: 0 }}, 4.15);
       // ...and lands on the icon, still moving at the speed of the fall.
       tl.fromTo('#open-icon', {{ opacity: 0, scale: 2.6, filter: 'blur(14px)' }}, {{ opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.9, ease: 'expo.out' }}, 4.1);
-      tl.to('#open-icon', {{ x: {ICON_X - 960}, duration: 0.75, ease: 'power3.inOut' }}, 4.65);
+      tl.to('#open-icon', {{ x: {ICON_X - CX}, y: {ICON_Y - CY}, duration: 0.75, ease: 'power3.inOut' }}, 4.65);
       tl.fromTo('#open-word span', {{ opacity: 0.0, filter: 'blur(6px)', x: -20 }}, {{ opacity: 1, filter: 'blur(0px)', x: 0, duration: 0.3, stagger: 0.055, ease: 'power3.out' }}, 4.95);
       blurIn('#open-ar', 5.55, 0.4);
       tess2.forEach((p) => draw(p, 4.6 + p.d / 1600, 0.6, 'power2.out'));
@@ -233,11 +246,11 @@ tf += [(f'ty-a{k}', n, 3.1 + 0.15 * k) for k, n in enumerate(ara)]
 R1, R2 = (100, 105), (225, 175)  # first two results of the Arabic search: y and height, CSS px
 typing_body = (
     card('ty-card', ''.join(tframe(f, n) for f, n, _ in tf)) + '\n'
-    + f'    <div id="ty-l1" class="k" style="top:150px;font-size:150px;font-weight:900;line-height:1">'
+    + f'    <div id="ty-l1" class="k" style="top:{L(150, 250)}px;font-size:150px;font-weight:900;line-height:1">'
     + ''.join(f'<span class="ch">{c}</span>' for c in 'pati') + '<span style="position:relative"><span id="ty-bad" class="ch" style="position:relative">a<i id="ty-strike" style="position:absolute;left:-6px;right:-6px;top:52%;height:12px;background:' + INK + '"></i></span>'
     + f'<span id="ty-good" style="position:absolute;left:0;top:0;color:{GREEN}">e</span></span>' + ''.join(f'<span class="ch ch2">{c}</span>' for c in 'nce') + '</div>\n'
-    + f'    <div id="ty-l2" class="k" dir="rtl" style="top:380px;font-family:Amiri;font-size:100px;letter-spacing:0;text-align:left;line-height:1.3">الحمد لله رب العالمين</div>\n'
-    + f'    <div id="ty-l3" class="k" style="top:600px;font-size:58px;font-weight:900;line-height:1.1;white-space:nowrap">'
+    + f'    <div id="ty-l2" class="k" dir="rtl" style="top:{L(380, 430)}px;font-family:Amiri;font-size:100px;letter-spacing:0;text-align:left;line-height:1.3">الحمد لله رب العالمين</div>\n'
+    + f'    <div id="ty-l3" class="k" style="top:{L(600, 590)}px;font-size:{L(58, 50)}px;font-weight:900;line-height:1.1;white-space:nowrap">'
     + ' '.join(f'<span class="w">{w}</span>' for w in ['alhamdu', 'lillahi', 'rabbil', 'ʿalamin']) + '</div>\n'
     + lift('ty-r2', 'type-arabic-04', R2[0], R2[1], 0, CARD_Y + R2[0] * S, CARD_X) + '\n'
     + lift('ty-r1', 'type-arabic-04', R1[0], R1[1], 0, CARD_Y + R1[0] * S, CARD_X)
@@ -262,10 +275,10 @@ typing_js = f"""
       tl.to('#ty-card', {{ opacity: 0.55, duration: 0.5, ease: 'power2.inOut' }}, 5.25);
       tl.fromTo('#ty-r1', {{ opacity: 0 }}, {{ opacity: 1, duration: 0.01 }}, 5.25);
       tl.fromTo('#ty-r2', {{ opacity: 0 }}, {{ opacity: 1, duration: 0.01 }}, 5.35);
-      tl.to('#ty-r1', {{ x: -880, y: 30, scale: 1.04, duration: 0.8, ease: 'power3.inOut' }}, 5.25);
-      tl.to('#ty-r2', {{ x: -820, y: 120, scale: 0.92, opacity: 0.75, duration: 0.8, ease: 'power3.inOut' }}, 5.4);
+      tl.to('#ty-r1', {{ x: {L(-880, 0)}, y: {L(30, -600)}, scale: 1.04, duration: 0.8, ease: 'power3.inOut' }}, 5.25);
+      tl.to('#ty-r2', {{ x: {L(-820, 20)}, y: {L(120, -590)}, scale: 0.92, opacity: 0.75, duration: 0.8, ease: 'power3.inOut' }}, 5.4);
       // A whip up into the next search.
-      tl.to('#ty-card, #ty-r1, #ty-r2', {{ y: '-=1250', filter: 'blur(18px)', duration: 0.42, ease: 'power3.in' }}, 7.18);"""
+      tl.to('#ty-card, #ty-r1, #ty-r2', {{ y: '-={L(1250, 2000)}', filter: 'blur(18px)', duration: 0.42, ease: 'power3.in' }}, 7.18);"""
 typing_css = '\n    #ty-r1, #ty-r2 { opacity: 0; }\n    #ty-l2, #ty-l3 .w { opacity: 0; }'
 write('typing', scene('typing', typing_body, typing_js, typing_css))
 
@@ -273,23 +286,23 @@ write('typing', scene('typing', typing_body, typing_js, typing_css))
 smile = [f'type-smile-{k:02d}' for k in range(1, 10)]
 hf = [('hd-f0', 'start-paper', 0)] + [(f'hd-s{k}', n, 0.35 + 0.17 * k) for k, n in enumerate(smile)]
 G = BOXES['grades']
-SCROLL = 400  # CSS px the hadith page scrolls to bring its gradings up
+SCROLL = L(400, 430)  # CSS px the hadith page scrolls to bring its gradings up
 GROWS = [(G['y'], 34), (G['y'] + 34, 40), (G['y'] + 74, 40), (G['y'] + 114, 40)]
 quote = 'smiling in the face of your brother is charity'.split()
 hadith_body = (
     card('hd-card', ''.join(tframe(f, n) for f, n, _ in hf)
          + f'<div id="hd-page" class="fr" style="opacity:1">{shot("hadith-tirmidhi-1956", 0, 915, sid="hd-pshot")}</div>') + '\n'
-    + f'    <div id="hd-q" class="k" style="top:200px;font-size:84px;font-weight:900;line-height:1.08">'
+    + f'    <div id="hd-q" class="k" style="top:{L(200, 230)}px;font-size:84px;font-weight:900;line-height:1.08">'
     + f'<span class="w" style="color:{GREEN}">“</span>' + ' '.join(f'<span class="w qw">{w}</span>' for w in quote) + '</div>\n'
     + '\n'.join(lift(f'hd-g{k}', 'hadith-tirmidhi-1956', y, h, G['x'] - 8, CARD_Y + (y - SCROLL) * S, CARD_X + (G['x'] - 8) * S, w=G['width'] + 16)
                 for k, (y, h) in enumerate(GROWS))
-    + f'\n    <div id="hd-sweep" style="position:absolute;left:0;top:-200px;width:2700px;height:1480px">'
-    + f'<div style="position:absolute;left:0;top:0;width:2400px;height:100%;background:{NIGHT}"></div>'
-    + '<svg id="hd-band" style="position:absolute;left:2330px;top:0" width="330" height="1480" viewBox="0 0 330 1480"></svg></div>'
+    + f'\n    <div id="hd-sweep" style="position:absolute;left:0;top:-200px;width:{W + 780}px;height:{H + 400}px">'
+    + f'<div style="position:absolute;left:0;top:0;width:{W + 480}px;height:100%;background:{NIGHT}"></div>'
+    + f'<svg id="hd-band" style="position:absolute;left:{W + 410}px;top:0" width="330" height="{H + 400}" viewBox="0 0 330 {H + 400}"></svg></div>'
 )
 hadith_js = f"""
       steps({json.dumps([['#' + f, t] for f, _, t in hf])});
-      tl.fromTo('#hd-card', {{ y: 1150, filter: 'blur(16px)' }}, {{ y: 0, filter: 'blur(0px)', duration: 0.5, ease: 'power3.out' }}, 0);
+      tl.fromTo('#hd-card', {{ y: {L(1150, 1900)}, filter: 'blur(16px)' }}, {{ y: 0, filter: 'blur(0px)', duration: 0.5, ease: 'power3.out' }}, 0);
       gsap.set('#hd-page', {{ x: {CARD_W} }});
       // The half-remembered words, as they are typed.
       const qw = gsap.utils.toArray('#hd-q .w');
@@ -306,21 +319,24 @@ hadith_js = f"""
       gsap.utils.toArray('[id^=hd-g]').forEach((g, k) => {{
         const t = 3.0 + k * 0.1;
         tl.fromTo(g, {{ opacity: 0 }}, {{ opacity: 1, duration: 0.01 }}, t);
-        tl.to(g, {{ x: -{CARD_X - 110}, y: k * 22 - 110, scale: 1.1, transformOrigin: '0% 50%', duration: 0.6, ease: 'power3.inOut' }}, t);
+        tl.to(g, {{ x: {L(110 - CARD_X, -84)}, y: k * 22 + {L(-110, -800)}, scale: 1.1, transformOrigin: '0% 50%', duration: 0.6, ease: 'power3.inOut' }}, t);
         if (k) tl.fromTo(g, {{ clipPath: 'inset(0 18% 0 0 round 22px)' }}, {{ clipPath: 'inset(0 0% 0 0 round 22px)', duration: 0.3, ease: 'power3.out' }}, t + 0.45);
       }});
       tl.to('#hd-card', {{ opacity: 0.5, duration: 0.4 }}, 3.0);
       // A girih band sweeps across and leaves the night behind it.
       const band = document.getElementById('hd-band');
-      for (let j = 0; j < 9; j++) poly(band, khatam(165, 90 + j * 165, 82), {{ fill: 'none', stroke: '{GOLD}', 'stroke-width': 3 }});
-      for (let j = 0; j < 9; j++) poly(band, diamond(165, 172 + j * 165, 34), {{ fill: 'none', stroke: '{GOLD}', 'stroke-width': 3 }});
-      tl.fromTo('#hd-sweep', {{ x: -2750, skewX: -10 }}, {{ x: -100, skewX: -10, duration: 0.55, ease: 'power2.inOut' }}, 4.25);"""
+      for (let j = 0; j < {(H + 400) // 165 + 1}; j++) poly(band, khatam(165, 90 + j * 165, 82), {{ fill: 'none', stroke: '{GOLD}', 'stroke-width': 3 }});
+      for (let j = 0; j < {(H + 400) // 165 + 1}; j++) poly(band, diamond(165, 172 + j * 165, 34), {{ fill: 'none', stroke: '{GOLD}', 'stroke-width': 3 }});
+      tl.fromTo('#hd-sweep', {{ x: {-(W + 830)}, skewX: -10 }}, {{ x: -100, skewX: -10, duration: 0.55, ease: 'power2.inOut' }}, 4.25);"""
 hadith_css = '\n    [id^=hd-g] { opacity: 0; border-radius: 22px; }'
 write('hadith', scene('hadith', hadith_body, hadith_js, hadith_css))
 
 # ---------------------------------------------------------------- 4. meaning: describe it, and the words become the answer (20.55–27.8)
 MH = BOXES['meaning-hit']
-BAR_HOME = (548, 640)  # where the empty search bar waits, centred, before it docks into the phone
+BAR_HOME = L((548, 640), (128, 1180))
+HERO = L((354, 360, 1.5), (55, 760, 1.2))  # where the found verse is held: left, top, scale
+HERO_CY = HERO[1] + (MH['height'] + 8) * S * HERO[2] / 2
+MQ_TOP = L(330, 300)  # where the empty search bar waits, centred, before it docks into the phone
 meaning_body = (
     f'    <div id="mn-card" class="card" style="left:{CARD_X}px;top:{CARD_Y}px;height:{TOP * S}px;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0">'
     f'{shot("type-meaning-03", 0, TOP)}<div id="mn-mark" style="position:absolute;left:{(MH["x"] - 2) * S}px;top:{(MH["y"] - 2) * S}px;'
@@ -328,16 +344,16 @@ meaning_body = (
     f'    <div id="mn-bar" class="card" style="left:{BAR_HOME[0]}px;top:{BAR_HOME[1]}px;height:{BAR_H * S}px">'
     + ''.join(f'<div id="mn-b{k}" class="fr" style="opacity:{1 if k == 0 else 0}">{shot(src, BAR_Y, BAR_H)}</div>'
               for k, src in enumerate(['start-paper', 'type-meaning-01', 'type-meaning-02', 'type-meaning-03'])) + '</div>\n'
-    + f'    <div id="mn-q" style="position:absolute;left:0;width:1920px;top:330px;text-align:center;font-size:130px;font-weight:900;letter-spacing:-0.03em;color:{PAPER};line-height:1">'
-    + ' '.join(f'<span class="w">{w}</span>' for w in ['dealing', 'with', 'anxiety']) + '</div>\n'
+    + f'    <div id="mn-q" style="position:absolute;left:0;width:{W}px;top:{MQ_TOP}px;text-align:center;font-size:130px;font-weight:900;letter-spacing:-0.03em;color:{PAPER};line-height:{L(1, 1.1)}">'
+    + L(' ', '<br>').join(f'<span class="w">{w}</span>' for w in ['dealing', 'with', 'anxiety']) + '</div>\n'
     + '    <div id="mn-dots" class="ground"></div>\n'
     + f'    <div id="mn-ghost" class="ground" style="color:#4f5764;font-weight:700;font-size:60px">'
-    + '<span class="w" style="position:absolute;left:260px;top:250px">patiance</span>'
-    + '<span class="w" style="position:absolute;left:1080px;top:170px">the face of your brother</span>'
-    + '<span class="w" dir="rtl" style="position:absolute;left:1230px;top:800px;font-family:Amiri;font-weight:400;font-size:76px">الحمد لله</span></div>'
+    + f'<span class="w" style="position:absolute;left:{L(260, 90)}px;top:{L(250, 380)}px">patiance</span>'
+    + f'<span class="w" style="position:absolute;left:{L(1080, 160)}px;top:{L(170, 640)}px">the face of your brother</span>'
+    + f'<span class="w" dir="rtl" style="position:absolute;left:{L(1230, 620)}px;top:{L(800, 880)}px;font-family:Amiri;font-weight:400;font-size:76px">الحمد لله</span></div>'
     + f'    <div id="mn-hit" class="lift" style="left:{CARD_X + (MH["x"] - 4) * S}px;top:{CARD_Y + (MH["y"] - 4) * S}px;width:{(MH["width"] + 8) * S}px;height:{(MH["height"] + 8) * S}px;border:5px solid {GOLD}">'
     + f'<div style="position:absolute;left:-5px;top:-5px">{shot("type-meaning-03", MH["y"] - 4, MH["height"] + 8, x=MH["x"] - 4, w=MH["width"] + 8)}</div></div>\n'
-    + f'    <div id="mn-tag" style="position:absolute;left:0;width:1920px;text-align:center;top:650px;font-size:44px;font-weight:700;color:{INK_NIGHT}">'
+    + f'    <div id="mn-tag" style="position:absolute;left:0;width:{W}px;text-align:center;top:{HERO[1] + (MH['height'] + 8) * S * HERO[2] + L(50, 60):.0f}px;font-size:44px;font-weight:700;color:{INK_NIGHT}">'
     + ' '.join(f'<span class="w">{w}</span>' for w in ['On', 'your', 'device.', 'Works', 'offline.']) + f' <span class="w" style="color:{GOLD};font-size:30px;letter-spacing:0.1em;vertical-align:6px">BETA</span></div>'
 )
 meaning_js = f"""
@@ -364,16 +380,18 @@ meaning_js = f"""
       m.font = '900 130px Inter';
       const words = ['dealing', 'with', 'anxiety'], wid = (t) => m.measureText(t).width - 3.9 * t.length;
       const gap = wid('a b') - wid('ab');
-      let x = 960 - (words.reduce((a, w) => a + wid(w), 0) + gap * 2) / 2;
-      for (const w of words) {{
-        for (let k = 0, n = Math.round(wid(w) / 2.4); k < n; k++) dots.push({{ x: x + rnd() * wid(w), y: 352 + rnd() * 92 }});
+      // Landscape: one centred line. Portrait: one word a line, each centred.
+      let x = {CX} - (words.reduce((a, w) => a + wid(w), 0) + gap * 2) / 2;
+      words.forEach((w, line) => {{
+        const x0 = {'true' if PORTRAIT else 'false'} ? {CX} - wid(w) / 2 : x, y0 = {MQ_TOP} + 22 + ({'line * 143' if PORTRAIT else '0'});
+        for (let k = 0, n = Math.round(wid(w) / 2.4); k < n; k++) dots.push({{ x: x0 + rnd() * wid(w), y: y0 + rnd() * 92 }});
         x += wid(w) + gap;
-      }}
+      }});
       const T = {{ x: {CARD_X + MH['x'] * S}, y: {CARD_Y + MH['y'] * S}, w: {MH['width'] * S}, h: {MH['height'] * S} }};
       for (const d of dots) {{
         d.tx = T.x + rnd() * T.w; d.ty = T.y + rnd() * T.h;
         d.cy = Math.min(d.y, d.ty) - 90 - rnd() * 220;
-        d.delay = (d.x / 1920) * 0.35 + rnd() * 0.15; d.r = 2 + rnd() * 2;
+        d.delay = (d.x / {W}) * 0.35 + rnd() * 0.15; d.r = 2 + rnd() * 2;
       }}
       // Each point is its own element: x and y travel on different eases, so the path arcs up and over.
       const layer = document.getElementById('mn-dots');
@@ -394,24 +412,24 @@ meaning_js = f"""
       // "find what speaks to it": the verse it found comes forward.
       tl.to('#mn-card, #mn-bar', {{ x: 420, opacity: 0, filter: 'blur(8px)', duration: 0.55, ease: 'power3.in' }}, 4.5);
       tl.fromTo('#mn-hit', {{ opacity: 0 }}, {{ opacity: 1, duration: 0.01 }}, 4.5);
-      tl.to('#mn-hit', {{ x: {354 - CARD_X - (MH['x'] - 4) * S}, y: {360 - CARD_Y - (MH['y'] - 4) * S}, scale: 1.5, transformOrigin: '0% 0%', duration: 0.8, ease: 'power3.inOut' }}, 4.5);
+      tl.to('#mn-hit', {{ x: {HERO[0] - CARD_X - (MH['x'] - 4) * S}, y: {HERO[1] - CARD_Y - (MH['y'] - 4) * S}, scale: {HERO[2]}, transformOrigin: '0% 0%', duration: 0.8, ease: 'power3.inOut' }}, 4.5);
       blurIn('#mn-tag .w', 5.3, 0.15, 0.07, 6);
       // The verse becomes the next page: it grows past the frame.
       blurOut('#mn-tag', 6.7, 0.2);
-      tl.to('#mn-hit', {{ x: {-1868 - CARD_X - (MH['x'] - 4) * S}, y: {-91 - CARD_Y - (MH['y'] - 4) * S}, scale: 7, duration: 0.5, ease: 'power3.in' }}, 6.75);"""
+      tl.to('#mn-hit', {{ x: {CX - 7 * (MH['width'] + 8) - CARD_X - (MH['x'] - 4) * S:.0f}, y: {HERO_CY - 7 * (MH['height'] + 8) - CARD_Y - (MH['y'] - 4) * S:.0f}, scale: 7, duration: 0.5, ease: 'power3.in' }}, 6.75);"""
 meaning_css = f'\n    #mn-hit, #mn-tag .w, #mn-q .w, #mn-ghost .w {{ opacity: 0; }}\n    .dot {{ position: absolute; left: 0; top: 0; border-radius: 50%; background: {GOLD}; opacity: 0; }}'
 write('meaning', scene('meaning', meaning_body, meaning_js, meaning_css, ground=NIGHT, asyncb=True))
 
 # ---------------------------------------------------------------- 5. word: every verse explained, word by word (27.8–30.95)
 W3, W2 = BOXES['word-3'], BOXES['word-2']
 VY, VH = 40, 380  # verse screen crop
-WX = 548
+WX, WY = L(548, 128), L(160, 420)
 wc = lambda b: ((b['x'] + b['width'] / 2) * S, (b['y'] + b['height'] / 2 - VY) * S)
 (w3x, w3y), (w2x, w2y) = wc(W3), wc(W2)
 word_body = (
     card('wd-card', cframe('wd-v0', 'verse-94-6', VY, VH, 1) + cframe('wd-v1', 'verse-94-6-word', VY, VH, 1) + cframe('wd-v2', 'verse-94-6-word-2', VY, VH, 1),
-         x=WX, y=160, h=VH * S) + '\n'
-    + lift('wd-ex', 'verse-94-6-explain', 312, 196, 0, 300, 1040)
+         x=WX, y=WY, h=VH * S) + '\n'
+    + lift('wd-ex', 'verse-94-6-explain', 312, 196, 0, L(300, 1000), L(1040, 128))
 )
 word_js = f"""
       tl.fromTo('#wd-card', {{ scale: 1.1, filter: 'blur(12px)' }}, {{ scale: 1, filter: 'blur(0px)', duration: 0.55, ease: 'expo.out' }}, 0);
@@ -421,8 +439,8 @@ word_js = f"""
       tl.fromTo('#wd-v1', {{ clipPath: 'circle(0px at {w3x:.0f}px {w3y:.0f}px)' }}, {{ clipPath: 'circle(900px at {w3x:.0f}px {w3y:.0f}px)', duration: 0.4, ease: 'power2.out' }}, 1.06);
       tl.fromTo('#wd-v2', {{ clipPath: 'circle(0px at {w2x:.0f}px {w2y:.0f}px)' }}, {{ clipPath: 'circle(900px at {w2x:.0f}px {w2y:.0f}px)', duration: 0.4, ease: 'power2.out' }}, 1.86);
       // Its explanation slides in beside it.
-      tl.to('#wd-card', {{ x: -420, duration: 0.55, ease: 'power2.inOut' }}, 2.1);
-      tl.fromTo('#wd-ex', {{ opacity: 0, x: 200, filter: 'blur(10px)' }}, {{ opacity: 1, x: 0, filter: 'blur(0px)', duration: 0.55, ease: 'expo.out' }}, 2.25);
+      tl.to('#wd-card', {{ {L('x: -420', 'y: -260')}, duration: 0.55, ease: 'power2.inOut' }}, 2.1);
+      tl.fromTo('#wd-ex', {{ opacity: 0, {L('x', 'y')}: 200, filter: 'blur(10px)' }}, {{ opacity: 1, {L('x', 'y')}: 0, filter: 'blur(0px)', duration: 0.55, ease: 'expo.out' }}, 2.25);
       tl.to('#root', {{ filter: 'brightness(0.6)', duration: 0.1 }}, 3.05);"""
 write('word', scene('word', word_body, word_js, '\n    #wd-ex { opacity: 0; }'))
 
@@ -431,15 +449,17 @@ WALL = ['surahs', 'books', 'names-of-allah', 'duas', 'bookmarks', 'card-dark-sto
         'bukhari-chapter', 'start-night', 'hadith-tirmidhi-1956', 'theme-dusk', 'menu', 'sakinah-start', 'card', 'theme-night', 'start-paper',
         'type-patiance-08', 'graph-night', 'duas', 'surahs', 'names-of-allah', 'books']
 TW, TH, GAP = 360, 800, 44
+COLS, ROWS = L(8, 6), L(3, 5)
+WALL = (WALL * 2)[:COLS * ROWS]
 tiles = ''.join(
-    f'<div class="tile" style="left:{(k % 8) * (TW + GAP)}px;top:{(k // 8) * (TH + GAP)}px;background-image:url(assets/screens/{src}.png)"></div>'
+    f'<div class="tile" style="left:{(k % COLS) * (TW + GAP)}px;top:{(k // COLS) * (TH + GAP)}px;background-image:url(assets/screens/{src}.png)"></div>'
     for k, src in enumerate(WALL))
 FRONT = [('bw-surahs', 'surahs', 0.55), ('bw-books', 'books', 1.2), ('bw-names', 'names-of-allah', 2.6)]
 FY, FH = 36, 418
 browse_body = (
-    f'    <div id="bw-world" class="ground" style="perspective:1700px"><div id="bw-plane" style="position:absolute;left:0;top:0;width:{8 * (TW + GAP)}px;height:{3 * (TH + GAP)}px">{tiles}</div></div>\n'
-    + '\n'.join(card(cid, shot(src, FY, FH), x=548, y=70, h=FH * S) for cid, src, _ in FRONT) + '\n'
-    + card('bw-theme', ''.join(cframe(f'bw-t{k}', f'theme-{n}', FY, FH, 1) for k, n in enumerate(['paper', 'sepia', 'dusk', 'night'])), x=548, y=70, h=FH * S)
+    f'    <div id="bw-world" class="ground" style="perspective:1700px"><div id="bw-plane" style="position:absolute;left:0;top:0;width:{COLS * (TW + GAP)}px;height:{ROWS * (TH + GAP)}px">{tiles}</div></div>\n'
+    + '\n'.join(card(cid, shot(src, FY, FH), x=L(548, 128), y=L(70, 420), h=FH * S) for cid, src, _ in FRONT) + '\n'
+    + card('bw-theme', ''.join(cframe(f'bw-t{k}', f'theme-{n}', FY, FH, 1) for k, n in enumerate(['paper', 'sepia', 'dusk', 'night'])), x=L(548, 128), y=L(70, 420), h=FH * S)
 )
 browse_css = f"""
     .tile {{ position: absolute; width: {TW}px; height: {TH}px; border-radius: 26px; background-size: cover; }}
@@ -449,8 +469,8 @@ browse_css = f"""
 names = [f[0] for f in FRONT] + ['bw-theme']
 browse_js = f"""
       // The whole library as a wall of real screens; the camera glides across it.
-      tl.fromTo('#bw-plane', {{ x: -300, y: -500, rotationX: 50, rotationZ: -22, z: -300 }},
-        {{ x: -1500, y: -560, rotationX: 50, rotationZ: -16, z: -300, duration: 5.5, ease: 'power1.inOut' }}, 0);
+      tl.fromTo('#bw-plane', {{ x: {L(-300, -700)}, y: {L(-500, -900)}, rotationX: 50, rotationZ: -22, z: -300 }},
+        {{ x: {L(-1500, -1500)}, y: {L(-560, -1000)}, rotationX: 50, rotationZ: -16, z: -300, duration: 5.5, ease: 'power1.inOut' }}, 0);
       tl.fromTo('#bw-world', {{ opacity: 0 }}, {{ opacity: 0.38, duration: 0.4, ease: 'power2.out' }}, 0);
       // As each is named, its screen rises out of the wall and lands flat to be read.
       const front = {json.dumps(names)}, times = {json.dumps([f[2] for f in FRONT] + [4.0])};
@@ -465,16 +485,17 @@ browse_js = f"""
 write('browse', scene('browse', browse_body, browse_js, browse_css, ground=NIGHT))
 
 # ---------------------------------------------------------------- 7. free: free, no ads, no accounts, offline (36.45–40.3)
+FR_TOP = L(TOP, 280)  # a shorter screen in portrait, so it ends above the platform's buttons
 of = [('fr-f0', 'start-paper', 0), ('fr-o0', 'type-offline-01', 1.6), ('fr-o1', 'type-offline-02', 2.1)]
 WIFI = ('<svg id="fr-wifi" viewBox="0 0 24 24" width="84" height="84" fill="none" stroke="' + GOLD + '" stroke-width="2.4" stroke-linecap="round" '
         'style="position:absolute;left:0;top:4px"><path class="arc" d="M2 8.82a15 15 0 0 1 20 0"/><path class="arc" d="M5 12.86a10 10 0 0 1 14 0"/>'
         '<path class="arc" d="M8.5 16.43a5 5 0 0 1 7 0"/><path d="M12 20h.01"/><path id="fr-slash" pathLength="1" d="m2 2 20 20"/></svg>')
 free_body = (
-    card('fr-card', ''.join(tframe(f, n) for f, n, _ in of)) + '\n'
-    + f'    <div id="fr-1" class="k" style="top:110px;font-size:230px;font-weight:900;line-height:1;color:{PAPER}">Free.</div>\n'
-    + f'    <div id="fr-2" class="k" style="top:410px;font-size:84px;font-weight:900;color:{INK_NIGHT}">No ads.</div>\n'
-    + f'    <div id="fr-3" class="k" style="top:520px;font-size:84px;font-weight:900;color:{INK_NIGHT}">No accounts.</div>\n'
-    + f'    <div id="fr-4" class="k" style="top:660px;font-size:84px;font-weight:900;color:{GOLD};padding-left:116px">{WIFI}Works offline.</div>'
+    card('fr-card', ''.join(tframe(f, n, FR_TOP) for f, n, _ in of), y=L(CARD_Y, 860), h=(FR_TOP + BAR_H) * S) + '\n'
+    + f'    <div id="fr-1" class="k" style="top:{L(110, 210)}px;font-size:230px;font-weight:900;line-height:1;color:{PAPER}">Free.</div>\n'
+    + f'    <div id="fr-2" class="k" style="top:{L(410, 470)}px;font-size:84px;font-weight:900;color:{INK_NIGHT}">No ads.</div>\n'
+    + f'    <div id="fr-3" class="k" style="top:{L(520, 570)}px;font-size:84px;font-weight:900;color:{INK_NIGHT}">No accounts.</div>\n'
+    + f'    <div id="fr-4" class="k" style="top:{L(660, 690)}px;font-size:84px;font-weight:900;color:{GOLD};padding-left:116px">{WIFI}Works offline.</div>'
 )
 free_js = f"""
       steps({json.dumps([['#' + f, t] for f, _, t in of])});
@@ -491,25 +512,26 @@ free_js = f"""
 write('free', scene('free', free_body, free_js, '\n    #fr-1, #fr-2, #fr-3, #fr-4 { opacity: 0; }', ground=NIGHT))
 
 # ---------------------------------------------------------------- 8. end: the pattern returns around the name (40.3–46.5)
+EY = L(0, 440)  # the lockup moves down to the middle of a tall frame
 end_body = f"""
-    <svg id="en-tess" class="ground" viewBox="0 0 1920 1080" width="1920" height="1080"></svg>
-    <img id="en-icon" src="assets/icon-512.png" alt="Mufahras icon" style="position:absolute;left:{960 - 105}px;top:120px;width:210px;height:210px;border-radius:46px">
-    <div id="en-word" style="position:absolute;left:0;width:1920px;top:360px;text-align:center;font-weight:900;font-size:150px;letter-spacing:-0.035em;color:{PAPER};line-height:1">{''.join(f'<span>{c}</span>' for c in 'Mufahras')}</div>
-    <div id="en-ar" dir="rtl" style="position:absolute;left:0;width:1920px;top:520px;text-align:center;font-family:Amiri;font-size:76px;color:{GOLD};line-height:1.2">مُفَهْرَس</div>
-    <div id="en-tag" style="position:absolute;left:0;width:1920px;top:680px;text-align:center;font-weight:700;font-size:56px;color:{INK_NIGHT}">{' '.join(f'<span class="w">{w}</span>' for w in 'Find any verse or hadith.'.split())}</div>
-    <div id="en-url" style="position:absolute;left:0;width:1920px;top:790px;text-align:center;font-weight:700;font-size:44px;color:{GOLD}">omeiirr.github.io/mufahras</div>
-    <div id="en-oss" style="position:absolute;left:0;width:1920px;top:856px;text-align:center;font-weight:400;font-size:32px;color:#9aa3ae">Free and open source</div>"""
+    <svg id="en-tess" class="ground" {VIEW}></svg>
+    <img id="en-icon" src="assets/icon-512.png" alt="Mufahras icon" style="position:absolute;left:{CX - 105}px;top:{120 + EY}px;width:210px;height:210px;border-radius:46px">
+    <div id="en-word" style="position:absolute;left:0;width:{W}px;top:{360 + EY}px;text-align:center;font-weight:900;font-size:150px;letter-spacing:-0.035em;color:{PAPER};line-height:1">{''.join(f'<span>{c}</span>' for c in 'Mufahras')}</div>
+    <div id="en-ar" dir="rtl" style="position:absolute;left:0;width:{W}px;top:{520 + EY}px;text-align:center;font-family:Amiri;font-size:76px;color:{GOLD};line-height:1.2">مُفَهْرَس</div>
+    <div id="en-tag" style="position:absolute;left:0;width:{W}px;top:{680 + EY}px;text-align:center;font-weight:700;font-size:56px;color:{INK_NIGHT}">{' '.join(f'<span class="w">{w}</span>' for w in 'Find any verse or hadith.'.split())}</div>
+    <div id="en-url" style="position:absolute;left:0;width:{W}px;top:{790 + EY}px;text-align:center;font-weight:700;font-size:44px;color:{GOLD}">omeiirr.github.io/mufahras</div>
+    <div id="en-oss" style="position:absolute;left:0;width:{W}px;top:{856 + EY}px;text-align:center;font-weight:400;font-size:32px;color:#9aa3ae">Free and open source</div>"""
 end_css = f"""
     #en-tess polygon {{ fill: none; stroke: {GOLD}; stroke-width: 2; stroke-opacity: 0.45; }}
     #en-tag .w, #en-url, #en-oss {{ opacity: 0; }}"""
-end_js = """
+end_js = f"""
       // The pattern closes in from the edges and stops short of the name.
-      const tess = tessellate(document.getElementById('en-tess'), 170, (x, y) => ((x - 960) / 820) ** 2 + ((y - 520) / 520) ** 2 > 1, 960, 520);
-      gsap.set('#en-tess polygon', { strokeDasharray: 1, strokeDashoffset: 1 });
+      const tess = tessellate(document.getElementById('en-tess'), 170, (x, y) => ((x - {CX}) / {L(820, 470)}) ** 2 + ((y - {520 + EY}) / {L(520, 600)}) ** 2 > 1, {CX}, {520 + EY});
+      gsap.set('#en-tess polygon', {{ strokeDasharray: 1, strokeDashoffset: 1 }});
       const far = tess[tess.length - 1].d;
-      tess.forEach((p) => tl.to(p, { strokeDashoffset: 0, duration: 0.6, ease: 'power2.out' }, 0.05 + (1 - p.d / far) * 1.0));
-      tl.fromTo('#en-icon', { opacity: 0, scale: 0.55, filter: 'blur(8px)' }, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.8, ease: 'expo.out' }, 0);
-      tl.fromTo('#en-word span', { opacity: 0.0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.25, stagger: 0.05, ease: 'power2.out' }, 0.2);
+      tess.forEach((p) => tl.to(p, {{ strokeDashoffset: 0, duration: 0.6, ease: 'power2.out' }}, 0.05 + (1 - p.d / far) * 1.0));
+      tl.fromTo('#en-icon', {{ opacity: 0, scale: 0.55, filter: 'blur(8px)' }}, {{ opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.8, ease: 'expo.out' }}, 0);
+      tl.fromTo('#en-word span', {{ opacity: 0.0, filter: 'blur(6px)' }}, {{ opacity: 1, filter: 'blur(0px)', duration: 0.25, stagger: 0.05, ease: 'power2.out' }}, 0.2);
       blurIn('#en-ar', 0.7, 0.35);
       blurIn('#en-tag .w', 1.28, 0.14, 0.08, 6);
       blurIn('#en-url', 2.1, 0.25);
@@ -553,10 +575,10 @@ CAP_END = SCENES[6][1]
 caps = f"""<template>
   <style>
     #root {{ position: absolute; inset: 0; }}
-    .cap {{ position: absolute; left: 0; width: 1920px; top: 962px; text-align: center; font-family: 'Inter', sans-serif;
+    .cap {{ position: absolute; left: {L(0, 90)}px; width: {L(1920, 900)}px; top: {L(980, 1524)}px; text-align: center; font-family: 'Inter', sans-serif;
       font-weight: 700; font-size: 44px; line-height: 1.2; opacity: 0; margin: 0; }}
   </style>
-  <div id="root" data-composition-id="captions" data-width="1920" data-height="1080">
+  <div id="root" data-composition-id="captions" data-width="{W}" data-height="{H}">
 {chr(10).join(els)}
   </div>
   <script>
@@ -572,8 +594,8 @@ write('captions', caps)
 
 # ---------------------------------------------------------------- the root: scenes, captions, voice and sound
 hosts = '\n'.join(
-    f'      <div id="{sid}" data-composition-id="{sid}" data-composition-src="compositions/{sid}.html" data-start="{st}" data-duration="{d}" '
-    f'data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>'
+    f'      <div id="{sid}" data-composition-id="{sid}" data-composition-src="compositions/{SUB}{sid}.html" data-start="{st}" data-duration="{d}" '
+    f'data-track-index="1" data-track-kind="graphics" data-width="{W}" data-height="{H}"></div>'
     for sid, st, d in SCENES)
 # Sounds on visible actions only (no music): placed in film seconds.
 sc = {sid: st for sid, st, _ in SCENES}
@@ -599,18 +621,18 @@ index = f"""<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1920, height=1080" />
+    <meta name="viewport" content="width={W}, height={H}" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
       * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-      html, body {{ margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: {NIGHT}; }}
+      html, body {{ margin: 0; width: {W}px; height: {H}px; overflow: hidden; background: {NIGHT}; }}
     </style>
   </head>
   <body>
-    <!-- Mufahras showcase, 16:9. Generated by tools/build.py: edit that, then re-run it. -->
-    <div id="root" data-composition-id="main" data-start="0" data-duration="{FILM}" data-width="1920" data-height="1080">
+    <!-- Mufahras showcase, {L('16:9', '9:16')}. Generated by tools/build.py{L('', ' --portrait')}: edit that, then re-run it. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="{FILM}" data-width="{W}" data-height="{H}">
 {hosts}
-      <div id="captions" data-composition-id="captions" data-composition-src="compositions/captions.html" data-start="0" data-duration="{CAP_END}" data-track-index="2" data-track-kind="captions" data-width="1920" data-height="1080"></div>
+      <div id="captions" data-composition-id="captions" data-composition-src="compositions/{SUB}captions.html" data-start="0" data-duration="{CAP_END}" data-track-index="2" data-track-kind="captions" data-width="{W}" data-height="{H}"></div>
 
       <audio id="a-vo" class="clip" src="assets/vo/voiceover.mp3" data-start="{VO}" data-duration="43.36" data-track-index="9" data-volume="1"></audio>
       <audio id="a-wind" class="clip" src="assets/sfx/wind-bed.mp3" data-start="0" data-duration="{FILM}" data-track-index="10" data-volume="0.9" data-fade-out="2.5"></audio>
@@ -622,5 +644,6 @@ index = f"""<!doctype html>
   </body>
 </html>
 """
-(ROOT / 'index.html').write_text(index)
-print('wrote index.html,', len(SCENES), 'scenes, captions;', len(SFX), 'sounds')
+OUT = L('index.html', 'index-9x16.html')
+(ROOT / OUT).write_text(index)
+print('wrote', OUT + ',', len(SCENES), 'scenes, captions;', len(SFX), 'sounds')
