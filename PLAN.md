@@ -362,6 +362,120 @@ Layout computed at build time with d3-force; the page is a lazily loaded canvas 
 nearest-node hover, and a card listing the selected verse's links as text. Linked from the start screen and
 from each verse's "Similar verses" section. Details and lessons: `docs/TECHNICAL.md` §13.
 
+## Hadith that mention a verse (designed 2026-10-24, not started)
+
+On a verse screen: the hadith that quote it, refer to it, or tell why it was revealed. On a hadith screen: the
+verses it quotes. Computed at build time; no download needed.
+
+**Signals, measured on our data:**
+1. **Explicit references in the English:** `(2:255)` / `(2.255)` in 539 hadith (mostly Bukhari's and Tirmidhi's
+   tafsir books), Muslim's `(ii. 285)` style in 86 (roman-numeral surah numbers). Exact, so the strongest signal.
+2. **Arabic quotation:** a run of at least five consecutive verse words found in a hadith's Arabic, after the
+   same normalization as search (both dagger-alif readings): 2,397 hadith–verse pairs in 1,674 hadith. Works across
+   translations, because it compares the Arabic. Phrases shared by more than three verses (the bismillah,
+   "لا إله إلا هو") are ignored on their own; short verses (under five words) need the whole verse, matched once.
+3. **Context words** near a reference ("this Verse was revealed", "recited", "Surat …") raise confidence and
+   separate *revealed about* from *quoted in*.
+
+**Build:** index every verse's word 5-grams (both readings) → scan each hadith's Arabic → merge runs into spans →
+pair (hadith, ayah) with the matched span, the kind (reference / quotation / revelation context) and a strength
+(span length relative to the verse, rarity of the n-grams). Explicit references are parsed separately and win
+ties. Emit a `mentions` chunk: ayah → [book, number, kind, strength], and hadith → ayahs (~2,500–3,000 pairs,
+~50 KB gzipped).
+
+**Checks:** a hand-checked list of known pairs as tests (Bukhari 3 ↔ 96:1–5, Muslim 329–330 and Tirmidhi 2992 ↔
+2:284–286, the Ayat al-Kursi hadith ↔ 2:255); a reviewed random sample of 50 pairs to tune thresholds for precision
+over recall; the build reports counts per kind.
+
+**UI:** a "Hadith about this verse" section on the verse screen (references and revelation context first, then
+quotations; Bukhari and Muslim first within each), each with a snippet, its grading and the quoted part
+highlighted; on a hadith screen, "Verses in this hadith" as links. Hidden in Sakinah mode.
+
+## Search by meaning (planned 2026-10-24, not started)
+
+**Goal:** find verses and hadith by what they mean, not only by their words: "dealing with anxiety",
+"kindness to animals", "none of you truly believes until he loves for his brother" (Bukhari 13 is worded
+differently). Retrieval only: the app shows the texts themselves and never generates an answer or a summary.
+
+**Non-goals for v1:** Arabic-language meaning queries (a multilingual model is ~120 MB; Arabic keeps its
+spelling-tolerant search), question answering, anything on a server.
+
+### Approach
+- **An embedding model runs in the browser** (transformers.js on ONNX Runtime WebAssembly), as an **optional
+  download** switched on in the menu. The main app doesn't grow.
+- **Every verse and hadith gets a vector at build time** with the same model and quantization the browser uses,
+  so query and corpus embeddings match exactly.
+- **Search compares the query's vector with all of them** (dot product of normalized vectors) and shows the
+  closest as "Similar in meaning".
+
+### Choosing the model
+- Candidates: small English retrieval models with 384-dimensional output, about 22–33M parameters:
+  bge-small-en-v1.5, snowflake-arctic-embed-xs, e5-small-v2, all-MiniLM-L6-v2, each as int8 ONNX (~23–34 MB).
+- Choose by measurement, not reputation: recall@10 and MRR on our own evaluation set (below), size, and query
+  latency on a low-end phone. Check each licence (MIT / Apache 2.0) before shipping.
+- Use each model's query instruction where it has one (bge: "Represent this sentence for searching relevant passages: ").
+
+### What gets embedded
+- **Verses:** the translation **plus its Al-Mukhtasar explanation**. The explanation states the meaning in
+  plain words, which is what a meaning query matches; tested both ways in evaluation.
+- **Hadith:** the English without the "Narrated X:" opening. Hadith longer than the model's window (~256–512
+  tokens) are split into overlapping passages, and a hadith scores as its best passage.
+- **About 40,000 texts → ~45,000 vectors** with passages.
+
+### Size (optional download, cached for offline)
+| Part | Size |
+|---|---|
+| Model (int8 ONNX) | ~23–34 MB |
+| Runtime (transformers.js + ONNX WASM) | ~4 MB compressed |
+| Vectors, Quran only (6,236 × 384, int8) | ~2.4 MB |
+| Vectors, all hadith (~38,000 × 384, int8) | ~13 MB; ~6–8 MB at 256 dimensions if the model supports truncation |
+| **Total** | **~30 MB for the Quran; ~35–45 MB with hadith** |
+
+### Build pipeline
+- `scripts/embed.ts` runs the chosen model in Node (`@huggingface/transformers` / onnxruntime-node).
+- Vectors are cached by (model, revision, text hash), so only changed texts are re-embedded; CI keeps the cache.
+  A full run is a few minutes on CI.
+- Output: content-hashed binary chunks per collection (`vec-quran.<hash>.bin`, `vec-<book>.<hash>.bin`, int8
+  with a per-dimension scale), listed in the manifest.
+- **The model files are served from our own site**, not from a model hub at run time: privacy promises no
+  third parties. They're fetched in CI at a pinned revision with a checksum and copied into `dist/`, not
+  committed (25–35 MB binaries would bloat the repo).
+
+### In the app
+- A separate **meaning worker**, so the search worker stays light. It loads the runtime and model on first use.
+- **Queries:** embed after typing pauses (~350 ms) and only for queries of 3+ words; matching words already
+  updates on every keystroke.
+- **Scoring:** int8 dot product over all vectors, ~15M multiply-adds, about 10–30 ms on a phone; keep the top 30.
+- **Results:** a separate **"Similar in meaning"** section below the word matches, marked as found by meaning
+  ("may not contain your words"). Duplicates of word matches are removed; a text found both ways ranks higher.
+  Later: fuse the two rankings (reciprocal rank fusion) once evaluation shows it helps.
+- **Menu:** "Search by meaning (beta), ~40 MB" with a short explanation, download progress, and Remove.
+  Available in Sakinah mode, since it's search. The offline panel counts it.
+- **Low memory:** turned off by default on devices reporting little memory (`navigator.deviceMemory` < 3), and
+  degrades to word search if the model fails to load.
+
+### Evaluation
+- A set of ~60 meaning queries with expected results, written by hand and checked against the texts:
+  paraphrases of famous hadith, concepts ("patience in hardship", "treatment of orphans' wealth", "the
+  afterlife for the righteous"), and questions people actually ask.
+- **Gate in CI:** recall@10 ≥ a threshold set from the chosen baseline; the report shows per-query hits so
+  regressions are visible.
+- **Measure on a low-end Android phone:** download size, first-load time, memory, query latency.
+
+### Phases
+0. **Spike:** embed the Quran with 2–3 candidate models in Node, evaluate, pick one. No app changes.
+1. **Quran only:** ~30 MB optional download, "Similar in meaning" for verses.
+2. **Hadith:** passages for long hadith, vectors per book downloaded with the book.
+3. **Ranking:** hybrid fusion with word search, tuned on the evaluation set.
+4. (Optional) **Multilingual:** Arabic and Urdu meaning queries with a larger model, if there's demand.
+
+### Risks
+- **Archaic, bracketed translation English** ("[i.e., …]", "thee/thou" in some hadith) may embed worse;
+  stripping brackets and testing with the explanation text included should help.
+- **iOS WebAssembly memory limits** and older phones: guarded by the device check and a graceful fallback.
+- **Results that look relevant but aren't:** they're labelled as found by meaning, shown after word matches,
+  and the texts are always shown as they are, never paraphrased.
+
 ## Possible future features
 
 - **"Report a mistake" link** on each verse and hadith screen: opens the repo's "Mistake in a text" issue form

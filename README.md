@@ -52,16 +52,34 @@ Some things to try:
 | `patiance` | typos are fine |
 | `ptnc pryr` | abbreviations work too, like fzf |
 | `2:255` · `baqarah 255` · `surah yaseen` | a verse or surah directly |
+| `ayatul kursi` · `amana rasul` · `hadith jibril` | well-known names for verses, surahs and hadith |
 | `bukhari 1` · `tirmidhi 2516` | a hadith by its number |
 | `qul huwa allahu ahad` | transliteration |
 | `الحمد لله رب العالمين` | Arabic, with or without diacritics |
+| `fasting` · `orphans` | topics in the Quran and chapters of the hadith books |
+| a sentence you remember, in any translation | the source, even when the wording differs ("close matches") |
 
-Every verse opens with its neighbours, its explanation (Al-Mukhtasar), its topics, similar verses and repeated
-phrases, and a link to read the whole surah. Every hadith shows its book and chapter, the Arabic, and each grading by
-name. Save anything to your bookmarks with tags, or share it as text or as an image. The start screen has a verse
-and a hadith of the day and your recent searches; the menu has the surahs, the hadith collections chapter by chapter,
-a graph of similar verses, four colour themes (Paper, Sepia, Dusk and Night) and text sizes. On a desktop the results
-and the text sit side by side, with the keyboard doing the rest (`/` to search, ↑ ↓ to move, Enter to open).
+## What else is inside
+
+**Reading.** Every verse opens with its neighbours and a link to read the whole surah. Below it: the theme of its
+passage, an explanation (Al-Mukhtasar), its topics, similar verses with the shared words highlighted, and phrases
+it shares with other verses (mutashabihat). **Tap any Arabic word** for its meaning and transliteration, and step
+word by word through the verse. Every hadith shows its book and chapter, the Arabic, and each grading by name.
+
+**Browsing.** All 114 surahs; the six hadith collections, chapter by chapter; topic pages; and a
+**graph of similar verses**, where verses that share wording are joined, and refrains like Ar-Rahman's "Which of
+the favours of your Lord would you deny?" form clusters you can explore.
+
+**Keeping.** Save verses and hadith as **bookmarks** with your own tags (export and import them, since they live
+only on your device). Copy or share any text with its reference, or share it as an **image**, square or story, light
+or dark. Your recent searches wait on the start screen, beside a **verse and a hadith of the day**.
+
+**Comfort.** Four colour themes (Paper, Sepia, Dusk and Night, or Auto), text and Arabic sizes, transliteration on
+or off, all in the **☰ menu**, which is reachable from every screen. And **Sakinah mode** (سكينة, tranquillity):
+one switch for just search and reading, without daily cards, suggestions, extras or the graph.
+
+On a desktop the results and the text sit side by side, with the keyboard doing the rest (`/` to search, ↑ ↓ to
+move, Enter to open).
 
 <p align="center">
   <img src="docs/screenshots/desktop.png" alt="Desktop: Arabic search results on the left, Al-Fatihah 1:2 on the right" width="760" />
@@ -80,7 +98,8 @@ background while you type.
 
 After your first visit, Mufahras keeps the app, the Quran and the English hadith on your device, so it opens and
 searches without a connection: on a flight, underground, or anywhere the signal drops. One tap on the start screen
-stores the rest (mainly the Arabic of the hadith, about 5 MB), and then everything works offline.
+stores the rest (mainly the Arabic of the hadith, about 6 MB; it's also in the menu), and then everything works
+offline.
 
 Install it like an app: **Add to Home Screen** in Safari on iPhone, **Install app** in Chrome on Android, or the install
 icon in the address bar on desktop. On Android, an installed Mufahras appears in the **Share** menu: select a quote
@@ -109,8 +128,8 @@ something and didn't, please [open an issue](https://github.com/omeiirr/mufahras
 ## Credits
 
 The Quran data comes from the [Quranic Universal Library (QUL)](https://qul.tarteel.ai) by Tarteel, with the Quran
-text prepared by [Tanzil](https://tanzil.net), the translation by Saheeh International, and the transliteration from
-QUL. The hadith collections come from [fawazahmed0/hadith-api](https://github.com/fawazahmed0/hadith-api). The Quran
+text prepared by [Tanzil](https://tanzil.net), the translation by Saheeh International, and the transliteration, word-by-word meanings,
+topics and similar-verse data from QUL. The hadith collections come from [fawazahmed0/hadith-api](https://github.com/fawazahmed0/hadith-api). The Quran
 is set in [Scheherazade New](https://software.sil.org/scheherazade/) by SIL, the hadith Arabic in Noto Naskh Arabic,
 and the logo's mīm in Amiri. Full details are in [NOTICE](NOTICE). Mufahras is not affiliated with or endorsed by
 any of them; may Allah reward them for making this knowledge open.
