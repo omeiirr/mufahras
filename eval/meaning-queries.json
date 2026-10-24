@@ -1,0 +1,615 @@
+[
+ {
+  "query": "dealing with anxiety and worry",
+  "kind": "feeling",
+  "expect": {
+   "13:28": [
+    "hearts are assured"
+   ],
+   "94:6": [
+    "with hardship"
+   ],
+   "65:3": [
+    "relies upon Allāh"
+   ]
+  }
+ },
+ {
+  "query": "feeling hopeless after sinning",
+  "kind": "feeling",
+  "expect": {
+   "39:53": [
+    "do not despair"
+   ]
+  }
+ },
+ {
+  "query": "Allah is near and answers when I call",
+  "kind": "concept",
+  "expect": {
+   "2:186": [
+    "I am near"
+   ],
+   "40:60": [
+    "Call upon Me"
+   ]
+  }
+ },
+ {
+  "query": "kindness to parents",
+  "kind": "concept",
+  "expect": {
+   "17:23": [
+    "parents"
+   ],
+   "31:14": [
+    "parents"
+   ],
+   "46:15": [
+    "parents"
+   ]
+  }
+ },
+ {
+  "query": "eating up the wealth of orphans",
+  "kind": "concept",
+  "expect": {
+   "4:10": [
+    "orphans"
+   ],
+   "4:2": [
+    "orphans"
+   ]
+  }
+ },
+ {
+  "query": "do not spy on each other or backbite",
+  "kind": "concept",
+  "expect": {
+   "49:12": [
+    "backbite"
+   ]
+  }
+ },
+ {
+  "query": "there is no compulsion in religion",
+  "kind": "paraphrase",
+  "expect": {
+   "2:256": [
+    "compulsion"
+   ]
+  }
+ },
+ {
+  "query": "killing one person is like killing all of humanity",
+  "kind": "paraphrase",
+  "expect": {
+   "5:32": [
+    "slain mankind entirely"
+   ]
+  }
+ },
+ {
+  "query": "patience when tested with loss",
+  "kind": "concept",
+  "expect": {
+   "2:155": [
+    "patient"
+   ],
+   "2:156": [
+    "belong to Allāh"
+   ]
+  }
+ },
+ {
+  "query": "men and women get equal reward for good deeds",
+  "kind": "concept",
+  "expect": {
+   "33:35": [
+    "women"
+   ],
+   "16:97": [
+    "male or female"
+   ],
+   "3:195": [
+    "male or female"
+   ]
+  }
+ },
+ {
+  "query": "giving charity in secret",
+  "kind": "concept",
+  "expect": {
+   "2:271": [
+    "conceal them"
+   ]
+  }
+ },
+ {
+  "query": "interest and usury are forbidden",
+  "kind": "concept",
+  "expect": {
+   "2:275": [
+    "interest"
+   ],
+   "2:278": [
+    "interest"
+   ]
+  }
+ },
+ {
+  "query": "wine and gambling are from Satan",
+  "kind": "paraphrase",
+  "expect": {
+   "5:90": [
+    "intoxicants"
+   ]
+  }
+ },
+ {
+  "query": "forgive others so Allah forgives you",
+  "kind": "concept",
+  "expect": {
+   "24:22": [
+    "forgive"
+   ]
+  }
+ },
+ {
+  "query": "cheating in weights and measures",
+  "kind": "concept",
+  "expect": {
+   "83:1": [
+    "give less"
+   ],
+   "17:35": [
+    "measure"
+   ]
+  }
+ },
+ {
+  "query": "signs in the creation of the heavens and earth",
+  "kind": "concept",
+  "expect": {
+   "3:190": [
+    "creation of the heavens"
+   ],
+   "2:164": [
+    "creation of the heavens"
+   ]
+  }
+ },
+ {
+  "query": "everyone will die",
+  "kind": "paraphrase",
+  "expect": {
+   "3:185": [
+    "taste death"
+   ],
+   "21:35": [
+    "taste death"
+   ]
+  }
+ },
+ {
+  "query": "God does not change a people until they change themselves",
+  "kind": "paraphrase",
+  "expect": {
+   "13:11": [
+    "change the condition"
+   ]
+  }
+ },
+ {
+  "query": "we made you nations and tribes to know one another",
+  "kind": "paraphrase",
+  "expect": {
+   "49:13": [
+    "tribes"
+   ]
+  }
+ },
+ {
+  "query": "the night better than a thousand months",
+  "kind": "paraphrase",
+  "expect": {
+   "97:3": [
+    "thousand months"
+   ]
+  }
+ },
+ {
+  "query": "fasting was prescribed for you as for those before you",
+  "kind": "paraphrase",
+  "expect": {
+   "2:183": [
+    "fasting"
+   ]
+  }
+ },
+ {
+  "query": "speak to people in a good way",
+  "kind": "concept",
+  "expect": {
+   "2:83": [
+    "speak to people good"
+   ],
+   "17:53": [
+    "say that which is best"
+   ]
+  }
+ },
+ {
+  "query": "if you are grateful I will give you more",
+  "kind": "paraphrase",
+  "expect": {
+   "14:7": [
+    "grateful"
+   ]
+  }
+ },
+ {
+  "query": "a good word is like a good tree",
+  "kind": "paraphrase",
+  "expect": {
+   "14:24": [
+    "good tree"
+   ]
+  }
+ },
+ {
+  "query": "young men who slept in a cave",
+  "kind": "story",
+  "expect": {
+   "18:10": [
+    "cave"
+   ]
+  }
+ },
+ {
+  "query": "Jesus was not killed or crucified",
+  "kind": "concept",
+  "expect": {
+   "4:157": [
+    "crucify"
+   ]
+  }
+ },
+ {
+  "query": "Mary in labour under the palm tree",
+  "kind": "story",
+  "expect": {
+   "19:23": [
+    "palm tree"
+   ]
+  }
+ },
+ {
+  "query": "believers are brothers so make peace between them",
+  "kind": "paraphrase",
+  "expect": {
+   "49:10": [
+    "brothers"
+   ]
+  }
+ },
+ {
+  "query": "spending in Allah's way grows like a seed with seven ears",
+  "kind": "paraphrase",
+  "expect": {
+   "2:261": [
+    "seed"
+   ]
+  }
+ },
+ {
+  "query": "do not walk proudly on the earth",
+  "kind": "concept",
+  "expect": {
+   "17:37": [
+    "exultantly"
+   ],
+   "31:18": [
+    "exultantly"
+   ]
+  }
+ },
+ {
+  "query": "what to say when you are afraid of enemies",
+  "kind": "question",
+  "expect": {
+   "3:173": [
+    "Sufficient for us is Allāh"
+   ]
+  }
+ },
+ {
+  "query": "none of you truly believes until he loves for his brother what he loves for himself",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 13": [
+    "brother"
+   ]
+  }
+ },
+ {
+  "query": "actions are judged by their intentions",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 1": [
+    "intention"
+   ]
+  }
+ },
+ {
+  "query": "the strong man is the one who controls his anger",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 6114": [
+    "strong",
+    "anger"
+   ]
+  }
+ },
+ {
+  "query": "say something good or stay quiet",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 6018": [
+    "good",
+    "quiet"
+   ]
+  }
+ },
+ {
+  "query": "smiling at your brother is charity",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "tirmidhi 1956": [
+    "smil"
+   ]
+  }
+ },
+ {
+  "query": "a man was forgiven for giving water to a thirsty dog",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 2363": [
+    "dog",
+    "thirst"
+   ]
+  }
+ },
+ {
+  "query": "the best of you learn the Quran and teach it",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 5027": [
+    "learn",
+    "teach"
+   ]
+  }
+ },
+ {
+  "query": "cleanliness is half of faith",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "muslim 534": [
+    "Cleanliness is half"
+   ]
+  }
+ },
+ {
+  "query": "advice: do not become angry",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 6116": [
+    "angry"
+   ]
+  }
+ },
+ {
+  "query": "the religion is easy, do not make it hard",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 39": [
+    "easy",
+    "religion"
+   ]
+  }
+ },
+ {
+  "query": "removing something harmful from the road",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "muslim 6670": [
+    "remove",
+    "path"
+   ],
+   "muslim 6673": [
+    "Remove",
+    "paths"
+   ],
+   "muslim 153": [
+    "removal",
+    "path"
+   ]
+  }
+ },
+ {
+  "query": "paradise is at the feet of your mother",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "nasai 3104": [
+    "feet",
+    "Paradise"
+   ]
+  }
+ },
+ {
+  "query": "who most deserves my good company? your mother",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 5971": [
+    "mother",
+    "companionship"
+   ]
+  }
+ },
+ {
+  "query": "a Muslim is one whom others are safe from his tongue and hands",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 10": [
+    "tongue",
+    "hands"
+   ]
+  }
+ },
+ {
+  "query": "live in this world as if you were a stranger or a traveller",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 6416": [
+    "stranger"
+   ]
+  }
+ },
+ {
+  "query": "the most beloved deeds are regular ones even if few",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 6464": [
+    "regular"
+   ]
+  }
+ },
+ {
+  "query": "honour your guest",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 6019": [
+    "guest",
+    "Last Day"
+   ]
+  }
+ },
+ {
+  "query": "what is backbiting",
+  "kind": "question",
+  "expect": {
+   "muslim 6593": [
+    "backbiting"
+   ]
+  }
+ },
+ {
+  "query": "you may only envy two kinds of people",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 73": [
+    "two",
+    "wish"
+   ]
+  }
+ },
+ {
+  "query": "fasting Ramadan with faith forgives past sins",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 38": [
+    "Ramadan",
+    "forgiven"
+   ]
+  }
+ },
+ {
+  "query": "Allah descends in the last third of the night",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "bukhari 1145": [
+    "last third"
+   ]
+  }
+ },
+ {
+  "query": "be merciful to those on earth and the One in heaven will be merciful to you",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "tirmidhi 1924": [
+    "merciful",
+    "heaven"
+   ]
+  }
+ },
+ {
+  "query": "which deed is best: prayer at its time",
+  "kind": "question",
+  "expect": {
+   "bukhari 527": [
+    "prayer",
+    "time"
+   ]
+  }
+ },
+ {
+  "query": "on judgement day we will be asked about our life, youth, wealth and knowledge",
+  "kind": "hadith-paraphrase",
+  "expect": {
+   "tirmidhi 2416": [
+    "youth",
+    "wealth"
+   ]
+  }
+ },
+ {
+  "query": "rights of neighbours",
+  "kind": "concept",
+  "expect": {
+   "bukhari 6014": [
+    "neighbor",
+    "Gabriel"
+   ],
+   "4:36": [
+    "neighbor"
+   ]
+  }
+ },
+ {
+  "query": "visiting the sick",
+  "kind": "concept",
+  "expect": {
+   "bukhari 5649": [
+    "sick"
+   ]
+  }
+ },
+ {
+  "query": "is lying ever allowed",
+  "kind": "question",
+  "expect": {
+   "bukhari 2692": [
+    "liar",
+    "peace"
+   ]
+  }
+ },
+ {
+  "query": "the reward of a martyr",
+  "kind": "concept",
+  "expect": {
+   "3:169": [
+    "killed in the cause of Allāh"
+   ]
+  }
+ },
+ {
+  "query": "punishment for those who hoard gold and silver",
+  "kind": "concept",
+  "expect": {
+   "9:34": [
+    "gold and silver"
+   ]
+  }
+ }
+]

@@ -398,6 +398,11 @@ highlighted; on a hadith screen, "Verses in this hadith" as links. Hidden in Sak
 
 ## Search by meaning (planned 2026-10-24, not started)
 
+**Decisions (2026-10-24):** version 1 covers **the Quran and the hadith together** (~35–45 MB); **off by default**,
+switched on in the menu; **English queries only**; evaluation queries drafted by Claude and reviewed by the owner
+(`eval/meaning-queries.json`, readable as `eval/meaning-queries.md`; 60 queries, every expected text checked
+against the data). Phase 1 below therefore merges the "Quran only" and "Hadith" phases.
+
 **Goal:** find verses and hadith by what they mean, not only by their words: "dealing with anxiety",
 "kindness to animals", "none of you truly believes until he loves for his brother" (Bukhari 13 is worded
 differently). Retrieval only: the app shows the texts themselves and never generates an answer or a summary.
