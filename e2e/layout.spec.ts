@@ -16,6 +16,11 @@ const SCREENS = [
   '#/bookmarks',
   '#/history',
   '#/about',
+  '#/names',
+  '#/duas',
+  '#/sajdah',
+  '#/topics',
+  '#/phrases',
 ];
 
 for (const hash of SCREENS)

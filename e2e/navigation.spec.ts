@@ -4,14 +4,21 @@ import { isPhone, openApp } from './helpers';
 /** The menu button the user can actually tap (on phones the reading screen's own, on top). */
 const menuButton = (page: Page) => (isPhone(page) && page.url().match(/#\/[^?]/) ? page.locator('.overlay button[aria-label=Menu]') : page.locator('button[aria-label=Menu]:visible').first());
 
+/** Phones: top right on every screen. Desktop: below the search bar, on the left like the drawer. */
 async function menuCorner(page: Page) {
   const box = (await menuButton(page).boundingBox())!;
-  const vw = page.viewportSize()!.width;
-  expect(box.x + box.width, 'menu at the right edge').toBeGreaterThan(vw - 80);
-  expect(box.y, 'menu at the top').toBeLessThan(70);
+  if (isPhone(page)) {
+    const vw = page.viewportSize()!.width;
+    expect(box.x + box.width, 'menu at the right edge').toBeGreaterThan(vw - 80);
+    expect(box.y, 'menu at the top').toBeLessThan(70);
+  } else {
+    const bar = (await page.locator('.bar').boundingBox())!;
+    expect(box.y, 'menu below the search bar').toBeGreaterThan(bar.y + bar.height - 1);
+    expect(box.x, 'menu on the left').toBeLessThan(bar.x + 30);
+  }
 }
 
-test('the menu button is top right on every screen', async ({ page }) => {
+test('the menu button stays in one place across screens', async ({ page }) => {
   await openApp(page);
   await menuCorner(page);
   await page.fill('input[type=search]', 'patience');

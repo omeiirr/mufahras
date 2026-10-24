@@ -164,3 +164,35 @@ describe.runIf(dataBuilt)('word-by-word meanings', () => {
     expect(missing).toBeLessThan(10);
   });
 });
+
+describe.runIf(dataBuilt)('library lists', () => {
+  const engine = loadEngine();
+
+  it('lists the 15 sajdah verses', () => {
+    const d = engine.detail({ kind: 'sajdah' });
+    expect(d?.kind === 'ayah-list' && d.ayahs.map((a) => `${a.surah}:${a.ayah}`)).toEqual([
+      '7:206', '13:15', '16:50', '17:109', '19:58', '22:18', '22:77', '25:60', '27:26', '32:15', '38:24', '41:38', '53:62', '84:21', '96:19',
+    ]);
+  });
+
+  it('lists duas that each address Allah', () => {
+    const d = engine.detail({ kind: 'duas' });
+    if (d?.kind !== 'ayah-list') throw new Error('no duas');
+    expect(d.ayahs.length).toBeGreaterThan(50);
+    // Each addresses Allah, or continues the dua of the listed verse just before it (10:86 after 10:85).
+    d.ayahs.forEach((a, k) => {
+      const prev = d.ayahs[k - 1];
+      const continues = prev?.surah === a.surah && prev.ayah === a.ayah - 1;
+      if (!continues) expect(a.en, `${a.surah}:${a.ayah}`).toMatch(/\b(Our Lord|our Lord|My Lord|my Lord|O Allāh)\b|There is no deity except You|called (to|upon) his Lord/);
+    });
+  });
+
+  it('indexes topics and repeated phrases', () => {
+    const t = engine.detail({ kind: 'topics' });
+    expect(t?.kind === 'topics' && t.topics.some((x) => x.name === 'Patience')).toBe(true);
+    const p = engine.detail({ kind: 'phrases' });
+    if (p?.kind !== 'phrases') throw new Error('no phrases');
+    expect(p.phrases.map((x) => x.count)).toEqual([...p.phrases.map((x) => x.count)].sort((a, b) => b - a));
+    expect(p.phrases.every((x) => x.count > 1 && x.text)).toBe(true);
+  });
+});

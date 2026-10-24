@@ -6,6 +6,10 @@
   import { detailFor } from '../lib/router.svelte';
   import type { SearchClient } from '../lib/search/client';
   import AboutView from './AboutView.svelte';
+  import AyahListView from './AyahListView.svelte';
+  import NamesView from './NamesView.svelte';
+  import PhrasesView from './PhrasesView.svelte';
+  import TopicsView from './TopicsView.svelte';
   import BooksView from './BooksView.svelte';
   import BookmarksView from './BookmarksView.svelte';
   import HadithView from './HadithView.svelte';
@@ -36,7 +40,7 @@
   } = $props();
 
   // Pages built from this device's own data (bookmarks, history) or static text; no worker request.
-  const LOCAL: Record<string, string> = { bookmarks: 'Bookmarks', history: 'Search history', about: 'About' };
+  const LOCAL: Record<string, string> = { bookmarks: 'Bookmarks', history: 'Search history', about: 'About', names: 'Well-known names' };
   const local = $derived(LOCAL[path] ? path : null);
 
   let detail = $state<Detail | null>(null);
@@ -90,6 +94,9 @@
     if (detail.kind === 'graph') return 'Similar verses';
     if (detail.kind === 'books') return 'Hadith collections';
     if (detail.kind === 'words') return '';
+    if (detail.kind === 'ayah-list') return detail.list === 'duas' ? 'Duas of the Quran' : 'Sajdah verses';
+    if (detail.kind === 'topics') return 'Topics';
+    if (detail.kind === 'phrases') return 'Repeated phrases';
     return `${detail.short} ${detail.number}`;
   });
 </script>
@@ -112,6 +119,8 @@
         <HistoryView onpick={onsearch} />
       {:else if local === 'about'}
         <AboutView />
+      {:else if local === 'names'}
+        <NamesView {hrefFor} />
       {:else if missing}
         <p class="missing">This reference doesn't exist. <button type="button" onclick={onback}>Back to search</button></p>
       {:else if detail?.kind === 'ayah'}
@@ -128,6 +137,12 @@
         <SectionView d={detail} {hrefFor} />
       {:else if detail?.kind === 'books'}
         <BooksView d={detail} {hrefFor} />
+      {:else if detail?.kind === 'ayah-list'}
+        <AyahListView d={detail} {hrefFor} />
+      {:else if detail?.kind === 'topics'}
+        <TopicsView d={detail} {hrefFor} />
+      {:else if detail?.kind === 'phrases'}
+        <PhrasesView d={detail} {hrefFor} />
       {:else if loading}
         <p class="loading">Loading…</p>
       {/if}

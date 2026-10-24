@@ -2,7 +2,7 @@
 // (Al-Mukhtasar), passage themes, topics, similar ayahs and mutashabihat. Kept apart from the search
 // engine, which only needs the topic names for chips.
 import type { MutashabihatChunk, QuranChunk, SimilarChunk, Surah, TafsirChunk, Theme, Topic } from '../data/types';
-import type { AyahExtra, AyahRef, TopicDetail } from '../data/views';
+import type { AyahExtra, AyahRef, PhrasesDetail, TopicDetail, TopicsDetail } from '../data/views';
 import { normalizeLatin } from '../text/normalize';
 import { wordRangesToChars, wordSpans } from '../text/quran-display';
 
@@ -172,6 +172,54 @@ export class Enrichment {
       related: named(t.related),
       ayahs: t.ayahs.slice(0, TOPIC_LIMIT).map((i) => ({ ...this.ref(i), en: this.quran.en[i]! })),
       total: t.ayahs.length,
+    };
+  }
+
+  get hasTopics(): boolean {
+    return !!this.topics;
+  }
+
+  get hasPhrases(): boolean {
+    return !!this.phrases;
+  }
+
+  /** The topic index: top-level topics (no parents) with at least 3 ayahs, each with its children. */
+  topicsIndex(): TopicsDetail {
+    const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name);
+    return {
+      kind: 'topics',
+      topics: (this.topics ?? [])
+        .filter((t) => !t.parents.length && t.ayahs.length >= 3)
+        .map((t) => ({
+          id: t.id,
+          name: t.name,
+          count: t.ayahs.length,
+          children: (this.childrenOf.get(t.id) ?? [])
+            .map((c) => this.topicById.get(c)!)
+            .filter((c) => c.ayahs.length >= 2)
+            .map((c) => ({ id: c.id, name: this.label(c), count: c.ayahs.length }))
+            .sort(byName),
+        }))
+        .sort(byName),
+    };
+  }
+
+  /** Every repeated phrase, most repeated first, with where it occurs. */
+  phrasesIndex(): PhrasesDetail {
+    const q = this.quran;
+    return {
+      kind: 'phrases',
+      phrases: Object.values(this.phrases?.phrases ?? {})
+        .map((p) => {
+          const [src, from, to] = p.source;
+          const w = wordSpans(q.ar[src]!);
+          const refs = Object.keys(p.occurrences)
+            .map(Number)
+            .sort((a, b) => a - b);
+          return { text: q.ar[src]!.slice(w[from - 1]?.[0] ?? 0, w[to - 1]?.[1] ?? 0), count: refs.length, refs: refs.slice(0, PHRASE_REFS).map((i) => this.ref(i)) };
+        })
+        .filter((p) => p.text && p.count > 1)
+        .sort((a, b) => b.count - a.count || a.text.localeCompare(b.text)),
     };
   }
 

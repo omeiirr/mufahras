@@ -66,8 +66,9 @@ passage, an explanation (Al-Mukhtasar), its topics, similar verses with the shar
 it shares with other verses (mutashabihat). **Tap any Arabic word** for its meaning and transliteration, and step
 word by word through the verse. Every hadith shows its book and chapter, the Arabic, and each grading by name.
 
-**Browsing.** All 114 surahs; the six hadith collections, chapter by chapter; topic pages; and a
-**graph of similar verses**, where verses that share wording are joined, and refrains like Ar-Rahman's "Which of
+**Browsing.** All 114 surahs; the six hadith collections, chapter by chapter; every topic; the well-known
+names for verses, surahs and hadith; the **duas of the Quran**; the 15 **sajdah verses**; the phrases that
+repeat across the Quran (mutashabihat); and a **graph of similar verses**, where verses that share wording are joined, and refrains like Ar-Rahman's "Which of
 the favours of your Lord would you deny?" form clusters you can explore.
 
 **Keeping.** Save verses and hadith as **bookmarks** with your own tags (export and import them, since they live

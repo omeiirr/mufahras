@@ -165,7 +165,17 @@
   <!-- On phones a detail screen covers the results; keep keyboard and screen readers out from underneath. -->
   <section class="results" aria-label="Search" inert={!wide && !!path}>
     <div class="dock">
-      <FilterChips corpus={route.corpus} sahih={route.sahih} onchange={onFilter} />
+      {#if wide}
+        <!-- Desktop: ☰ below the search bar, on the left like the drawer it opens. -->
+        <div class="row">
+          <button type="button" class="menu-button" onclick={openMenu} aria-label="Menu" aria-expanded={menuOpen}>
+            <MenuIcon size={22} aria-hidden="true" />
+          </button>
+          <FilterChips corpus={route.corpus} sahih={route.sahih} onchange={onFilter} />
+        </div>
+      {:else}
+        <FilterChips corpus={route.corpus} sahih={route.sahih} onchange={onFilter} />
+      {/if}
       <SearchBar bind:value={query} bind:input onkeydown={onInputKey} />
     </div>
 
@@ -205,9 +215,6 @@
   </section>
 
   {#if wide}
-    <button type="button" class="menu-button corner" onclick={openMenu} aria-label="Menu" aria-expanded={menuOpen}>
-      <MenuIcon size={22} aria-hidden="true" />
-    </button>
     <section class="detail" aria-label="Selected result">
       {#if detailPath}
         <DetailPane path={detailPath} {client} showBack={false} onback={() => navigate({ path: '' }, { replace: true })} {hrefFor} onsearch={searchFor} />
@@ -287,14 +294,14 @@
     font-weight: 700;
     color: var(--accent);
   }
-  .menu-button.corner {
-    position: fixed;
-    top: var(--space-3);
-    right: var(--space-3);
-    z-index: 15;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    box-shadow: var(--shadow);
+  .row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  .row > :global(.chips) {
+    min-width: 0;
+    flex: 1;
   }
   .menu-button {
     display: grid;

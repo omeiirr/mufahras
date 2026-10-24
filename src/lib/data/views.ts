@@ -17,7 +17,12 @@ export type DetailRequest =
   /** Hadith of the day (Bukhari or Muslim), the same for everyone on a date. */
   | { kind: 'hadith-daily'; date: string }
   | { kind: 'books' }
-  | { kind: 'words'; surah: number; ayah: number };
+  | { kind: 'words'; surah: number; ayah: number }
+  /** Library lists: duas of the Quran, sajdah verses, the topic index, the repeated-phrases index. */
+  | { kind: 'duas' }
+  | { kind: 'sajdah' }
+  | { kind: 'topics' }
+  | { kind: 'phrases' };
 
 export interface AyahLine {
   ayah: number;
@@ -137,12 +142,30 @@ export interface WordsDetail {
   words: { ar: string; translit: string; meaning: string }[];
 }
 
+export interface AyahListDetail {
+  kind: 'ayah-list';
+  list: 'duas' | 'sajdah';
+  ayahs: (AyahRef & { name: string; ar: string; en: string })[];
+}
+
+export interface TopicsDetail {
+  kind: 'topics';
+  /** Top-level topics with at least 3 ayahs, by name; children with at least 2. */
+  topics: { id: number; name: string; count: number; children: { id: number; name: string; count: number }[] }[];
+}
+
+export interface PhrasesDetail {
+  kind: 'phrases';
+  /** Repeated phrases, most repeated first. */
+  phrases: { text: string; count: number; refs: (AyahRef & { name: string })[] }[];
+}
+
 export interface BooksDetail {
   kind: 'books';
   books: { id: HadithBookId; title: string; short: string; count: number; sections: { n: number; name: string; count: number }[] }[];
 }
 
-export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail | TopicDetail | SectionDetail | GraphDetail | BooksDetail | WordsDetail;
+export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail | TopicDetail | SectionDetail | GraphDetail | BooksDetail | WordsDetail | AyahListDetail | TopicsDetail | PhrasesDetail;
 
 /** Suggested browse links shown above results: a QUL topic, or a chapter (book) of a hadith collection. */
 export interface Chip {

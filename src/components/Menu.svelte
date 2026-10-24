@@ -9,6 +9,11 @@
   import Info from '@lucide/svelte/icons/info';
   import MessageSquare from '@lucide/svelte/icons/message-square';
   import Network from '@lucide/svelte/icons/network';
+  import Repeat from '@lucide/svelte/icons/repeat';
+  import Sparkles from '@lucide/svelte/icons/sparkles';
+  import Tag from '@lucide/svelte/icons/tag';
+  import Hand from '@lucide/svelte/icons/hand-heart';
+  import ArrowDownToLine from '@lucide/svelte/icons/arrow-down-to-line';
   import X from '@lucide/svelte/icons/x';
   import { fly, fade } from 'svelte/transition';
   import { install, promptInstall } from '../lib/install.svelte';
@@ -71,6 +76,13 @@
       {/if}
       <li><button type="button" onclick={() => go('surahs')}><BookOpen size={18} aria-hidden="true" /> Surahs</button></li>
       <li><button type="button" onclick={() => go('books')}><BookMarked size={18} aria-hidden="true" /> Hadith collections</button></li>
+      <li><button type="button" onclick={() => go('names')}><Sparkles size={18} aria-hidden="true" /> Well-known names</button></li>
+      <li><button type="button" onclick={() => go('duas')}><Hand size={18} aria-hidden="true" /> Duas of the Quran</button></li>
+      <li><button type="button" onclick={() => go('sajdah')}><ArrowDownToLine size={18} aria-hidden="true" /> Sajdah verses</button></li>
+      {#if !settings.sakinah}
+        <li><button type="button" onclick={() => go('topics')}><Tag size={18} aria-hidden="true" /> Topics</button></li>
+        <li><button type="button" onclick={() => go('phrases')}><Repeat size={18} aria-hidden="true" /> Repeated phrases</button></li>
+      {/if}
       {#if !settings.sakinah}
         <li><button type="button" onclick={() => go('graph')}><Network size={18} aria-hidden="true" /> Similar verses graph</button></li>
       {/if}

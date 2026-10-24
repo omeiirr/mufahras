@@ -566,6 +566,14 @@ const update = () => document.documentElement.style.setProperty('--kb', `${Math.
 - **Covered content is `inert`.** On phones a reading screen covers the results; making the results `inert`
   keeps keyboard focus and screen readers off what's underneath (the browser test found it: it was clicking a
   covered ☰).
+- **Put the button next to what it opens.** On desktop the drawer slides in from the left, so ☰ in the
+  top-right corner felt disconnected; it sits below the search bar on the left there, and top right on phones
+  (where every screen has the same top bar).
+- **Curate lists that people will use for worship.** A rule like `"Our Lord,` finds 92 verses, including the
+  words of the people of the Fire (23:106) and complaints (20:125); the duas page is a hand-picked list of 58,
+  tested to address Allah, or to continue the dua of the verse before it (10:86), or to be introduced as
+  "called to his Lord" (21:83). Sajdah verses, by contrast, come straight from the data: the ۩ sign marks
+  exactly the 15.
 - **Controls follow the reading direction.** In the word card, "next word" moves left in Arabic, so Next is on
   the left pointing left; an English left-to-right layout made the arrows look broken.
 - **Export/import merges.** Importing keeps existing bookmarks and unions their tags; nothing is overwritten

@@ -12,6 +12,7 @@
 import uFuzzy from '@leeoniya/ufuzzy';
 import { BOOKS, formatHadithNumber } from '../data/books';
 import { HADITH_BOOKS } from '../data/types';
+import { DUAS } from '../data/duas';
 import type { WordsChunk } from '../data/types';
 import { wordSpans } from '../text/quran-display';
 import type { GraphChunk, HadithArabicChunk, HadithBookId, HadithChunk, MutashabihatChunk, QuranChunk, SimilarChunk, TafsirChunk, Theme, Topic, TranslitChunk } from '../data/types';
@@ -579,6 +580,23 @@ export class SearchEngine {
     if (req.kind === 'graph') return this.graphDetail();
     if (req.kind === 'hadith-daily') return this.dailyHadith(req.date);
     if (req.kind === 'books') return this.booksDetail();
+    if (req.kind === 'duas' || req.kind === 'sajdah') {
+      // Sajdah verses carry the prostration sign ۩ (U+06E9) in the text: the 15 verses of prostration.
+      const refs =
+        req.kind === 'duas'
+          ? DUAS.map((r) => r.split(':').map(Number) as [number, number]).map(([s, a]) => q.surahs[s - 1]!.start + a - 1)
+          : q.ar.flatMap((a, i) => (a.includes('\u06E9') ? [i] : []));
+      return {
+        kind: 'ayah-list',
+        list: req.kind,
+        ayahs: refs.map((i) => {
+          const s = q.surahs.find((x) => i >= x.start && i < x.start + x.count)!;
+          return { surah: s.n, ayah: i - s.start + 1, name: s.nameSimple, ar: q.ar[i]!, en: q.en[i]! };
+        }),
+      };
+    }
+    if (req.kind === 'topics') return this.extra?.hasTopics ? this.extra.topicsIndex() : null;
+    if (req.kind === 'phrases') return this.extra?.hasPhrases ? this.extra.phrasesIndex() : null;
     if (req.kind === 'words') {
       const s = q.surahs[req.surah - 1];
       if (!s || !this.words || req.ayah < 1 || req.ayah > s.count) return null;
