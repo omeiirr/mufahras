@@ -129,7 +129,7 @@
       {:else if detail?.kind === 'ayah'}
         <VerseView d={detail} {hrefFor} {client} />
       {:else if detail?.kind === 'surah'}
-        <SurahView d={detail} scrollTo={target?.scrollTo} {hrefFor} />
+        <SurahView d={detail} scrollTo={target?.scrollTo} {hrefFor} {client} />
       {:else if detail?.kind === 'surahs'}
         <SurahIndex d={detail} {hrefFor} />
       {:else if detail?.kind === 'hadith'}
@@ -141,7 +141,7 @@
       {:else if detail?.kind === 'books'}
         <BooksView d={detail} {hrefFor} />
       {:else if detail?.kind === 'ayah-list'}
-        <AyahListView d={detail} {hrefFor} />
+        <AyahListView d={detail} {hrefFor} {client} />
       {:else if detail?.kind === 'topics'}
         <TopicsView d={detail} {hrefFor} />
       {:else if detail?.kind === 'phrases'}

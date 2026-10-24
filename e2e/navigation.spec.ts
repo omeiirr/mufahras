@@ -46,6 +46,27 @@ test('word card: Next on the left, Previous on the right (right-to-left like the
   expect(next.x).toBeLessThan(prev.x);
 });
 
+test('word by word on the surah screen and in verse lists, one card at a time', async ({ page }) => {
+  await openApp(page, '#/surah/112');
+  const verses = page.locator('.ayahs li');
+  await verses.nth(0).locator('button.w').nth(1).click();
+  const card = page.getByRole('region', { name: 'Word by word' });
+  await expect(card).toHaveCount(1);
+  await expect(verses.nth(0).getByRole('region', { name: 'Word by word' })).toContainText(/\S/);
+  await expect(card.locator('.meaning')).not.toBeEmpty();
+  // A word in another verse moves the card there.
+  await verses.nth(2).locator('button.w').first().click();
+  await expect(card).toHaveCount(1);
+  await expect(verses.nth(2).getByRole('region', { name: 'Word by word' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close word by word' }).click();
+  await expect(card).toHaveCount(0);
+
+  await openApp(page, '#/duas');
+  await page.locator('.list li').first().locator('button.w').first().click();
+  await expect(card).toHaveCount(1);
+  await expect(page).toHaveURL(/#\/duas/);
+});
+
 test('Back closes the menu first, then the image sheet, without leaving the screen', async ({ page }) => {
   await openApp(page, '#/2:255?q=x');
   await menuButton(page).click();

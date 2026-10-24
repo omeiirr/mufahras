@@ -4,54 +4,13 @@
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import type { AyahDetail } from '../lib/data/views';
   import type { SearchClient } from '../lib/search/client';
-  import type { WordsDetail } from '../lib/data/views';
-  import { wordSpans } from '../lib/text/quran-display';
-  import WordCard from './WordCard.svelte';
+  import VerseWords from './VerseWords.svelte';
   import { settings } from '../lib/store/settings.svelte';
   import { ayahMarker, placeName } from '../lib/ui/format';
   import Actions from './Actions.svelte';
   import VerseExtras from './VerseExtras.svelte';
 
   let { d, hrefFor, client }: { d: AyahDetail; hrefFor: (path: string) => string; client: SearchClient } = $props();
-
-  // Word by word: tap a word; its data loads on the first tap.
-  const spans = $derived(wordSpans(d.ar));
-  let picked = $state<number | null>(null);
-  let words = $state<WordsDetail['words'] | null>(null);
-  const HINT_KEY = 'wbw-hint-seen';
-  let hint = $state((() => {
-    try {
-      return !localStorage.getItem(HINT_KEY);
-    } catch {
-      return true;
-    }
-  })());
-  // Reset when the verse changes. Not on every new `d`: the same verse arrives again with its extras a
-  // moment after it opens, and that must not clear a word just tapped.
-  let shownRef = '';
-  $effect(() => {
-    const ref = `${d.surah.n}:${d.ayah}`;
-    if (ref === shownRef) return;
-    shownRef = ref;
-    picked = null;
-    words = null;
-  });
-  function pick(k: number) {
-    if (k < 0 || k >= spans.length) return;
-    picked = k;
-    if (hint) {
-      hint = false;
-      try {
-        localStorage.setItem(HINT_KEY, '1');
-      } catch {
-        // storage blocked: the hint shows again next time
-      }
-    }
-    if (!words)
-      client.detail({ kind: 'words', surah: d.surah.n, ayah: d.ayah }).then((r) => {
-        if (r?.kind === 'words') words = r.words;
-      });
-  }
 
   const ref = $derived(`${d.surah.n}:${d.ayah}`);
 
@@ -77,23 +36,7 @@
     {/if}
   </header>
 
-  <p class="quran" lang="ar" dir="rtl">
-    {#each spans as [a, b], k (k)}
-      {#if k === spans.length - 1}
-        <span class="nowrap"
-          ><button type="button" class="w" class:sel={picked === k} onclick={() => pick(k)}>{d.ar.slice(a, b)}</button>
-          <span class="marker">{ayahMarker(d.ayah)}</span></span
-        >
-      {:else}
-        <button type="button" class="w" class:sel={picked === k} onclick={() => pick(k)}>{d.ar.slice(a, b)}</button>{' '}
-      {/if}
-    {/each}
-  </p>
-  {#if picked !== null}
-    <WordCard {words} index={picked} onpick={pick} onclose={() => (picked = null)} />
-  {:else if hint}
-    <p class="hint">Tap any word to see it word by word.</p>
-  {/if}
+  <VerseWords ar={d.ar} surah={d.surah.n} ayah={d.ayah} {client} hint />
   {#if d.translit && settings.translit}<p class="translit">{d.translit}</p>{/if}
   <p class="en">{d.en}</p>
 
@@ -147,36 +90,8 @@
     font-family: var(--font-arabic);
     font-size: var(--text-lg);
   }
-  .quran {
+  .verse > :global(.quran) {
     margin: var(--space-2) 0 0;
-  }
-  .nowrap {
-    white-space: nowrap;
-  }
-  .marker {
-    color: var(--accent);
-  }
-  /* Words are buttons, but read as plain text until tapped. */
-  .w {
-    font: inherit;
-    color: inherit;
-    padding: 0 1px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  /* Touch screens keep :hover after a tap; only real pointers get the hover tint. */
-  @media (hover: hover) {
-    .w:hover {
-      background: var(--surface-2);
-    }
-  }
-  .w.sel {
-    background: color-mix(in srgb, var(--mark) 70%, transparent);
-  }
-  .hint {
-    margin: calc(-1 * var(--space-2)) 0 0;
-    font-size: var(--text-xs);
-    color: var(--ink-2);
   }
   .theme {
     margin: var(--space-2) 0 0;

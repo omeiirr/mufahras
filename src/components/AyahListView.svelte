@@ -1,9 +1,11 @@
 <script lang="ts">
   // A titled list of ayahs: the duas of the Quran, or the sajdah verses.
+  // The Arabic is tappable word by word, so the reference and the translation are the links to the verse.
   import type { AyahListDetail } from '../lib/data/views';
-  import { ayahMarker } from '../lib/ui/format';
+  import type { SearchClient } from '../lib/search/client';
+  import VerseWords from './VerseWords.svelte';
 
-  let { d, hrefFor }: { d: AyahListDetail; hrefFor: (path: string) => string } = $props();
+  let { d, hrefFor, client }: { d: AyahListDetail; hrefFor: (path: string) => string; client: SearchClient } = $props();
 
   const INFO = {
     duas: { title: 'Duas of the Quran', intro: 'Supplications from the Quran: the duas of the prophets and the believers, in the order they appear.' },
@@ -17,11 +19,9 @@
   <ol class="list">
     {#each d.ayahs as a (`${a.surah}:${a.ayah}`)}
       <li>
-        <a href={hrefFor(`${a.surah}:${a.ayah}`)}>
-          <span class="ref">{a.surah}:{a.ayah} <span class="sub">{a.name}</span></span>
-          <span class="quran" lang="ar" dir="rtl">{a.ar} <span class="marker">{ayahMarker(a.ayah)}</span></span>
-          <span class="en">{a.en}</span>
-        </a>
+        <a class="ref" href={hrefFor(`${a.surah}:${a.ayah}`)}>{a.surah}:{a.ayah} <span class="sub">{a.name}</span></a>
+        <VerseWords ar={a.ar} surah={a.surah} ayah={a.ayah} {client} class="ar" />
+        <a class="en" href={hrefFor(`${a.surah}:${a.ayah}`)}>{a.en}</a>
       </li>
     {/each}
   </ol>
@@ -47,28 +47,29 @@
     padding: 0;
     border-top: 1px solid var(--line);
   }
-  .list a {
+  .list li {
     display: grid;
     gap: var(--space-1);
     padding: var(--space-3) var(--space-2);
     border-bottom: 1px solid var(--line);
+  }
+  .list a {
     color: inherit;
     text-decoration: none;
   }
   .list a:hover {
-    background: var(--surface-2);
+    text-decoration: underline;
+    text-decoration-color: var(--line);
   }
-  .ref {
+  .list .ref {
     font-weight: 600;
     color: var(--accent);
     font-size: var(--text-sm);
   }
-  .quran {
+  .list :global(.ar) {
+    margin: 0;
     font-size: calc(1.45rem * var(--arabic-scale, 1));
     line-height: 2;
-  }
-  .marker {
-    color: var(--accent);
   }
   .en {
     line-height: 1.6;

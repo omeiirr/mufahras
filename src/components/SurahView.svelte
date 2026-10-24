@@ -2,10 +2,11 @@
   import ChevronLeft from '@lucide/svelte/icons/chevron-left';
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import type { SurahDetail } from '../lib/data/views';
-  import { splitLastWord } from '../lib/text/quran-display';
-  import { ayahMarker, placeName } from '../lib/ui/format';
+  import type { SearchClient } from '../lib/search/client';
+  import { placeName } from '../lib/ui/format';
+  import VerseWords from './VerseWords.svelte';
 
-  let { d, scrollTo, hrefFor }: { d: SurahDetail; scrollTo?: number; hrefFor: (path: string) => string } = $props();
+  let { d, scrollTo, hrefFor, client }: { d: SurahDetail; scrollTo?: number; hrefFor: (path: string) => string; client: SearchClient } = $props();
 
   // Bismillah is shown as a heading except where it is ayah 1 (Al-Fatihah) or absent (At-Tawbah).
   const BISMILLAH = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
@@ -28,9 +29,8 @@
 
   <ol class="ayahs">
     {#each d.ayahs as a (a.ayah)}
-      {@const [head, last] = splitLastWord(a.ar)}
       <li id={`ayah-${d.surah.n}-${a.ayah}`} class:target={scrollTo === a.ayah}>
-        <p class="quran" lang="ar" dir="rtl">{head}<span class="nowrap">{last} <span class="marker">{ayahMarker(a.ayah)}</span></span></p>
+        <VerseWords ar={a.ar} surah={d.surah.n} ayah={a.ayah} {client} />
         <p class="en"><a class="num" href={hrefFor(`${d.surah.n}:${a.ayah}`)}>{d.surah.n}:{a.ayah}</a> {a.en}</p>
       </li>
     {/each}
@@ -82,14 +82,11 @@
   .ayahs li.target {
     background: var(--accent-soft);
   }
-  .ayahs p {
+  .ayahs :global(p) {
     margin: 0;
   }
-  .nowrap {
-    white-space: nowrap;
-  }
-  .marker {
-    color: var(--accent);
+  .ayahs li > :global(.card) {
+    margin-top: var(--space-2);
   }
   .en {
     margin-top: var(--space-2) !important;
