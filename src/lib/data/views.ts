@@ -22,7 +22,8 @@ export type DetailRequest =
   | { kind: 'duas' }
   | { kind: 'sajdah' }
   | { kind: 'topics' }
-  | { kind: 'phrases' };
+  | { kind: 'phrases' }
+  | { kind: 'names-of-allah' };
 
 export interface AyahLine {
   ayah: number;
@@ -160,12 +161,17 @@ export interface PhrasesDetail {
   phrases: { text: string; count: number; refs: (AyahRef & { name: string })[] }[];
 }
 
+export interface NamesOfAllahDetail {
+  kind: 'names-of-allah';
+  names: { number: number; ar: string; translit: string; en: string; meaning: string }[];
+}
+
 export interface BooksDetail {
   kind: 'books';
   books: { id: HadithBookId; title: string; short: string; count: number; sections: { n: number; name: string; count: number }[] }[];
 }
 
-export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail | TopicDetail | SectionDetail | GraphDetail | BooksDetail | WordsDetail | AyahListDetail | TopicsDetail | PhrasesDetail;
+export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail | TopicDetail | SectionDetail | GraphDetail | BooksDetail | WordsDetail | AyahListDetail | TopicsDetail | PhrasesDetail | NamesOfAllahDetail;
 
 /** Suggested browse links shown above results: a QUL topic, or a chapter (book) of a hadith collection. */
 export interface Chip {

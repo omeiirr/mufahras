@@ -13,7 +13,7 @@ import uFuzzy from '@leeoniya/ufuzzy';
 import { BOOKS, formatHadithNumber } from '../data/books';
 import { HADITH_BOOKS } from '../data/types';
 import { DUAS } from '../data/duas';
-import type { WordsChunk } from '../data/types';
+import type { NamesOfAllahChunk, WordsChunk } from '../data/types';
 import { wordSpans } from '../text/quran-display';
 import type { GraphChunk, HadithArabicChunk, HadithBookId, HadithChunk, MutashabihatChunk, QuranChunk, SimilarChunk, TafsirChunk, Theme, Topic, TranslitChunk } from '../data/types';
 import type { AyahDetail, AyahLine, Chip, Detail, DetailRequest, HadithDetail, SectionDetail } from '../data/views';
@@ -515,6 +515,10 @@ export class SearchEngine {
   addWords(c: WordsChunk): void {
     this.words = c;
   }
+  addNamesOfAllah(c: NamesOfAllahChunk): void {
+    this.namesOfAllah = c;
+  }
+  private namesOfAllah?: NamesOfAllahChunk;
   private words?: WordsChunk;
   private graph?: GraphChunk;
 
@@ -595,6 +599,10 @@ export class SearchEngine {
         }),
       };
     }
+    if (req.kind === 'names-of-allah')
+      return this.namesOfAllah
+        ? { kind: 'names-of-allah', names: this.namesOfAllah.map(([number, ar, translit, en, meaning]) => ({ number, ar, translit, en, meaning })) }
+        : null;
     if (req.kind === 'topics') return this.extra?.hasTopics ? this.extra.topicsIndex() : null;
     if (req.kind === 'phrases') return this.extra?.hasPhrases ? this.extra.phrasesIndex() : null;
     if (req.kind === 'words') {

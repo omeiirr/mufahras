@@ -11,6 +11,7 @@
   import Network from '@lucide/svelte/icons/network';
   import Repeat from '@lucide/svelte/icons/repeat';
   import Sparkles from '@lucide/svelte/icons/sparkles';
+  import Star from '@lucide/svelte/icons/star';
   import Tag from '@lucide/svelte/icons/tag';
   import Hand from '@lucide/svelte/icons/hand-heart';
   import ArrowDownToLine from '@lucide/svelte/icons/arrow-down-to-line';
@@ -29,7 +30,8 @@
     onnavigate,
     client,
     ready,
-  }: { onclose: () => void; onnavigate: (path: string) => void; client: SearchClient; ready: boolean } = $props();
+    side,
+  }: { onclose: () => void; onnavigate: (path: string) => void; client: SearchClient; ready: boolean; side: 'left' | 'right' } = $props();
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let closeButton = $state<HTMLButtonElement>();
@@ -50,7 +52,8 @@
 <svelte:window onkeydown={(e) => e.key === 'Escape' && onclose()} />
 
 <div class="scrim" onclick={onclose} transition:fade={{ duration: reducedMotion ? 0 : 150 }} aria-hidden="true"></div>
-<nav class="drawer" aria-label="Menu" data-modal transition:fly={{ x: -320, duration: reducedMotion ? 0 : 220, opacity: 1 }}>
+<!-- The drawer opens from the side its ☰ button is on: right on phones, left on desktop. -->
+<nav class="drawer" class:right={side === 'right'} aria-label="Menu" data-modal transition:fly={{ x: side === 'right' ? 320 : -320, duration: reducedMotion ? 0 : 220, opacity: 1 }}>
   <header>
     <img src="icons/icon-192.png" alt="" width="36" height="36" />
     <div class="name">Mufahras <span lang="ar" dir="rtl">مُفَهْرَس</span></div>
@@ -76,6 +79,7 @@
       {/if}
       <li><button type="button" onclick={() => go('surahs')}><BookOpen size={18} aria-hidden="true" /> Surahs</button></li>
       <li><button type="button" onclick={() => go('books')}><BookMarked size={18} aria-hidden="true" /> Hadith collections</button></li>
+      <li><button type="button" onclick={() => go('names-of-allah')}><Star size={18} aria-hidden="true" /> The 99 Names of Allah</button></li>
       <li><button type="button" onclick={() => go('names')}><Sparkles size={18} aria-hidden="true" /> Well-known names</button></li>
       <li><button type="button" onclick={() => go('duas')}><Hand size={18} aria-hidden="true" /> Duas of the Quran</button></li>
       <li><button type="button" onclick={() => go('sajdah')}><ArrowDownToLine size={18} aria-hidden="true" /> Sajdah verses</button></li>
@@ -188,6 +192,11 @@
     border-right: 1px solid var(--line);
     box-shadow: var(--shadow);
     padding: calc(env(safe-area-inset-top) + var(--space-2)) var(--space-3) calc(env(safe-area-inset-bottom) + var(--space-5));
+  }
+  .drawer.right {
+    inset: 0 0 0 auto;
+    border-right: 0;
+    border-left: 1px solid var(--line);
   }
   header {
     display: flex;

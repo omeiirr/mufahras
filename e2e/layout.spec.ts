@@ -21,6 +21,7 @@ const SCREENS = [
   '#/sajdah',
   '#/topics',
   '#/phrases',
+  '#/names-of-allah',
 ];
 
 for (const hash of SCREENS)

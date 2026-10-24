@@ -4,7 +4,7 @@ import { isPhone, openApp } from './helpers';
 /** The menu button the user can actually tap (on phones the reading screen's own, on top). */
 const menuButton = (page: Page) => (isPhone(page) && page.url().match(/#\/[^?]/) ? page.locator('.overlay button[aria-label=Menu]') : page.locator('button[aria-label=Menu]:visible').first());
 
-/** Phones: top right on every screen. Desktop: below the search bar, on the left like the drawer. */
+/** Phones: top right on every screen. Desktop: below the search bar, on the left. */
 async function menuCorner(page: Page) {
   const box = (await menuButton(page).boundingBox())!;
   if (isPhone(page)) {
@@ -26,6 +26,16 @@ test('the menu button stays in one place across screens', async ({ page }) => {
   await page.locator('a.hit').first().click();
   await expect(page.locator('.verse')).toBeVisible();
   await menuCorner(page);
+});
+
+test('the drawer opens from the side its button is on', async ({ page }) => {
+  await openApp(page);
+  await menuButton(page).click();
+  await page.waitForTimeout(300); // let the slide-in finish
+  const drawer = (await page.locator('nav.drawer').boundingBox())!;
+  const vw = page.viewportSize()!.width;
+  if (isPhone(page)) expect(Math.round(drawer.x + drawer.width), 'phones: from the right').toBe(vw);
+  else expect(Math.round(drawer.x), 'desktop: from the left').toBe(0);
 });
 
 test('word card: Next on the left, Previous on the right (right-to-left like the verse)', async ({ page }) => {

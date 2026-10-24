@@ -196,3 +196,24 @@ describe.runIf(dataBuilt)('library lists', () => {
     expect(p.phrases.every((x) => x.count > 1 && x.text)).toBe(true);
   });
 });
+
+describe.runIf(dataBuilt)('the 99 Names of Allah', () => {
+  const engine = loadEngine();
+
+  it('has the 99 names in order, each complete', () => {
+    const d = engine.detail({ kind: 'names-of-allah' });
+    if (d?.kind !== 'names-of-allah') throw new Error('no names');
+    expect(d.names).toHaveLength(99);
+    expect(d.names.map((n) => n.number)).toEqual(Array.from({ length: 99 }, (_, k) => k + 1));
+    expect(d.names[0]).toMatchObject({ translit: 'Ar-Rahman', en: 'The Most Merciful' });
+    expect(d.names[98]).toMatchObject({ translit: 'As-Saboor', en: 'The Patient' });
+    expect(d.names.every((n) => n.ar && n.translit && n.en && n.meaning)).toBe(true);
+  });
+
+  it('links to hadith that are about the ninety-nine names', () => {
+    for (const [book, number] of [['bukhari', 7392], ['muslim', 6809], ['tirmidhi', 3507]] as const) {
+      const h = engine.detail({ kind: 'hadith', book, number });
+      expect(h?.kind === 'hadith' && h.en, `${book} ${number}`).toMatch(/ninety-nine names/i);
+    }
+  });
+});

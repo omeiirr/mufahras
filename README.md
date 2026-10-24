@@ -67,7 +67,7 @@ it shares with other verses (mutashabihat). **Tap any Arabic word** for its mean
 word by word through the verse. Every hadith shows its book and chapter, the Arabic, and each grading by name.
 
 **Browsing.** All 114 surahs; the six hadith collections, chapter by chapter; every topic; the well-known
-names for verses, surahs and hadith; the **duas of the Quran**; the 15 **sajdah verses**; the phrases that
+names for verses, surahs and hadith; **the 99 Names of Allah**; the **duas of the Quran**; the 15 **sajdah verses**; the phrases that
 repeat across the Quran (mutashabihat); and a **graph of similar verses**, where verses that share wording are joined, and refrains like Ar-Rahman's "Which of
 the favours of your Lord would you deny?" form clusters you can explore.
 
@@ -130,7 +130,8 @@ something and didn't, please [open an issue](https://github.com/omeiirr/mufahras
 
 The Quran data comes from the [Quranic Universal Library (QUL)](https://qul.tarteel.ai) by Tarteel, with the Quran
 text prepared by [Tanzil](https://tanzil.net), the translation by Saheeh International, and the transliteration, word-by-word meanings,
-topics and similar-verse data from QUL. The hadith collections come from [fawazahmed0/hadith-api](https://github.com/fawazahmed0/hadith-api). The Quran
+topics and similar-verse data from QUL. The hadith collections come from [fawazahmed0/hadith-api](https://github.com/fawazahmed0/hadith-api). The 99 Names of Allah come from
+[UmmahAPI](https://ummahapi.com/asma-ul-husna-api). The Quran
 is set in [Scheherazade New](https://software.sil.org/scheherazade/) by SIL, the hadith Arabic in Noto Naskh Arabic,
 and the logo's mīm in Amiri. Full details are in [NOTICE](NOTICE). Mufahras is not affiliated with or endorsed by
 any of them; may Allah reward them for making this knowledge open.

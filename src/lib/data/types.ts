@@ -65,6 +65,9 @@ export interface Phrase {
   occurrences: Record<number, [number, number][]>;
 }
 
+/** The 99 Names of Allah: [number, Arabic, transliteration, English name, meaning], in Tirmidhi 3507's order. */
+export type NamesOfAllahChunk = [number, string, string, string, string][];
+
 /**
  * Word by word, per ayah index and QUL word number - 1: transliteration, and the English meaning when
  * QUL's word-by-word translation file is present (null otherwise). Loaded on the first word tapped.

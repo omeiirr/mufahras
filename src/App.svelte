@@ -203,7 +203,7 @@
     </div>
 
     {#if !wide}
-      <!-- ☰ sits top right on every screen: here, in the same bar the reading screens have. -->
+      <!-- Phones: ☰ top right on every screen, and the drawer opens from the right to match. -->
       <header class="topbar">
         <img src="icons/icon-192.png" alt="" width="28" height="28" />
         <span class="name">Mufahras</span>
@@ -229,7 +229,7 @@
   {/if}
 
   {#if menuOpen}
-    <Menu {client} ready={status.ready} onclose={closeMenu} onnavigate={(p) => navigate({ path: p })} />
+    <Menu {client} ready={status.ready} side={wide ? 'left' : 'right'} onclose={closeMenu} onnavigate={(p) => navigate({ path: p })} />
   {/if}
 
   {#if backToast.visible}

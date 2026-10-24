@@ -7,6 +7,7 @@
   import type { SearchClient } from '../lib/search/client';
   import AboutView from './AboutView.svelte';
   import AyahListView from './AyahListView.svelte';
+  import NamesOfAllahView from './NamesOfAllahView.svelte';
   import NamesView from './NamesView.svelte';
   import PhrasesView from './PhrasesView.svelte';
   import TopicsView from './TopicsView.svelte';
@@ -97,6 +98,7 @@
     if (detail.kind === 'ayah-list') return detail.list === 'duas' ? 'Duas of the Quran' : 'Sajdah verses';
     if (detail.kind === 'topics') return 'Topics';
     if (detail.kind === 'phrases') return 'Repeated phrases';
+    if (detail.kind === 'names-of-allah') return 'The 99 Names of Allah';
     return `${detail.short} ${detail.number}`;
   });
 </script>
@@ -107,6 +109,7 @@
       <button type="button" class="back" onclick={onback} aria-label="Back to results"><ArrowLeft size={22} aria-hidden="true" /></button>
       <span class="title">{title}</span>
       {#if onmenu}
+        <!-- Top right, in the same place as on the start screen. -->
         <button type="button" class="back menu" onclick={onmenu} aria-label="Menu"><MenuIcon size={22} aria-hidden="true" /></button>
       {/if}
     </header>
@@ -143,6 +146,8 @@
         <TopicsView d={detail} {hrefFor} />
       {:else if detail?.kind === 'phrases'}
         <PhrasesView d={detail} {hrefFor} />
+      {:else if detail?.kind === 'names-of-allah'}
+        <NamesOfAllahView d={detail} {hrefFor} />
       {:else if loading}
         <p class="loading">Loading…</p>
       {/if}

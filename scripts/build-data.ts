@@ -14,6 +14,7 @@ import { HADITH_BOOKS } from '../src/lib/data/types.ts';
 import type {
   ChunkInfo,
   GraphChunk,
+  NamesOfAllahChunk,
   WordsChunk,
   HadithBookId,
   HadithArabicChunk,
@@ -387,6 +388,18 @@ const graph: GraphChunk = {
 };
 notes.push(`graph: ${graph.nodes.length} ayahs, ${graph.edges.length} similar pairs`);
 
+// ---------------------------------------------------------------- the 99 Names of Allah
+
+// data-src/asma-ul-husna.json (added 2026-10-24): an API export with { data: { names: [...] } }.
+type NameEntry = { number: number; arabic: string; transliteration: string; english: string; meaning: string };
+const namesFile = JSON.parse(readFileSync(join(ROOT, 'data-src', 'asma-ul-husna.json'), 'utf8')) as { data: { names: NameEntry[] } };
+const namesOfAllah: NamesOfAllahChunk = namesFile.data.names.map((n) => [n.number, n.arabic.trim(), n.transliteration.trim(), n.english.trim(), n.meaning.trim()]);
+check(namesOfAllah.length === 99, `asma-ul-husna: ${namesOfAllah.length} names, expected 99`);
+namesOfAllah.forEach(([n, ...fields], k) => {
+  check(n === k + 1, `asma-ul-husna: entry ${k + 1} is numbered ${n}`);
+  check(fields.every(Boolean), `asma-ul-husna: name ${n} has an empty field`);
+});
+
 // ---------------------------------------------------------------- hadith
 
 type ApiHadith = { hadithnumber: number; text: string; grades: { name: string; grade: string }[]; reference: { book: number; hadith: number } };
@@ -500,6 +513,7 @@ emit('similar', similar, similarPairs);
 emit('mutashabihat', mutashabihat, Object.keys(phrases).length);
 emit('graph', graph, graph.edges.length);
 emit('words', wordsChunk, wordsChunk.translit.reduce((n, w) => n + w.length, 0));
+emit('names-of-allah', namesOfAllah, namesOfAllah.length);
 for (const [c, arabic] of hadithChunks) {
   emit(`hadith-${c.id}`, c, c.hadiths.length);
   emit(`hadith-${c.id}-ar`, arabic, arabic.length);
@@ -512,6 +526,7 @@ const sources: Source[] = [
   { name: 'Word-by-word English meanings', provider: 'QUL', url: 'https://qul.tarteel.ai/resources/translation', license: 'Not stated', version: 'QUL download' },
   { name: 'Abridged Explanation of the Quran (Al-Mukhtasar)', provider: 'Tafsir Center for Quranic Studies, via QUL', url: 'https://qul.tarteel.ai/resources/tafsir', license: 'Not stated', version: 'QUL download' },
   { name: 'Topics, ayah themes, similar ayahs, mutashabihat', provider: 'QUL', url: 'https://qul.tarteel.ai/resources', license: 'Not stated', version: 'QUL download' },
+  { name: 'The 99 Names of Allah (Arabic, transliteration, English, meanings)', provider: 'UmmahAPI', url: 'https://ummahapi.com/asma-ul-husna-api', license: 'Provided as sadaqah jariah', version: 'Downloaded 2026-10-24' },
   { name: 'Hadith (six books, English + Arabic, gradings)', provider: 'fawazahmed0/hadith-api', url: 'https://github.com/fawazahmed0/hadith-api', license: 'Unlicense', version: HADITH_API_COMMIT },
 ];
 const manifest: Manifest = { version: 1, built: new Date().toISOString(), chunks, sources };

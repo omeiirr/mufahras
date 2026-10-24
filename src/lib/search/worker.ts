@@ -20,6 +20,7 @@ import {
   type TranslitChunk,
   type GraphChunk,
   type WordsChunk,
+  type NamesOfAllahChunk,
 } from '../data/types';
 import { SearchEngine } from './engine';
 import type { SearchOptions, SearchResponse } from './types';
@@ -95,6 +96,7 @@ async function load(name: string): Promise<void> {
   else if (name === 'mutashabihat') engine.addMutashabihat(data as MutashabihatChunk);
   else if (name === 'graph') engine.addGraph(data as GraphChunk);
   else if (name === 'words') engine.addWords(data as WordsChunk);
+  else if (name === 'names-of-allah') engine.addNamesOfAllah(data as NamesOfAllahChunk);
   else if (arBook) engine.addHadithArabic(arBook, data as HadithArabicChunk);
   else engine.addHadith(data as HadithChunk);
 
@@ -115,7 +117,7 @@ function runSearch(req: Extract<WorkerRequest, { type: 'search' }>): void {
 const EXTRA_CHUNKS = ['tafsir', 'themes', 'topics', 'similar', 'mutashabihat', 'graph'];
 
 /** Chunks needed for everything the app does today; Arabic hadith included. */
-const OFFLINE_CHUNKS = ['quran', 'translit', 'words', ...EXTRA_CHUNKS, ...HADITH_BOOKS.map((b) => `hadith-${b}`), ...HADITH_BOOKS.map((b) => `hadith-${b}-ar`)];
+const OFFLINE_CHUNKS = ['quran', 'translit', 'words', 'names-of-allah', ...EXTRA_CHUNKS, ...HADITH_BOOKS.map((b) => `hadith-${b}`), ...HADITH_BOOKS.map((b) => `hadith-${b}-ar`)];
 // Runtime cache names, see vite.config.ts.
 const DATA_CACHE = 'mufahras-data';
 const MANIFEST_CACHE = 'mufahras-manifest';
@@ -218,6 +220,7 @@ async function detail(req: DetailRequest): Promise<Detail | null> {
   if (req.kind === 'graph') await ensure('graph');
   if (req.kind === 'words') await ensure('words');
   if (req.kind === 'topics') await ensure('topics');
+  if (req.kind === 'names-of-allah') await ensure('names-of-allah');
   if (req.kind === 'phrases') await ensure('mutashabihat');
   if (req.kind === 'hadith-daily') await Promise.all([ensure('hadith-bukhari'), ensure('hadith-muslim')]);
   if (req.kind === 'books') await Promise.all(HADITH_BOOKS.map((b) => ensure(`hadith-${b}`)));

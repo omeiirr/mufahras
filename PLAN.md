@@ -341,7 +341,9 @@ quran-search/
    `data-src/qul/`), and **browser tests in CI** (Playwright: layout at three sizes, interactions, offline).
    Library additions (2026-10-24): well-known names, duas of the Quran (58 curated, each checked to address
    Allah), the 15 sajdah verses (from the ۩ sign in the text), a topic index, and a repeated-phrases index.
-   The ☰ button: top right on phones on every screen; on desktop below the search bar, next to the drawer.
+   The ☰ button: top right on phones on every screen with the drawer opening from the right; on desktop below
+   the search bar on the left, with the drawer from the left. The 99 Names of Allah (UmmahAPI data) added to
+   the library.
    **Still open:** the IndoPak script. Its text uses private-use glyphs (1,383 in 1,218 ayahs) that only QUL's
    IndoPak font draws; it needs that font (QUL account download).
 

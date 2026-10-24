@@ -287,6 +287,8 @@
 
 <div class="graph-page">
   <header class="top">
+    <!-- ☰ on the drawer's side: left on desktop, right (moved by CSS order) on phones. -->
+    <button type="button" class="icon menu" onclick={onmenu} aria-label="Menu"><MenuIcon size={22} aria-hidden="true" /></button>
     <button type="button" class="icon" onclick={onback} aria-label="Back"><ArrowLeft size={22} aria-hidden="true" /></button>
     <div class="titles">
       <h1>Similar verses</h1>
@@ -296,7 +298,6 @@
       <label class="visually-hidden" for="graph-go">Find an ayah in the graph</label>
       <input id="graph-go" bind:value={goTo} placeholder="Find 2:255" inputmode="numeric" autocomplete="off" aria-invalid={notFound} />
     </form>
-    <button type="button" class="icon" onclick={onmenu} aria-label="Menu"><MenuIcon size={22} aria-hidden="true" /></button>
   </header>
 
   <div class="legend" aria-label="Legend">
@@ -386,6 +387,11 @@
   .titles {
     flex: 1;
     min-width: 0;
+  }
+  @media (max-width: 1023px) {
+    .top .menu {
+      order: 1;
+    }
   }
   h1 {
     margin: 0;
