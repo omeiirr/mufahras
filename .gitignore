@@ -6,3 +6,4 @@ public/data/
 .DS_Store
 test-results/
 playwright-report/
+data-src/vectors/*.fp32.i8
