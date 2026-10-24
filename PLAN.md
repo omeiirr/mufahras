@@ -503,14 +503,20 @@ only the original answers; recall@10 only the originals. Keyword search scores 5
 | **Total** | **~55 MB** (model 34 + runtime ~4 + vectors 15.5; about 40 MB over the wire, since the vectors and runtime compress) |
 
 ### Build pipeline
-- `scripts/embed.ts` runs the chosen model in Node (`@huggingface/transformers` / onnxruntime-node).
-- Vectors are cached by (model, revision, text hash), so only changed texts are re-embedded; CI keeps the cache.
-  A full run is a few minutes on CI.
-- Output: content-hashed binary chunks per collection (`vec-quran.<hash>.bin`, `vec-<book>.<hash>.bin`, int8
-  with a per-dimension scale), listed in the manifest.
+- **The vectors are committed** in `data-src/vectors/` (15.5 MB, int8, with `index.json`: model revision, recipe,
+  and a hash of each embedded text). They were made once on Jarvislabs with `eval/meaning-vectors.ipynb`,
+  using the 8-bit ONNX model one text at a time (batched runs of the dynamically quantized model differ
+  slightly, cosine ~0.995; one at a time, Python's ONNX Runtime matches Transformers.js exactly on the same
+  machine). Between machines the 8-bit arithmetic differs a little (cosine ~0.998), which doesn't change
+  ranking: 90% hit@10, 73% strict, MRR 0.61 with phone-style queries. The full-precision model's vectors
+  scored slightly lower (88% / 68%), so the 8-bit ones ship.
+- `scripts/build-data.ts` recomputes each text and its hash; **only texts whose hash changed are re-embedded**
+  in CI with Transformers.js (`onnxruntime-node`, same model file). A full re-embed takes ~5½ minutes on an
+  8-core laptop; regenerate the committed file with the notebook when the model or recipe changes.
+- Output: content-hashed vector chunks (`vec-quran.<hash>.bin`, `vec-<book>.<hash>.bin`), listed in the manifest.
 - **The model files are served from our own site**, not from a model hub at run time: privacy promises no
-  third parties. They're fetched in CI at a pinned revision with a checksum and copied into `dist/`, not
-  committed (25–35 MB binaries would bloat the repo).
+  third parties. They're fetched in CI at the pinned revision with a checksum and copied into `dist/`, not
+  committed (34 MB).
 
 ### In the app
 - A separate **meaning worker**, so the search worker stays light. It loads the runtime and model on first use.
