@@ -46,7 +46,8 @@
 
   // Search by meaning: learn its download size and whether it's stored (cheap: no model is loaded).
   checkMeaning();
-  const mb = (n: number) => `${Math.round(n / 1e6)} MB`;
+  const mb = (n: number) => `${Math.round(n / 1e6)}\u00a0MB`; // no line break inside "40 MB"
+  const pct = (s: { loaded: number; total: number }) => `${Math.floor((100 * s.loaded) / (s.total || 1))}%`;
   // Chrome reports memory in GB, rounded down; the model needs a few hundred MB while it runs.
   const lowMemory = ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) < 3;
   let removing = $state(false);
@@ -96,7 +97,7 @@
         <strong>Search by meaning <span class="beta">beta</span></strong>
         <small>
           Also finds verses and hadith that say what you typed in other words, like “dealing with worry” or “kindness to parents”.
-          English only. Runs on this device{meaning.status.total ? `, after a one-time download of ${mb(meaning.status.total)}` : ''}.
+          English only. Runs on this device{meaning.status.download ? `, after a one-time download of about ${mb(meaning.status.download)}` : ''}.
         </small>
       </span>
       <input type="checkbox" checked={settings.meaning} onchange={(e) => toggleMeaning(e.currentTarget.checked)} />
@@ -104,7 +105,7 @@
     {#if settings.meaning}
       {#if meaning.status.state === 'downloading'}
         <progress max={meaning.status.total} value={meaning.status.loaded} aria-label="Downloading search by meaning"></progress>
-        <p class="note">Downloading: {mb(meaning.status.loaded)} of {mb(meaning.status.total)}. You can keep searching meanwhile.</p>
+        <p class="note">Downloading: {pct(meaning.status)}. You can keep searching meanwhile.</p>
       {:else if meaning.status.state === 'loading'}
         <p class="note">Preparing…</p>
       {:else if meaning.status.state === 'ready'}
@@ -117,7 +118,7 @@
       <p class="note">This device reports little memory, so search by meaning may be slow or fail to load.</p>
     {/if}
     {#if meaning.status.stored && !settings.meaning}
-      <button type="button" class="plain" onclick={remove} disabled={removing}>{removing ? 'Removing…' : `Remove its download (${mb(meaning.status.total)})`}</button>
+      <button type="button" class="plain" onclick={remove} disabled={removing}>{removing ? 'Removing…' : `Remove its files (${mb(meaning.status.total)})`}</button>
     {/if}
   </section>
 

@@ -521,7 +521,8 @@ only the original answers; recall@10 only the originals. Keyword search scores 5
 ### In the app (as built)
 - A separate **meaning worker** (`src/lib/meaning/`), so word search never waits on it. It starts when the
   setting is on, or when the menu asks whether its files are stored; the runtime code loads only on start.
-- **Downloads:** model 34 MB, runtime 14 MB, vectors 15.5 MB (~64 MB, less over the wire), into their own
+- **Downloads:** model 34 MB, runtime 14 MB, vectors 15.5 MB: 64 MB on the device, **40.5 MB over the wire**
+  (GitHub Pages gzips them: model 25.5, vectors 11.1, runtime 3.7, measured), into their own
   cache (`mufahras-meaning`); `navigator.storage.persist()` is requested. The worker's code (~110 KB) is
   precached so it starts offline. Files are content-hashed or carry the model revision in their path.
 - **Queries:** English, two or more words, no digits or Arabic; embedded 350 ms after typing pauses. Word

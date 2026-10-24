@@ -35,7 +35,6 @@
   } = $props();
 
   const meaningHits = $derived(meaning?.hits ? meaning.hits.slice(0, meaningOpen ? undefined : MEANING_FIRST) : []);
-  const mb = (n: number) => `${Math.round(n / 1e6)} MB`;
   const more = $derived(response.hits.length < response.total);
   // Source-finder matches come after all strict matches; a divider introduces them.
   const firstNear = $derived(response.hits.findIndex((h) => h.overlap));
@@ -144,7 +143,7 @@
     {#if !meaning.hits}
       <li class="pending" role="status">
         {#if meaning.status.state === 'downloading'}
-          Downloading search by meaning: {mb(meaning.status.loaded)} of {mb(meaning.status.total)}…
+          Downloading search by meaning: {Math.floor((100 * meaning.status.loaded) / (meaning.status.total || 1))}%…
         {:else if meaning.status.state === 'error'}
           Search by meaning couldn't load: {meaning.status.error}
         {:else if meaning.status.state === 'ready'}

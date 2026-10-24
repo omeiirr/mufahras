@@ -21,9 +21,11 @@ export interface MeaningStatus {
   state: 'idle' | 'downloading' | 'loading' | 'ready' | 'error';
   /** Every file is in the cache, so starting needs no download. */
   stored: boolean;
-  /** Bytes: downloaded so far / everything. */
+  /** Bytes, uncompressed: downloaded so far / everything. */
   loaded: number;
   total: number;
+  /** Bytes the download costs over the wire, compressed (an estimate). */
+  download?: number;
   error?: string;
   /** Scoring runs in WebAssembly SIMD (otherwise plain JS). */
   simd?: boolean;
@@ -74,6 +76,7 @@ async function readMeta(): Promise<void> {
     { url: new URL(vectors.file, base).href, bytes: vectors.bytes },
   ];
   status.total = files.reduce((n, f) => n + f.bytes, 0);
+  status.download = meta!.download;
   const cache = await caches.open(MEANING_CACHE);
   const current = new Set([metaUrl, ...files.map((f) => f.url)]);
   for (const req of await cache.keys()) if (!current.has(req.url)) await cache.delete(req);

@@ -89,12 +89,17 @@ for (const f of MODEL.files) {
 // ONNX Runtime's WebAssembly is emitted by Vite (the worker imports it); its size is for download progress.
 const runtime = readFileSync(ORT_WASM);
 
+// What the download costs over the wire (servers compress these files; gzip as the estimate).
+const gz = (b: Uint8Array) => gzipSync(b, { level: 6 }).length;
+const download = gz(runtime) + gz(new Uint8Array(out.buffer)) + MODEL.files.reduce((n, f) => n + gz(readFileSync(join(MODEL_DIR, f.path))), 0);
+
 const meta: MeaningChunk = {
   model: { dir: MODEL.dir, files: MODEL.files.map((f) => [f.path, f.bytes]), runtime: runtime.length },
   queryPrefix: MODEL.queryPrefix,
   dims,
   scale: index.scale.q8,
   quran: quran.en.length,
+  download,
   books,
 };
 emit('meaning-vectors', new Uint8Array(out.buffer), 'bin', texts.length);
@@ -110,4 +115,4 @@ writeFileSync(join(DATA, 'manifest.json'), JSON.stringify(manifest, null, 2));
 
 const mb = (n: number) => `${(n / 1e6).toFixed(1)} MB`;
 const modelBytes = MODEL.files.reduce((n, f) => n + f.bytes, 0);
-console.log(`meaning: ${texts.length} vectors (${texts.length - stale.length} committed, ${stale.length} re-embedded), ${mb(out.length)}; model ${mb(modelBytes)} in public/models/, runtime ${mb(runtime.length)}`);
+console.log(`meaning: ${texts.length} vectors (${texts.length - stale.length} committed, ${stale.length} re-embedded), ${mb(out.length)}; model ${mb(modelBytes)} in public/models/, runtime ${mb(runtime.length)}; ${mb(download)} to download compressed`);

@@ -122,6 +122,8 @@ export interface MeaningChunk {
   /** int8 value = round(component × scale). */
   scale: number;
   quran: number;
+  /** Everything to download, compressed as served (gzip estimate): model, runtime and vectors. */
+  download: number;
   /** [book, rows in its HadithChunk, rows without a vector]. */
   books: [HadithBookId, number, number[]][];
 }

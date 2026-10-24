@@ -70,7 +70,8 @@ in *meaning* to what you typed, under "By meaning": "dealing with anxiety" finds
 
 It runs entirely on your device, with a small language model (snowflake-arctic-embed-s) that turns your words
 into numbers and compares them with every verse, read together with its explanation, and every hadith. It's a
-one-time download of about 64 MB, from this app's own site, and then it works offline too. It only finds and
+one-time download of about 40 MB (64 MB once unpacked on the device), from this app's own site, and then it
+works offline too. It only finds and
 shows the texts themselves; it never writes or summarizes anything. You can remove the download from the menu.
 
 ## What else is inside

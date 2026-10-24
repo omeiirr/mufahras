@@ -9,7 +9,7 @@ const storedUrls = (page: Page) =>
   });
 
 test('search by meaning: off until switched on, then finds texts by meaning, offline too, and can be removed', async ({ page, context }, info) => {
-  test.skip(info.project.name !== 'desktop', 'once is enough; it downloads ~64 MB');
+  test.skip(info.project.name !== 'desktop', 'once is enough; it downloads ~40 MB');
   test.setTimeout(180_000);
   await openApp(page);
   await page.waitForFunction(() => navigator.serviceWorker?.controller, null, { timeout: 30_000 });
@@ -38,7 +38,7 @@ test('search by meaning: off until switched on, then finds texts by meaning, off
   // Off keeps the files (so it can come back quickly); Remove deletes them.
   await page.getByRole('button', { name: 'Menu' }).click();
   await page.locator('nav.drawer .meaning input[type=checkbox]').uncheck();
-  await page.locator('nav.drawer .meaning').getByRole('button', { name: /Remove its download/ }).click();
+  await page.locator('nav.drawer .meaning').getByRole('button', { name: /Remove its files/ }).click();
   await expect(page.locator('nav.drawer .meaning').getByRole('button', { name: /Remove/ })).toHaveCount(0);
   expect((await storedUrls(page)).filter((u) => /models\/|meaning-vectors|\.wasm$/.test(u))).toEqual([]);
 });
