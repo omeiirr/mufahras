@@ -21,12 +21,15 @@
     hrefFor,
     meaning = null,
     meaningOpen = $bindable(false),
+    onmeaning,
   }: {
     response: SearchResponse;
     /** Search by meaning for this query: its results (null while pending) and the model's status. */
     meaning?: { hits: PresentedHit[] | null; status: MeaningStatus } | null;
     /** All results by meaning shown, not just the first MEANING_FIRST. */
     meaningOpen?: boolean;
+    /** Search by meaning is off but could help with this query: switches it on. */
+    onmeaning?: () => void;
     selectedKey: string | null;
     onopen: (hit: PresentedHit) => void;
     onmore: () => void;
@@ -83,6 +86,12 @@
   <div class="none">
     <p>Nothing matched <strong dir="auto">“{response.query}”</strong>.</p>
     <ul>
+      {#if onmeaning}
+        <li>
+          <button type="button" onclick={onmeaning}>Switch on search by meaning</button>
+          to find texts that say this in other words (beta, a one-time download of about 40&nbsp;MB).
+        </li>
+      {/if}
       {#if response.query.trim().split(/\s+/).length > 2}
         <li>Try fewer words; every word has to appear in the text.</li>
       {/if}

@@ -534,7 +534,7 @@ only the original answers; recall@10 only the originals. Keyword search scores 5
   the word matches (below them it would sit under hundreds of hits): 5 results, then "More by meaning" for up
   to 20; then "With your words". The same text can appear in both. Arrow keys move through both sections.
 - **Menu:** "Search by meaning (beta)" switch with the download size, progress, "Ready, and works offline",
-  errors with "Try again", and "Remove its download" while it's off. A note on devices reporting < 3 GB
+  errors with "Try again", and "Remove its files" while it's off. A note on devices reporting < 3 GB
   memory. Available in Sakinah mode, since it's search.
 - **Measured (laptop, Chromium):** opening with the files stored → first results 1.4 s; a new query 45–60 ms
   after the pause; with 6× CPU throttling 1.8 s and 80–170 ms (throttling may not slow workers fully).

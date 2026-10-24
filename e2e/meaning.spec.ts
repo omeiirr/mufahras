@@ -20,8 +20,10 @@ test('search by meaning: off until switched on, then finds texts by meaning, off
   await expect(page.getByText('Nothing matched')).toBeVisible();
   await expect(page.getByText('By meaning', { exact: true })).toHaveCount(0);
 
+  // Nothing found with the words: the results offer to switch it on.
+  await page.getByRole('button', { name: 'Switch on search by meaning' }).click();
   await page.getByRole('button', { name: 'Menu' }).click();
-  await page.locator('nav.drawer .meaning input[type=checkbox]').check();
+  await expect(page.locator('nav.drawer .meaning input[type=checkbox]')).toBeChecked();
   await expect(page.locator('nav.drawer .meaning')).toContainText('Ready, and works offline', { timeout: 120_000 });
   await page.keyboard.press('Escape');
 

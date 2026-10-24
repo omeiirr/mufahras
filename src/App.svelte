@@ -13,7 +13,7 @@
   import Menu from './components/Menu.svelte';
   import { meaning, searchMeaning, startMeaning } from './lib/meaning/meaning.svelte';
   import { recordSearch } from './lib/store/history.svelte';
-  import { settings } from './lib/store/settings.svelte';
+  import { settings, updateSettings } from './lib/store/settings.svelte';
   import { hasArabic } from './lib/text/normalize';
   import { backToast, closeLayer, openLayer } from './lib/back.svelte';
   import { back, navigate, route, type Corpus } from './lib/router.svelte';
@@ -83,11 +83,17 @@
 
   const MEANING_SHOWN = 20;
   if (settings.meaning) startMeaning();
-  const meaningQuery = $derived.by(() => {
+  const meaningShaped = $derived.by(() => {
     const q = route.q.trim();
-    if (!settings.meaning || hasArabic(q) || /\d/.test(q) || !/[a-z]/i.test(q)) return '';
+    if (hasArabic(q) || /\d/.test(q) || !/[a-z]/i.test(q)) return '';
     return q.split(/\s+/).length >= 2 ? q : '';
   });
+  const meaningQuery = $derived(settings.meaning ? meaningShaped : '');
+  // Off, and nothing found with the words: the results offer to switch it on (the download needs a tap).
+  function switchOnMeaning(): void {
+    updateSettings({ meaning: true });
+    startMeaning();
+  }
   const meaningKey = $derived(`${meaningQuery}|${route.corpus}|${route.sahih}`);
   let meaningResult = $state<{ key: string; hits: PresentedHit[] } | null>(null);
   $effect(() => {
@@ -237,6 +243,7 @@
           {hrefFor}
           meaning={meaningShown}
           bind:meaningOpen
+          onmeaning={!settings.meaning && meaningShaped ? switchOnMeaning : undefined}
         />
       {/if}
       {#if !hasQuery && status.loaded.includes('quran') && !status.ready}

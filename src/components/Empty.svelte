@@ -28,6 +28,12 @@
     ['fasting', 'topics and hadith chapters'],
     ['Allah does not burden a soul beyond its capacity', 'a quote, worded differently'],
   ];
+  // Search by meaning (beta): last, since it needs switching on and a download the first time.
+  const meaningExamples: [string, string][] = [
+    ['dealing with anxiety', 'by meaning'],
+    ['visiting the sick', 'by meaning'],
+  ];
+  const allExamples = $derived([...examples, ...meaningExamples.map(([q, n]): [string, string] => [q, settings.meaning ? n : `${n}, switch it on in ☰`])]);
   // New users see every example; once there's some history, they fold away behind a link.
   let showExamples = $state(false);
   const examplesOpen = $derived(showExamples || history.list.length < 3 || !settings.history);
@@ -41,7 +47,7 @@
   {#if examplesOpen}
   <h2 class="ex-h">Try</h2>
   <ul>
-    {#each examples as [q, note] (q)}
+    {#each allExamples as [q, note] (q)}
       <li>
         <button type="button" onclick={() => onpick(q)}>
           <span class="q" dir="auto">{q}</span>
@@ -84,7 +90,7 @@
   {#if examplesOpen}
   <h2 class="ex-h">Try</h2>
   <ul>
-    {#each examples as [q, note] (q)}
+    {#each allExamples as [q, note] (q)}
       <li>
         <button type="button" onclick={() => onpick(q)}>
           <span class="q" dir="auto">{q}</span>

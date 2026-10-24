@@ -16,7 +16,9 @@
 
 Have you ever remembered a few words of a verse, or half of a hadith someone quoted, and wanted to find where it
 comes from? Mufahras is for that moment. Type what you remember, misspelled or out of order, in English, Arabic or
-transliteration, and the source appears before you've finished typing.
+transliteration, and the source appears before you've finished typing. Or describe what you're looking for:
+with [**Search by meaning**](#search-by-meaning) switched on, "dealing with anxiety" finds *with hardship will be
+ease* (94:6), though it never uses the word.
 
 It's free, it has no accounts and no ads, and once it's loaded it works without an internet connection.
 
@@ -58,7 +60,7 @@ Some things to try:
 | `الحمد لله رب العالمين` | Arabic, with or without diacritics |
 | `fasting` · `orphans` | topics in the Quran and chapters of the hadith books |
 | a sentence you remember, in any translation | the source, even when the wording differs ("close matches") |
-| `dealing with anxiety` · `kindness to parents` | with **Search by meaning** on: texts that say it in other words |
+| `dealing with anxiety` · `visiting the sick` | with **Search by meaning** on: texts that say it in other words |
 
 ## Search by meaning
 
