@@ -23,6 +23,12 @@ ease* (94:6), though it never uses the word.
 It's free, it has no accounts and no ads, and once it's loaded it works without an internet connection.
 
 <p align="center">
+  <a href="docs/video/mufahras-showcase.mp4"><img src="docs/video/poster.jpg" alt="Watch the 45-second showcase video" width="720" /></a>
+  <br />
+  <sub>Watch the 45-second showcase (with sound)</sub>
+</p>
+
+<p align="center">
   <img src="docs/screenshots/phone-start.png" alt="Start screen with the verse of the day" width="230" />
   <img src="docs/screenshots/phone-search.png" alt="Searching for 'patience prayer'" width="230" />
   <img src="docs/screenshots/phone-verse-night.png" alt="Ayat al-Kursi in the Night theme" width="230" />
