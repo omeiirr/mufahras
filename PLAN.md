@@ -464,6 +464,12 @@ only the original answers; recall@10 only the originals. Keyword search scores 5
   your mother then your mother, the last third of the night. Verses gained the explanation; hadith have no
   equivalent (hadith-api has only book-level section titles such as "Patients"). Keyword search finds 3 of
   these, which the separate word-match section already shows.
+- **After reading every top 10 the best setup still missed**, 17 more alternatives were accepted (83 in all:
+  other narrations of the descent in the last third of the night, of "your mother, then your mother", of
+  prayer at its time; 55:26 for "everyone will die"; 64:14 for forgiving others). Rescored from the saved
+  rankings: **arctic-s with explanations 92% hit@10, MRR 0.61**; bge-small 80%; keyword search 60%. Those
+  alternatives came from arctic-s's own results, so they favour it, but the strict column (original answers
+  only) ranks the models the same way: 72% / 65% / 63%.
 
 ### Approach
 - **An embedding model runs in the browser** (transformers.js on ONNX Runtime WebAssembly), as an **optional

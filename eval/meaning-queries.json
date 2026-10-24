@@ -178,6 +178,11 @@
    "24:22": [
     "forgive"
    ]
+  },
+  "also": {
+   "64:14": [
+    "pardon and overlook and forgive"
+   ]
   }
  },
  {
@@ -213,6 +218,14 @@
    ],
    "21:35": [
     "taste death"
+   ]
+  },
+  "also": {
+   "55:26": [
+    "will perish"
+   ],
+   "39:30": [
+    "you are to die"
    ]
   }
  },
@@ -455,6 +468,10 @@
    ],
    "muslim 173": [
     "keep silence"
+   ],
+   "ibnmajah 3971": [
+    "say something good",
+    "remain silent"
    ]
   }
  },
@@ -607,6 +624,14 @@
     "mother",
     "companionship"
    ]
+  },
+  "also": {
+   "muslim 6501": [
+    "Your mother, again your mother"
+   ],
+   "tirmidhi 1897": [
+    "Who most deserves"
+   ]
   }
  },
  {
@@ -657,6 +682,12 @@
    ],
    "bukhari 6138": [
     "guest generously"
+   ],
+   "ibnmajah 3675": [
+    "honor his guest"
+   ],
+   "abudawud 3748": [
+    "honour his guest"
    ]
   }
  },
@@ -718,6 +749,28 @@
    "bukhari 1145": [
     "last third"
    ]
+  },
+  "also": {
+   "muslim 1772": [
+    "descends",
+    "latter part"
+   ],
+   "muslim 1775": [
+    "descends",
+    "latter part"
+   ],
+   "tirmidhi 3498": [
+    "descends",
+    "last third"
+   ],
+   "bukhari 6321": [
+    "descends",
+    "last third"
+   ],
+   "ibnmajah 1366": [
+    "descends",
+    "one third"
+   ]
   }
  },
  {
@@ -737,6 +790,20 @@
    "bukhari 527": [
     "prayer",
     "time"
+   ]
+  },
+  "also": {
+   "muslim 256": [
+    "prayer at its"
+   ],
+   "muslim 252": [
+    "Prayer at its appointed hour"
+   ],
+   "nasai 611": [
+    "prayer on time"
+   ],
+   "bukhari 7534": [
+    "prayers at their"
    ]
   }
  },

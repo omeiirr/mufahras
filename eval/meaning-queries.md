@@ -49,6 +49,7 @@ but not for recall, which measures only the original answers.
 | interest and usury are forbidden | 2:275 | Those who consume interest cannot stand [on the Day of Resurrection] except as one stands who is being beaten by Satan into insanity. That is… |
 |  | 2:278 | O you who have believed, fear Allāh and give up what remains [due to you] of interest, if you should be believers. |
 | forgive others so Allah forgives you | 24:22 | And let not those of virtue among you and wealth swear not to give [aid] to their relatives and the needy and the emigrants for the cause of… |
+|  | 64:14 *(also)* | O you who have believed, indeed, among your spouses and your children are enemies to you, so beware of them. But if you pardon and overlook and… |
 | cheating in weights and measures | 83:1 | Woe to those who give less [than due], |
 |  | 17:35 | And give full measure when you measure, and weigh with an even [i.e., honest] balance. That is the best [way] and best in result. |
 | signs in the creation of the heavens and earth | 3:190 | Indeed, in the creation of the heavens and the earth and the alternation of the night and the day are signs for those of understanding - |
@@ -90,6 +91,10 @@ but not for recall, which measures only the original answers.
 |  | Tirmidhi 1934 *(also)* | Abu Hurairah narrated that it was said:" O Messenger of Allah! What is backbiting?" He said : " Mentioning your brother with that which he does… |
 |  | Abu Dawud 4874 *(also)* | Abu Hurairah said:The Messenger of Allah (ﷺ) was asked: Messenger of Allah! What is back-biting? He replied: It is saying something about your… |
 | which deed is best: prayer at its time | Bukhari 527 | I asked the Prophet (ﷺ) "Which deed is the dearest to Allah?" He replied, "To offer the prayers at their early stated fixed times." I asked,… |
+|  | Muslim 256 *(also)* | It is reported on the authority of 'Abdullah that the Messenger of Allah observed:The best of' the deeds or deed is the (observance of) prayer at… |
+|  | Muslim 252 *(also)* | It is narrated on the authority of 'Abdullah b. Mas'ud that he observed. I asked the Messenger of Allah (ﷺ) which deed was the best. He (the Holy… |
+|  | Nasa'i 611 *(also)* | It was narrated that 'Abdullah bin Mas'ud said:"I asked the Messenger of Allah (ﷺ) which action is most beloved to Allah? He said: 'Establishing… |
+|  | Bukhari 7534 *(also)* | A man asked the Prophet (ﷺ) "What deeds are the best?" The Prophet (ﷺ) said: "(1) To perform the (daily compulsory) prayers at their (early)… |
 | is lying ever allowed | Bukhari 2692 | That she heard Allah's Messenger (ﷺ) saying, "He who makes peace between the people by inventing good information or saying good things, is not a liar |
 |  | Tirmidhi 1939 *(also)* | Asma bint Yazid narrated that the Messenger of Allah said:"it is not lawful to lie except in three cases: Something the man tells his wife to… |
 |  | Muslim 6633 *(also)* | Humaid b. 'Abd al-Rahman b. 'Auf reported that his mother Umm Kulthum daughter of 'Uqba b. Abu Mu'ait, and she was one amongst the first… |
@@ -105,6 +110,8 @@ but not for recall, which measures only the original answers.
 | wine and gambling are from Satan | 5:90 | O you who have believed, indeed, intoxicants, gambling, [sacrificing on] stone alters [to other than Allāh], and divining arrows are but… |
 | everyone will die | 3:185 | Every soul will taste death, and you will only be given your [full] compensation on the Day of Resurrection. So he who is drawn away from the… |
 |  | 21:35 | Every soul will taste death. And We test you with evil and with good as trial; and to Us you will be returned. |
+|  | 55:26 *(also)* | Everyone upon it [i.e., the earth] will perish, |
+|  | 39:30 *(also)* | Indeed, you are to die, and indeed, they are to die. |
 | God does not change a people until they change themselves | 13:11 | For him [i.e., each one] are successive [angels] before and behind him who protect him by the decree of Allāh. Indeed, Allāh will not change the… |
 | we made you nations and tribes to know one another | 49:13 | O mankind, indeed We have created you from male and female and made you peoples and tribes that you may know one another. Indeed, the most noble… |
 | the night better than a thousand months | 97:3 | The Night of Decree is better than a thousand months. |
@@ -142,6 +149,7 @@ but not for recall, which measures only the original answers.
 | say something good or stay quiet | Bukhari 6018 | Allah's Messenger (ﷺ) said, "Anybody who believes in Allah and the Last Day should not harm his neighbor, and anybody who believes in Allah and… |
 |  | Bukhari 6475 *(also)* | Allah's Messenger (ﷺ) said, "Whoever believes in Allah and the Last Day should talk what is good or keep quiet, and whoever believes in Allah and… |
 |  | Muslim 173 *(also)* | It is reported on the authority of Abu Huraira that the Messenger of Allah (ﷺ) observed:He who believes in Allah and the Last Day should either… |
+|  | Ibn Majah 3971 *(also)* | It was narrated from Abu Hurairah that the Messenger of Allah (ﷺ) said:“Whoever believes in Allah and the Last Day, let him say something good,… |
 | smiling at your brother is charity | Tirmidhi 1956 | Abu Dharr narrated that the Messenger of Allah said :"Your smiling in the face of your brother is charity, commanding good and forbidding evil is… |
 | a man was forgiven for giving water to a thirsty dog | Bukhari 2363 | Allah's Messenger (ﷺ) said, "While a man was walking he felt thirsty and went down a well and drank water from it. On coming out of it, he saw a… |
 |  | Bukhari 173 *(also)* | The Prophet (ﷺ) said, "A man saw a dog eating mud from (the severity of) thirst. So, that man took a shoe (and filled it) with water and kept on… |
@@ -168,6 +176,8 @@ but not for recall, which measures only the original answers.
 |  | Muslim 6674 *(also)* | Abu Barza reported that he said to Allah's Messenger (ﷺ):Allah's Messenger, I do not know whether I would survive after you, so confer upon me… |
 | paradise is at the feet of your mother | Nasa'i 3104 | It was narrated from Mu'awiyah bin Jahimah As-Sulami, that Jahimah came to the Prophet (ﷺ) and said:"O Messenger of Allah! I want to go out and… |
 | who most deserves my good company? your mother | Bukhari 5971 | A man came to Allah's Messenger (ﷺ) and said, "O Allah's Messenger (ﷺ)! Who is more entitled to be treated with the best companionship by me?"… |
+|  | Muslim 6501 *(also)* | Abu Huraira reported that a person said:Allah's Messenger, who amongst the people is most deserving of my good treatment? He said: Your mother,… |
+|  | Tirmidhi 1897 *(also)* | Bahz bin Hakim narrated from his father, from his grandfather who said:"I said: 'O Messenger of Allah! Who most deserves(my) reverence?' He said:… |
 | a Muslim is one whom others are safe from his tongue and hands | Bukhari 10 | The Prophet (ﷺ) said, "A Muslim is the one who avoids harming Muslims with his tongue and hands. And a Muhajir (emigrant) is the one who gives up… |
 |  | Bukhari 11 *(also)* | Some people asked Allah's Messenger (ﷺ), "Whose Islam is the best? i.e. (Who is a very good Muslim)?" He replied, "One who avoids harming the… |
 | live in this world as if you were a stranger or a traveller | Bukhari 6416 | `Abdullah bin `Umar said, "Allah's Messenger (ﷺ) took hold of my shoulder and said, 'Be in this world as if you were a stranger or a traveler."… |
@@ -175,6 +185,8 @@ but not for recall, which measures only the original answers.
 | honour your guest | Bukhari 6019 | My ears heard and my eyes saw the Prophet (ﷺ) when he spoke, "Anybody who believes in Allah and the Last Day, should serve his neighbor… |
 |  | Bukhari 6136 *(also)* | The Prophet (ﷺ) said, "Whoever believes in Allah and the Last Day, should not hurt his neighbor and whoever believes in Allah and the Last Day,… |
 |  | Bukhari 6138 *(also)* | The Prophet (ﷺ) said, "Whoever believes in Allah and the Last Day, should serve his guest generously; and whoever believes in Allah and the Last… |
+|  | Ibn Majah 3675 *(also)* | It was narrated from Abu Shuraih Al-Khuza'i that the Messenger of Allah(ﷺ) said:"Whoever believes in the Last Day, let him honor his guest, and… |
+|  | Abu Dawud 3748 *(also)* | Abu Shuraih al-Ka’bi reported the Messenger of Allah(ﷺ) as sayings:He who believes in Allah and the Last Day should honour his guest provisions… |
 | you may only envy two kinds of people | Bukhari 73 | The Prophet (ﷺ) said, "Do not wish to be like anyone except in two cases. (The first is) A person, whom Allah has given wealth and he spends it… |
 |  | Bukhari 1409 *(also)* | I heard the Prophet (ﷺ) saying, "There is no envy except in two: a person whom Allah has given wealth and he spends it in the right way, and a… |
 |  | Muslim 1894 *(also)* | Salim narrated on the authority of his father (Ibn 'Umar) that the Messenger of Allah (ﷺ) said:Envy is not justified but in case of two persons… |
@@ -182,6 +194,11 @@ but not for recall, which measures only the original answers.
 |  | Muslim 1896 *(also)* | Abdullah b. Mas'ud reported Allah's Messenger (ﷺ) as saying:There should be no envy but only in case of two persons: one having been endowed with… |
 | fasting Ramadan with faith forgives past sins | Bukhari 38 | Allah's Messenger (ﷺ) said, "Whoever observes fasts during the month of Ramadan out of sincere faith, and hoping to attain Allah's rewards, then… |
 | Allah descends in the last third of the night | Bukhari 1145 | Allah's Messenger (ﷺ) said, "Our Lord, the Blessed, the Superior, comes every night down on the nearest Heaven to us when the last third of the… |
+|  | Muslim 1772 *(also)* | Abu Huraira reported Allah's Messenger (ﷺ) as saying:Our Lord, the Blessed and the Exalted, descends every night to the lowest heaven when… |
+|  | Muslim 1775 *(also)* | Abu Huraira reported Allah's Messenger (ﷺ) as saying:Allah descends to the lowest heaven at half of the night or at one-third of the latter part… |
+|  | Tirmidhi 3498 *(also)* | Abu Hurairah narrated that the Messenger of Allah said:“Our Lord descends every night to the nearest heaven, until the last third of the night… |
+|  | Bukhari 6321 *(also)* | Allah's Messenger (ﷺ) said, "When it is the last third of the night, our Lord, the Blessed, the Superior, descends every night to the heaven of… |
+|  | Ibn Majah 1366 *(also)* | It was narrated from Abu Hurairah that the Messenger of Allah (ﷺ) said:“Our Lord, the Blessed and Exalted, descends when one third of the night… |
 | be merciful to those on earth and the One in heaven will be merciful to you | Tirmidhi 1924 | Abdullah bin 'Amr narrated that the Messenger of Allah said:"The merciful are shown mercy by Ar-Rahman. Be merciful on the earth, and you will be… |
 | on judgement day we will be asked about our life, youth, wealth and knowledge | Tirmidhi 2416 | Ibn Mas'ud narrated that the Messenger of Allah SAW said:"The feet of the son of Adam shall not move from before his Lord on the Day of… |
 |  | Tirmidhi 2417 *(also)* | Abu Barzah Al-Aslami narrated that the Messenger of Allah (s.a.w) said:"The feet of the slave of Allah shall not move [on the Day of Judgement]… |
