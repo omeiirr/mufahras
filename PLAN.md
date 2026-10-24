@@ -396,7 +396,7 @@ over recall; the build reports counts per kind.
 quotations; Bukhari and Muslim first within each), each with a snippet, its grading and the quoted part
 highlighted; on a hadith screen, "Verses in this hadith" as links. Hidden in Sakinah mode.
 
-## Search by meaning (planned 2026-10-24, not started)
+## Search by meaning (planned 2026-10-24; spike done)
 
 **Decisions (2026-10-24):** version 1 covers **the Quran and the hadith together** (~35–45 MB); **off by default**,
 switched on in the menu; **English queries only**; evaluation queries drafted by Claude and reviewed by the owner
@@ -409,6 +409,36 @@ differently). Retrieval only: the app shows the texts themselves and never gener
 
 **Non-goals for v1:** Arabic-language meaning queries (a multilingual model is ~120 MB; Arabic keeps its
 spelling-tolerant search), question answering, anything on a server.
+
+### Spike results (2026-10-24)
+Eight models on all 40,393 English texts (translation as is, hadith in full, 256 tokens), GPU notebook
+`eval/meaning-spike.ipynb`. **hit@10** = an expected text is in the top 10.
+
+| Model | Browser size | hit@10 | recall@10 | MRR |
+|---|---|---|---|---|
+| keyword search (today) | – | 50% | 48% | 0.33 |
+| all-MiniLM-L6-v2 | 23 MB | 58% | 54% | 0.31 |
+| snowflake-arctic-embed-xs | 23 MB | 58% | 55% | 0.38 |
+| mxbai-embed-xsmall-v1 | 24 MB | 52% | 47% | 0.33 |
+| **bge-small-en-v1.5** | **34 MB** | **63%** | **58%** | **0.46** |
+| snowflake-arctic-embed-s | 34 MB | 60% | 57% | 0.42 |
+| e5-small-v2 | 34 MB | 62% | 56% | 0.35 |
+| gte-small | 34 MB | 57% | 52% | 0.41 |
+| bge-base-en-v1.5 (reference) | 110 MB | 68% | 64% | 0.44 |
+
+- **bge-small leads** the models small enough to ship; a model three times its size gains only 5 points.
+- **8-bit vectors rank the same** as 32-bit (within a point for every model), so the vector download is
+  15.5 MB for all texts.
+- **Naive fusion with keyword search** (reciprocal rank fusion) helps the weaker models but not bge-small
+  (62%); fusion needs tuning in phase 3.
+- **The evaluation undercounts.** 12 queries were missed by every model, and for about half of them the top
+  results are correct texts the set doesn't list: "is lying ever allowed" → Tirmidhi 1939 ("not lawful to lie
+  except in three cases"), "visiting the sick" → Muslim 6551, Ibn Majah 1443, "removing something harmful from
+  the road" → Tirmidhi 2614, Bukhari 652. The real misses are famous texts in unusual wording: 5:32 (killing
+  one soul), Bukhari 1 (intentions), 39:53 (do not despair).
+- **Speed, laptop CPU (arctic-xs, 8-bit model):** embedding the query 3–8 ms; scoring 40,000 vectors in plain
+  JS ~25 ms. On a phone the scan, not the model, is the slow part (estimated 100–200 ms), so scoring should
+  use int8 with a WebAssembly SIMD dot product, or be limited to a candidate set.
 
 ### Approach
 - **An embedding model runs in the browser** (transformers.js on ONNX Runtime WebAssembly), as an **optional
