@@ -287,7 +287,97 @@ const topics: Topic[] = topicRows.map((t) => {
     related: ids(t.related_topics),
   };
 });
-fixProphets(new Map(topics.map((t) => [t.id, t])));
+const topicById = new Map(topics.map((t) => [t.id, t]));
+fixProphets(topicById);
+fixTopics(topicById);
+
+/** Look up a topic that a fix relies on, and stop the build if QUL's data has moved under it. */
+function topicNamed(byId: Map<number, Topic>, id: number, name: string): Topic {
+  const t = byId.get(id);
+  if (!t || !t.name.startsWith(name)) throw new Error(`topics: expected "${name}" at ${id}, found "${t?.name}"; QUL data changed, recheck the topic fixes`);
+  return t;
+}
+
+/** The rest of the issues reported to QUL (docs/qul-topics-issues.md), fixed here until their data is. */
+function fixTopics(byId: Map<number, Topic>): void {
+  const get = (id: number, name: string) => topicNamed(byId, id, name);
+  const ref = (s: string) => ayahIndex(s, 'topic fixes');
+
+  // "with his people" under Shuaib holds the passages of five prophets; each prophet already lists his own.
+  const shuaibsPeople = get(2305, 'with his people');
+  const [from, to] = [ref('7:85'), ref('7:93')];
+  shuaibsPeople.ayahs = shuaibsPeople.ayahs.filter((i) => i >= from && i <= to);
+
+  // Muhammad (97) is filed under "Interpretations of dreams"; none of its ayahs are about dreams.
+  const dreams = get(2263, 'Interpertations of dreams');
+  const muhammad = get(97, 'Muhammad');
+  muhammad.parents = muhammad.parents.filter((p) => p !== dreams.id);
+
+  for (const [id, wrong, right] of [
+    [1882, 'Doctraine', 'Doctrine'],
+    [2380, 'Parabels', 'Parables'],
+    [364, 'Apostacy', 'Apostasy'],
+    [2263, 'Interpertations', 'Interpretations'],
+    [977, 'Muhammed', 'Muhammad'],
+    [1093, 'is not Muhammed', 'Muhammad'],
+    [628, 'do not aquire', 'acquire'],
+    [884, 'study nature to aquire', 'acquire'],
+    [1064, "don't aquire", 'acquire'],
+    [2322, 'Chief Minster', 'Minister'],
+    [2361, 'Other-Stories', 'Other stories'],
+  ] as const) {
+    const t = get(id, wrong);
+    t.name = t.name.replace(/Doctraine|Parabels|Apostacy|Interpertations|Muhammed|aquire|Minster|Other-Stories/, right);
+  }
+
+  // The same topic twice, differing only in case: fold the second into the first (the one placed in the tree).
+  for (const [keep, name, drop] of [
+    [4, 'Last Day', 1564],
+    [21, 'Golden Calf', 1483],
+    [205, 'Lote Tree', 901],
+    [244, 'Abu Lahab', 1249],
+    [1016, 'Old Testament', 1637],
+    [1111, 'Red Sea', 1691],
+    [1192, 'Ten Commandments', 1798],
+  ] as const) {
+    const [a, b] = [get(keep, name), get(drop, name.toLowerCase().replace(/^./, (c) => c.toUpperCase()))];
+    a.ayahs = [...new Set([...a.ayahs, ...b.ayahs])].sort((x, y) => x - y);
+    a.related = [...new Set([...a.related, ...b.related])].filter((r) => r !== a.id);
+    for (const t of byId.values()) {
+      t.parents = [...new Set(t.parents.map((p) => (p === b.id ? a.id : p)))];
+      t.related = [...new Set(t.related.map((r) => (r === b.id ? a.id : r)))].filter((r) => r !== t.id);
+    }
+    // Emptied, it is dropped below with the other topics that have no ayahs and no children.
+    Object.assign(b, { ayahs: [], parents: [], related: [] });
+  }
+
+  // QUL has two prophet lists, the thematic one (Stories › Prophets) and the ontology one (Human › Prophet),
+  // spelling names differently. Link each pair both ways.
+  for (const [a, aName, b, bName] of [
+    [285, 'Aaron', 70, 'Harun'],
+    [289, 'Abraham', 44, 'Ibrahim'],
+    [826, 'Joseph', 115, 'Yusuf'],
+    [900, 'Lot', 118, 'Lut'],
+    [967, 'Moses', 20, 'Musa'],
+    [1007, 'Noah', 86, 'Nuh'],
+    [1247, 'Zachariah', 88, 'Zechariah'],
+    [1421, 'Elias', 116, 'Elijah'],
+    [1546, 'Jacob', 48, 'Yaqub'],
+    [2304, 'Enoch', 176, 'Idris'],
+    [2306, 'Elisha', 117, 'Elisha'],
+    [2360, 'Zul-kifl', 208, 'Dhul Kifl'],
+    [819, 'Job', 98, 'Ayyub'],
+    [821, 'Jonah', 99, 'Yunus'],
+    [2314, 'John the Baptist', 89, 'Yahya'],
+    [2307, 'Isaac', 49, 'Isaac'],
+    [2350, 'Muhammad', 97, 'Muhammad'],
+    [2352, 'Shuaib', 134, 'Shuayb'],
+  ] as const) {
+    const [x, y] = [get(a, aName), get(b, bName)];
+    if (!x.related.includes(y.id)) x.related.push(y.id);
+    if (!y.related.includes(x.id)) y.related.push(x.id);
+  }
+}
 
 /**
  * QUL's "Prophets (25 mentioned by name)" (2284) lists 22, and some rows are shifted by one: Job's entry
@@ -296,11 +386,7 @@ fixProphets(new Map(topics.map((t) => [t.id, t])));
  * right entry; an empty one takes the verses of the same prophet in the Human › Prophet tree.
  */
 function fixProphets(byId: Map<number, Topic>): void {
-  const get = (id: number, name: string) => {
-    const t = byId.get(id);
-    if (!t || !t.name.startsWith(name)) throw new Error(`topics: expected "${name}" at ${id}, found "${t?.name}"; QUL data changed, recheck fixProphets`);
-    return t;
-  };
+  const get = (id: number, name: string) => topicNamed(byId, id, name);
   const prophets = get(2284, 'Prophets');
   const moveTo = (child: Topic, from: Topic, to: Topic) => (child.parents = child.parents.map((p) => (p === from.id ? to.id : p)));
   const listAsProphet = (t: Topic) => !t.parents.includes(prophets.id) && t.parents.push(prophets.id);

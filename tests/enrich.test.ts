@@ -66,6 +66,18 @@ describe.runIf(dataBuilt)('topic and chapter pages, chips', () => {
     expect(engine.detail({ kind: 'topic', id: stories.id })).toMatchObject({ total: 0, totalWithin: stories.count });
   });
 
+  it('carries the fixes to QUL topics: spelling, merged duplicates, both prophet lists linked', () => {
+    const index = engine.detail({ kind: 'topics' });
+    if (index?.kind !== 'topics') throw new Error('no topics');
+    const names = index.topics.map((t) => t.name);
+    expect(names).toEqual(expect.arrayContaining(['Doctrine', 'Red Sea']));
+    expect(names).not.toContain('Red sea');
+    const moses = engine.detail({ kind: 'topic', id: 967 }) as TopicDetail;
+    expect(moses.related.map((t) => t.name)).toContain('Musa');
+    const shuaibsPeople = engine.detail({ kind: 'topic', id: 2305 }) as TopicDetail;
+    expect(shuaibsPeople.ayahs.every((a) => a.surah === 7 && a.ayah >= 85 && a.ayah <= 93)).toBe(true);
+  });
+
   it('suggests hadith chapters and builds the chapter page', () => {
     const chip = engine.search('fasting').chips.find((c) => c.kind === 'section' && c.sub.startsWith('Bukhari'));
     expect(chip?.label).toMatch(/Fasting/);
