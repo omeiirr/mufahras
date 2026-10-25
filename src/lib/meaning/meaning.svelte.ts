@@ -1,6 +1,7 @@
 // Main-thread side of search by meaning. The worker starts only when the feature is switched on (or the
 // menu asks whether its files are stored), so the app pays nothing for it otherwise. Only the latest
 // query gets an answer; earlier ones resolve to null.
+import { MEANING_CACHE } from '../data/fetch';
 import type { MeaningHit, MeaningRequest, MeaningResponse, MeaningStatus } from './meaning-worker';
 
 export const meaning = $state<{ status: MeaningStatus }>({ status: { state: 'idle', stored: false, loaded: 0, total: 0 } });
@@ -8,7 +9,6 @@ export const meaning = $state<{ status: MeaningStatus }>({ status: { state: 'idl
 let worker: Worker | undefined;
 let latest = 0;
 const waiting = new Map<number, (hits: MeaningHit[] | null) => void>();
-let removed: (() => void) | undefined;
 
 function connect(start: boolean): Worker {
   if (worker) {
@@ -19,10 +19,10 @@ function connect(start: boolean): Worker {
   worker.onmessage = (e: MessageEvent<MeaningResponse>) => {
     const msg = e.data;
     if (msg.type === 'status') meaning.status = msg.status;
-    else if (msg.type === 'results') {
+    else {
       for (const [id, resolve] of waiting) if (id <= msg.id) resolve(id === msg.id ? msg.hits : null);
       for (const id of [...waiting.keys()]) if (id <= msg.id) waiting.delete(id);
-    } else removed?.();
+    }
   };
   send({ type: 'init', base: new URL('data/', document.baseURI).href, start });
   return worker;
@@ -51,15 +51,13 @@ export function stopMeaning(): void {
   meaning.status = { ...meaning.status, state: 'idle', loaded: 0 };
 }
 
-/** Delete the downloaded files (and stop). */
+/**
+ * Stop, then delete the downloaded files. Stopping first ends a download still under way, so none of
+ * its files can land in the cache after the delete.
+ */
 export async function removeMeaning(): Promise<void> {
-  connect(false);
-  await new Promise<void>((resolve) => {
-    removed = resolve;
-    send({ type: 'remove' });
-  });
-  removed = undefined;
   stopMeaning();
+  if (typeof caches !== 'undefined') await caches.delete(MEANING_CACHE).catch(() => {});
   meaning.status = { ...meaning.status, stored: false };
 }
 

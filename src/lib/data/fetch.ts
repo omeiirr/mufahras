@@ -5,6 +5,8 @@ import type { Manifest } from './types';
 
 // Runtime cache names, see vite.config.ts.
 export const DATA_CACHE = 'mufahras-data';
+/** Search by meaning keeps everything it downloads here, so removing it is one cache delete. */
+export const MEANING_CACHE = 'mufahras-meaning';
 export const MANIFEST_CACHE = 'mufahras-manifest';
 
 const hasCaches = () => typeof caches !== 'undefined';

@@ -20,7 +20,6 @@ import type {
   HadithArabicChunk,
   HadithChunk,
   HadithRow,
-  IndopakChunk,
   Manifest,
   MutashabihatChunk,
   Phrase,
@@ -213,8 +212,6 @@ const wordsChunk: WordsChunk = {
 };
 notes.push(wbwMeaningFile ? `words: meanings from ${wbwMeaningFile}` : 'words: no word-by-word translation in data-src/qul yet; transliteration only');
 const translitChunk: TranslitChunk = { simple: translit, wbw: translitWbw };
-
-const indopak: IndopakChunk = perAyah('indopak', qulJson<Record<string, { text: string }>>('indopak'), (v) => v.text);
 
 // ---------------------------------------------------------------- tafsir (Al-Mukhtasar)
 
@@ -631,7 +628,6 @@ function emit(name: string, data: unknown, items: number): void {
 
 emit('quran', quran, AYAH_COUNT);
 emit('translit', translitChunk, AYAH_COUNT);
-emit('indopak', indopak, AYAH_COUNT);
 emit('tafsir', tafsir, AYAH_COUNT);
 emit('topics', topicsOut, topicsOut.length);
 emit('themes', themes, themes.length);
@@ -646,7 +642,7 @@ for (const [c, arabic] of hadithChunks) {
 }
 
 const sources: Source[] = [
-  { name: 'Quran text (Uthmani, IndoPak)', provider: 'Tanzil, via QUL', url: 'https://qul.tarteel.ai/resources/quran-script', license: 'Tanzil terms: verbatim, with attribution to tanzil.net', version: 'QUL download' },
+  { name: 'Quran text (Uthmani)', provider: 'Tanzil, via QUL', url: 'https://qul.tarteel.ai/resources/quran-script', license: 'Tanzil terms: verbatim, with attribution to tanzil.net', version: 'QUL download' },
   { name: 'Saheeh International translation', provider: 'Dar Abul-Qasim, via QUL', url: 'https://qul.tarteel.ai/resources/translation', license: '© Saheeh International', version: 'QUL download' },
   { name: 'Transliteration', provider: 'QUL', url: 'https://qul.tarteel.ai/resources/transliteration', license: 'Not stated', version: 'QUL download' },
   { name: 'Word-by-word English meanings', provider: 'QUL', url: 'https://qul.tarteel.ai/resources/translation', license: 'Not stated', version: 'QUL download' },

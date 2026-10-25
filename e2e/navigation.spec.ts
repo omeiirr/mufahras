@@ -97,3 +97,19 @@ test('installed app: the first Back at the start asks, the second closes', async
   await page.goBack();
   await expect(page).toHaveURL('about:blank'); // left the app
 });
+
+test('a link with a stray % still opens the app', async ({ page }) => {
+  await openApp(page, '#/50%');
+  await expect(page.locator('input[type=search]')).toBeVisible();
+});
+
+test('a download that fails is tried again, and search fills in once it works', async ({ page }) => {
+  let requests = 0;
+  // The search worker fetches the data, so the route is on the context (a page route misses worker requests).
+  await page.context().route(/hadith-muslim\.[0-9a-f]+\.json$/, (route) => (++requests === 1 ? route.abort('internetdisconnected') : route.continue()));
+  await openApp(page);
+  await page.locator('input[type=search]').fill('muslim 100');
+  await expect(page.getByRole('link', { name: /Go to Muslim 100\b/ })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  expect(requests).toBe(2);
+});

@@ -31,9 +31,6 @@ export interface TranslitChunk {
   wbw: string[];
 }
 
-/** IndoPak script, per ayah index. */
-export type IndopakChunk = string[];
-
 export interface TafsirChunk {
   /** Explanation per ayah index; a number points to the group head whose text covers this ayah. */
   text: (string | number)[];

@@ -7,14 +7,12 @@
 // ONNX Runtime's WebAssembly, as an asset Vite emits with a content hash (the runtime's own reference to
 // it resolves to the same file); fetched here, so it's cached and counted in the download progress.
 import runtimeUrl from 'onnxruntime-web/ort-wasm-simd-threaded.wasm?url';
-import { cachedBytes, fetchManifest } from '../data/fetch';
+import { cachedBytes, fetchManifest, MEANING_CACHE } from '../data/fetch';
 import type { Manifest, MeaningChunk } from '../data/types';
 import type { DocRef } from '../search/types';
 import type { Embedder } from './embed';
 import { refOfRow } from './rows';
 import type { Scorer } from './score';
-
-export const MEANING_CACHE = 'mufahras-meaning';
 
 export interface MeaningStatus {
   /** idle: nothing loaded (files may be stored); downloading/loading: after start; ready: answering queries. */
@@ -39,13 +37,11 @@ export interface MeaningHit {
 export type MeaningRequest =
   | { type: 'init'; base: string; start: boolean }
   | { type: 'start' }
-  | { type: 'query'; id: number; text: string; limit: number }
-  | { type: 'remove' };
+  | { type: 'query'; id: number; text: string; limit: number };
 
 export type MeaningResponse =
   | { type: 'status'; status: MeaningStatus }
-  | { type: 'results'; id: number; hits: MeaningHit[]; ms: number }
-  | { type: 'removed' };
+  | { type: 'results'; id: number; hits: MeaningHit[]; ms: number };
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope;
 const post = (msg: MeaningResponse) => ctx.postMessage(msg);
@@ -148,12 +144,7 @@ ctx.onmessage = (e: MessageEvent<MeaningRequest>) => {
     if (msg.start) started = start().catch(fail);
   } else if (msg.type === 'start') {
     started ??= start().catch(fail);
-  } else if (msg.type === 'query') {
-    void answer(msg).catch(fail);
   } else {
-    caches
-      .delete(MEANING_CACHE)
-      .catch(() => {})
-      .then(() => post({ type: 'removed' }));
+    void answer(msg).catch(fail);
   }
 };

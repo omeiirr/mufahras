@@ -2,7 +2,8 @@
 // Run `npm run data` first. Timings are printed so regressions are visible; they are not asserted.
 import { afterAll, describe, expect, it } from 'vitest';
 import type { SearchOptions } from '../src/lib/search/types';
-import { dataBuilt, loadEngine } from './load';
+import type { HadithChunk } from '../src/lib/data/types';
+import { dataBuilt, loadChunk, loadEngine } from './load';
 
 describe.runIf(dataBuilt)('search ranking', () => {
   const engine = loadEngine();
@@ -93,6 +94,19 @@ describe.runIf(dataBuilt)('search ranking', () => {
     expect(r.hits.slice(0, 2).every((h) => !h.overlap)).toBe(true);
     if (firstNear >= 0) expect(r.hits.slice(firstNear).every((h) => h.overlap)).toBe(true);
   });
+
+  it('finds the source of a long pasted passage (more than 255 distinct words)', () => {
+    const { hadiths } = loadChunk<HadithChunk>('hadith-bukhari');
+    const distinct = (en: string) => new Set(en.toLowerCase().split(/\W+/)).size;
+    // The shortest hadith with over 255 distinct words besides common ones like "the": a long passage.
+    const [number, , en] = hadiths.filter((h) => distinct(h[2]) > 400).reduce((a, b) => (b[2].length < a[2].length ? b : a));
+    const words = en.split(/\s+/);
+    // Every 12th word garbled, as in a passage copied with mistakes, so only the word-overlap pass finds it.
+    const pasted = words.map((w, k) => (k % 12 === 5 ? 'qzx' + k : w)).join(' ');
+    const r = engine.search(pasted, { corpus: 'hadith' });
+    timings.push([`pasted Bukhari ${number} (${words.length} words)`, r.ms, r.total]);
+    expect(r.hits[0]?.label).toBe(`Bukhari ${number}`);
+  }, 30_000);
 
   // Paraphrases sharing too few words with the translation; needs search by meaning (future).
   it.todo('paraphrase: "none of you truly believes until he loves for his brother" → Bukhari 13');

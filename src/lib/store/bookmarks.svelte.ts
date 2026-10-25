@@ -72,9 +72,12 @@ export async function removeBookmark(path: string): Promise<void> {
   bookmarks.list = bookmarks.list.filter((x) => x.path !== path);
 }
 
+/** Tags as stored: trimmed, lowercase, no repeats, sorted. */
+const cleanTags = (tags: string[]) => [...new Set(tags.map((t) => t.trim().toLowerCase()).filter(Boolean))].sort();
+
 export async function setTags(path: string, tags: string[]): Promise<void> {
   const b = bookmarks.list.find((x) => x.path === path);
-  if (b) await put({ ...b, tags: [...new Set(tags.map((t) => t.trim().toLowerCase()).filter(Boolean))].sort() });
+  if (b) await put({ ...b, tags: cleanTags(tags) });
 }
 
 export const allTags = () => [...new Set(bookmarks.list.flatMap((b) => b.tags))].sort();
@@ -102,7 +105,7 @@ export async function importBookmarks(file: File): Promise<number> {
       label: String(raw.label ?? raw.path),
       sublabel: String(raw.sublabel ?? ''),
       text: String(raw.text ?? '').slice(0, 400),
-      tags: [...new Set([...(existing?.tags ?? []), ...(Array.isArray(raw.tags) ? raw.tags.map(String) : [])])],
+      tags: cleanTags([...(existing?.tags ?? []), ...(Array.isArray(raw.tags) ? raw.tags.map(String) : [])]),
       created: existing?.created ?? (Number(raw.created) || Date.now()),
     });
     n++;

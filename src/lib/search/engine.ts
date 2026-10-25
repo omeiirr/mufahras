@@ -15,7 +15,7 @@ import { HADITH_BOOKS } from '../data/types';
 import { DUAS } from '../data/duas';
 import type { NamesOfAllahChunk, WordsChunk } from '../data/types';
 import { wordSpans } from '../text/quran-display';
-import type { GraphChunk, HadithArabicChunk, HadithBookId, HadithChunk, MutashabihatChunk, QuranChunk, SimilarChunk, TafsirChunk, Theme, Topic, TranslitChunk } from '../data/types';
+import type { GraphChunk, HadithArabicChunk, HadithBookId, HadithChunk, MutashabihatChunk, QuranChunk, SimilarChunk, Surah, TafsirChunk, Theme, Topic, TranslitChunk } from '../data/types';
 import type { AyahDetail, AyahLine, Chip, Detail, DetailRequest, HadithDetail, SectionDetail } from '../data/views';
 import { classifyGrade, gradeRank, summarizeGrades, type GradeClass } from '../hadith/grades';
 import { foldTranslit, hasArabic, normalizeArabic, normalizeLatin, stripTanzilMarks } from '../text/normalize';
@@ -50,6 +50,13 @@ const quality = (tier: Tier, boundary: 0 | 1 | 2) => (tier - 1) * 3 + boundary +
 const tierOf = (q: number) => (Math.floor((q - 1) / 3) + 1) as Tier;
 const BOUNDARY_BONUS = [0, 4, 10];
 const termScore = (q: number) => tierOf(q) * 30 + BOUNDARY_BONUS[(q - 1) % 3]!;
+
+/** FNV-1a of a date string: the same verse and hadith of the day for everyone on that date. */
+function dateHash(date: string): number {
+  let h = 0x811c9dc5;
+  for (let k = 0; k < date.length; k++) h = Math.imul(h ^ date.charCodeAt(k), 0x01000193) >>> 0;
+  return h;
+}
 
 /** One searchable field of one collection. */
 interface Segment {
@@ -114,6 +121,8 @@ const CHIP_SECTIONS = 2;
 
 export class SearchEngine {
   private quran?: QuranChunk;
+  /** Surah (position in quran.surahs) of each ayah index. */
+  private surahAt = new Uint8Array(0);
   private translit?: TranslitChunk;
   private parser?: ReferenceParser;
   private books = new Map<HadithBookId, HadithBookState>();
@@ -137,6 +146,8 @@ export class SearchEngine {
 
   addQuran(chunk: QuranChunk): void {
     this.quran = chunk;
+    this.surahAt = new Uint8Array(chunk.ar.length);
+    chunk.surahs.forEach((s, k) => this.surahAt.fill(k, s.start, s.start + s.count));
     this.parser = new ReferenceParser(chunk.surahs);
     this.extra = new Enrichment(chunk);
     this.addSegment('quran', 'en', chunk.en.map(normalizeLatin));
@@ -169,14 +180,6 @@ export class SearchEngine {
     if (!state) throw new Error(`addHadithArabic: load the ${book} chunk first`);
     state.arabic = arabic;
     this.addSegment(book, 'ar', arabic.map((a) => normalizeArabic(a)));
-  }
-
-  hasHadith(book: HadithBookId): boolean {
-    return this.books.has(book);
-  }
-
-  hasHadithArabic(book: HadithBookId): boolean {
-    return !!this.books.get(book)?.arabic;
   }
 
   search(query: string, opts: SearchOptions = {}): Omit<SearchResponse, 'partial'> {
@@ -361,7 +364,7 @@ export class SearchEngine {
       const n = index.size;
       const allowed = this.allowedDocs(seg, opts);
       const weight = new Float32Array(n);
-      const count = new Uint8Array(n);
+      const count = new Uint16Array(n); // shared words per document; a pasted passage can have hundreds
       const touched: number[] = [];
       const perTerm: { seen: Uint8Array; idf: number }[] = [];
       for (const term of seg.fold ? content.map(seg.fold) : content) {
@@ -388,7 +391,7 @@ export class SearchEngine {
       // so Quran ayahs are also scored together with the next ayah of the same surah.
       const nextInSurah = (d: number) => {
         if (seg.corpus !== 'quran') return -1;
-        const s = this.quran!.surahs.find((x) => d >= x.start && d < x.start + x.count)!;
+        const s = this.surahOf(d);
         return d + 1 < s.start + s.count ? d + 1 : -1;
       };
       for (const d of touched) {
@@ -558,7 +561,7 @@ export class SearchEngine {
     return {
       kind: 'graph',
       nodes: g.nodes.map(([i, x, y], k) => {
-        const s = q.surahs.find((sur) => i >= sur.start && i < sur.start + sur.count)!;
+        const s = this.surahOf(i);
         const en = q.en[i]!.replace(/[\u00B9\u00B2\u00B3\u2070-\u2079]/g, '');
         return { surah: s.n, ayah: i - s.start + 1, name: s.nameSimple, place: s.place, en: en.length > 160 ? `${en.slice(0, en.lastIndexOf(' ', 150))}…` : en, x, y, degree: degree[k]! };
       }),
@@ -600,7 +603,7 @@ export class SearchEngine {
     if (req.kind === 'surahs') return { kind: 'surahs', surahs: q.surahs };
     if (req.kind === 'daily') {
       const i = this.dailyIndex(req.date);
-      const s = q.surahs.find((x) => i >= x.start && i < x.start + x.count)!;
+      const s = this.surahOf(i);
       return this.detail({ kind: 'ayah', surah: s.n, ayah: i - s.start + 1 });
     }
     if (req.kind === 'hadith') return this.hadithDetail(req.book, req.number);
@@ -618,7 +621,7 @@ export class SearchEngine {
         kind: 'ayah-list',
         list: req.kind,
         ayahs: refs.map((i) => {
-          const s = q.surahs.find((x) => i >= x.start && i < x.start + x.count)!;
+          const s = this.surahOf(i);
           return { surah: s.n, ayah: i - s.start + 1, name: s.nameSimple, ar: q.ar[i]!, en: q.en[i]! };
         }),
       };
@@ -683,9 +686,11 @@ export class SearchEngine {
       const ok = en.length >= 30 && en.length <= 220 && opening.test(en) && !dialogue && /[.!?]["')\]]*$/.test(en);
       return ok ? [i] : [];
     });
-    let h = 0x811c9dc5; // FNV-1a
-    for (let k = 0; k < date.length; k++) h = Math.imul(h ^ date.charCodeAt(k), 0x01000193) >>> 0;
-    return this.dailyPool[h % this.dailyPool.length]!;
+    return this.dailyPool[dateHash(date) % this.dailyPool.length]!;
+  }
+
+  private surahOf(i: number): Surah {
+    return this.quran!.surahs[this.surahAt[i]!]!;
   }
 
   private ayahLine(i: number, ayah: number): AyahLine {
@@ -715,9 +720,7 @@ export class SearchEngine {
       }
     }
     if (!this.dailyHadithPool.length) return null;
-    let h = 0x811c9dc5;
-    for (let k = 0; k < date.length; k++) h = Math.imul(h ^ date.charCodeAt(k), 0x01000193) >>> 0;
-    const [book, number] = this.dailyHadithPool[h % this.dailyHadithPool.length]!;
+    const [book, number] = this.dailyHadithPool[dateHash(date) % this.dailyHadithPool.length]!;
     return this.hadithDetail(book, number);
   }
 
@@ -797,7 +800,7 @@ export class SearchEngine {
 
     if (ref.kind === 'ayah') {
       const q = this.quran!;
-      const s = q.surahs.find((x) => ref.i >= x.start && ref.i < x.start + x.count)!;
+      const s = this.surahOf(ref.i);
       label = `${s.n}:${ref.i - s.start + 1}`;
       path = label;
       sublabel = s.nameSimple;

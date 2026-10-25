@@ -29,7 +29,7 @@ describe.runIf(built)('generated data', () => {
   it('has 114 surahs and 6,236 ayahs in every per-ayah file', () => {
     expect(quran.surahs).toHaveLength(114);
     expect(quran.surahs.reduce((n, s) => n + s.count, 0)).toBe(6236);
-    for (const arr of [quran.ar, quran.en, load<TranslitChunk>('translit').simple, load<TranslitChunk>('translit').wbw, load<string[]>('indopak'), load<TafsirChunk>('tafsir').text])
+    for (const arr of [quran.ar, quran.en, load<TranslitChunk>('translit').simple, load<TranslitChunk>('translit').wbw, load<TafsirChunk>('tafsir').text])
       expect(arr).toHaveLength(6236);
   });
 

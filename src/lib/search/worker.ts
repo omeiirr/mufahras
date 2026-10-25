@@ -49,8 +49,6 @@ export interface LoadStatus {
   loaded: string[];
   /** Everything needed for full English results is loaded (Arabic hadith load on demand). */
   ready: boolean;
-  /** Milliseconds from init until the Quran was searchable. */
-  quranMs?: number;
   error?: string;
 }
 
@@ -70,15 +68,28 @@ let latest: Extract<WorkerRequest, { type: 'search' }> | undefined;
 
 const post = (msg: WorkerResponse) => ctx.postMessage(msg);
 
-/** Each chunk is fetched and added to the engine once; callers await the same promise. */
+/**
+ * Each chunk is fetched and added to the engine once; callers await the same promise. A failed load
+ * is forgotten, so the next request tries again instead of the chunk staying missing until a reload.
+ */
 const chunks = new Map<string, Promise<void>>();
 function ensure(name: string): Promise<void> {
   let p = chunks.get(name);
   if (!p) {
     p = load(name);
     chunks.set(name, p);
+    p.catch(() => chunks.delete(name));
   }
   return p;
+}
+
+/** The manifest, fetched once; like a chunk, a failed fetch is tried again on the next call. */
+function getManifest(): Promise<Manifest> {
+  if (!manifest) {
+    manifest = fetchManifest(base);
+    manifest.catch(() => (manifest = undefined));
+  }
+  return manifest;
 }
 
 async function load(name: string): Promise<void> {
@@ -87,7 +98,7 @@ async function load(name: string): Promise<void> {
   if (arBook) await ensure(`hadith-${arBook}`);
   else if (name !== 'quran') await ensure('quran');
 
-  const info = (await manifest!).chunks[name];
+  const info = (await getManifest()).chunks[name];
   if (!info) throw new Error(`chunk ${name} missing from manifest`);
   const data: unknown = await (await fetchData(name, info.file)).json();
 
@@ -105,6 +116,7 @@ async function load(name: string): Promise<void> {
   else engine.addHadith(data as HadithChunk);
 
   status.loaded.push(name);
+  status.error = undefined; // a load that failed before has now worked
   post({ type: 'status', status: { ...status } });
   if (latest) runSearch(latest);
 }
@@ -155,7 +167,7 @@ async function pruneDataCache(m: Manifest): Promise<void> {
 }
 
 async function offlineStatus(download: boolean): Promise<OfflineStatus> {
-  const m = await manifest!;
+  const m = await getManifest();
   const supported = 'caches' in self && !!(await caches.keys()).length;
   const missing: string[] = [];
   if (supported)
@@ -176,15 +188,12 @@ async function offlineStatus(download: boolean): Promise<OfflineStatus> {
 }
 
 async function init(): Promise<void> {
-  const t0 = performance.now();
-  manifest = fetchManifest(base);
-  manifest.then(pruneDataCache).catch(() => {});
+  getManifest().then(pruneDataCache).catch(() => {});
   await ensure('quran');
-  status.quranMs = Math.round(performance.now() - t0);
-  post({ type: 'status', status: { ...status } });
   await ensure('translit');
   await Promise.all(HADITH_BOOKS.map((b) => ensure(`hadith-${b}`)));
   status.ready = true;
+  status.error = undefined;
   post({ type: 'status', status: { ...status } });
   if (latest) runSearch(latest);
   // Topic names give search its topic chips; small, so fetched right away.
@@ -208,6 +217,23 @@ async function detail(req: DetailRequest): Promise<Detail | null> {
   return engine.detail(req);
 }
 
+/**
+ * Loads what search needs, and on a failure (a dropped connection) tries again: when the device comes
+ * back online, or after a wait that grows from 2 s to a minute. What already loaded is kept.
+ */
+function start(wait = 2000): void {
+  init().catch((err: Error) => {
+    fail(err);
+    const again = () => {
+      clearTimeout(timer);
+      ctx.removeEventListener('online', again);
+      start(Math.min(wait * 2, 60_000));
+    };
+    const timer = setTimeout(again, wait);
+    ctx.addEventListener('online', again);
+  });
+}
+
 function fail(err: Error): void {
   status.error = err.message;
   post({ type: 'status', status: { ...status } });
@@ -217,7 +243,7 @@ ctx.onmessage = (e: MessageEvent<WorkerRequest>) => {
   const msg = e.data;
   if (msg.type === 'init') {
     base = msg.base;
-    init().catch(fail);
+    start();
   } else if (msg.type === 'offline') {
     offlineStatus(msg.download)
       .then((offline) => post({ type: 'offline', id: msg.id, offline }))

@@ -20,13 +20,22 @@ export interface RouteState {
   sahih: boolean;
 }
 
+/** A pasted or hand-typed link can hold a stray "%" (#/50%), which decodeURIComponent throws on. */
+function decodePath(path: string): string {
+  try {
+    return decodeURIComponent(path);
+  } catch {
+    return path;
+  }
+}
+
 function parse(hash: string): RouteState {
   const raw = hash.replace(/^#\/?/, '');
   const [path = '', query = ''] = raw.split('?', 2);
   const params = new URLSearchParams(query);
   const corpus = params.get('in');
   return {
-    path: decodeURIComponent(path),
+    path: decodePath(path),
     q: params.get('q') ?? '',
     corpus: corpus === 'quran' || corpus === 'hadith' ? corpus : 'all',
     sahih: params.get('sahih') === '1',
