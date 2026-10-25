@@ -103,6 +103,17 @@
     border-radius: var(--radius) var(--radius) 0 0;
     box-shadow: var(--shadow);
   }
+  /* On a wide screen it opens as a centred dialog; on a phone it stays a bottom sheet. */
+  @media (min-width: 1024px) {
+    .sheet {
+      top: 50%;
+      bottom: auto;
+      transform: translate(-50%, -50%);
+      max-height: 90dvh;
+      padding-bottom: var(--space-4);
+      border-radius: var(--radius);
+    }
+  }
   .head {
     display: flex;
     justify-content: space-between;
