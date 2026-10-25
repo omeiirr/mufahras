@@ -36,6 +36,11 @@ const PHRASE_CANDIDATES = 300;
 /** Source finder: tried when a query of at least this many meaningful words matches fewer than SOURCE_BELOW strictly. */
 const SOURCE_MIN_WORDS = 3;
 const SOURCE_BELOW = 10;
+// A pasted passage can run to hundreds of words; matching every one takes seconds. Past LONG_PASTE content
+// words, a query is matched on its rarest words only (they identify the source), and highlighted in full.
+const LONG_PASTE = 40;
+const KEY_WORDS_STRICT = 20;
+const KEY_WORDS_OVERLAP = 60;
 
 // Words too common to say anything about the source of a quote.
 const EN_STOP = new Set(
@@ -196,8 +201,10 @@ export class SearchEngine {
     const segments = this.segments.filter((s) => (arabic ? s.field === 'ar' : s.field !== 'ar') && this.corpusAllowed(s.corpus, opts));
     // Long queries skip the fuzzy pass: with many words, one-typo and abbreviation matches on every
     // word add up to thousands of weak hits. The source finder below handles them instead.
-    const long = terms.filter((t) => t.length > 1 && !(arabic ? AR_STOP : EN_STOP).has(t)).length >= 4;
-    let found = this.run(segments, terms, false, arabic, opts);
+    const content = terms.filter((t) => t.length > 1 && !(arabic ? AR_STOP : EN_STOP).has(t));
+    const long = content.length >= 4;
+    const key = content.length > LONG_PASTE ? this.rarest(segments, content, KEY_WORDS_OVERLAP) : undefined;
+    let found = this.run(segments, key ? key.slice(0, KEY_WORDS_STRICT) : terms, false, arabic, opts);
     if (found.length < FUZZY_BELOW && !long) found = this.run(segments, terms, true, arabic, opts);
 
     // Best candidate per document across its fields and spellings.
@@ -223,12 +230,11 @@ export class SearchEngine {
     // may still share most of its words with the source, in another translation or wording.
     // These come after every strict match.
     if (ranked.length < SOURCE_BELOW) {
-      const near = this.overlap(segments, terms, arabic, opts, best);
+      const near = this.overlap(segments, key ?? terms, arabic, opts, best);
       ranked.push(...near);
     }
 
     // Close matches highlight only the meaningful words they were matched on, not "a" or "its".
-    const content = terms.filter((t) => t.length > 1 && !(arabic ? AR_STOP : EN_STOP).has(t));
     const hits = ranked
       .slice(offset, offset + limit)
       .map((c) => this.present({ ref: this.refOf(c), score: c.score, tier: c.tier, field: c.seg.field, overlap: c.overlap }, c.overlap ? content : terms));
@@ -345,6 +351,19 @@ export class SearchEngine {
       }
     }
     return out;
+  }
+
+  /**
+   * The `n` rarest of these words across the segments, rarest first. Words found nowhere as written
+   * (a typo, a garbled copy) are left out: they can't identify the source.
+   */
+  private rarest(segments: Segment[], words: string[], n: number): string[] {
+    return words
+      .map((w) => ({ w, df: segments.reduce((sum, seg) => sum + (seg.index.postings(seg.fold ? seg.fold(w) : w)?.length ?? 0), 0) }))
+      .filter((x) => x.df > 0)
+      .sort((a, b) => a.df - b.df)
+      .slice(0, n)
+      .map((x) => x.w);
   }
 
   /**

@@ -3,8 +3,7 @@
 Whole-repo audit. Load assumed: one person on one device, often a phone on a weak connection.
 Overall healthy; one real bug, the rest small.
 
-**All 8 fixed on 2026-10-25.** Found while fixing them: searching a very long pasted passage is slow
-(about 4.5 s on a laptop for a 1,322-word hadith), see item 9.
+**All fixed on 2026-10-25**, including item 9, found while fixing the others.
 
 ## Must fix
 
@@ -45,9 +44,10 @@ Overall healthy; one real bug, the rest small.
 
 ## Found later
 
-9. **A very long pasted passage is slow to search** (`src/lib/search/engine.ts`, `overlap`): every
+9. ✅ **A very long pasted passage is slow to search** (`src/lib/search/engine.ts`, `overlap`): every
    content word is matched (with typos) against the whole index, so a 1,322-word passage takes about
-   4.5 s on a laptop, more on a phone. Capping the words used (say the 60 rarest) would keep it fast.
+   4.5 s on a laptop, more on a phone. Fixed: past 40 content words, the strict pass uses the 20 rarest
+   and the overlap pass the 60 rarest (about 0.2 s); all words are still highlighted.
 
 ## Not checked
 

@@ -106,7 +106,7 @@ describe.runIf(dataBuilt)('search ranking', () => {
     const r = engine.search(pasted, { corpus: 'hadith' });
     timings.push([`pasted Bukhari ${number} (${words.length} words)`, r.ms, r.total]);
     expect(r.hits[0]?.label).toBe(`Bukhari ${number}`);
-  }, 30_000);
+  }); // the default 5 s timeout doubles as a check that long pastes stay fast
 
   // Paraphrases sharing too few words with the translation; needs search by meaning (future).
   it.todo('paraphrase: "none of you truly believes until he loves for his brother" → Bukhari 13');
