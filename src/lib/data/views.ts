@@ -66,12 +66,24 @@ export interface TopicDetail {
   name: string;
   nameAr: string;
   description: string;
-  parents: { id: number; name: string }[];
-  children: { id: number; name: string; count: number }[];
+  /** Every way down to this topic from the top, each path ending with its direct parent. */
+  paths: { id: number; name: string }[][];
+  /** Its subtopics, all the way down. */
+  children: TopicNode[];
   related: { id: number; name: string }[];
   ayahs: (AyahRef & { name: string; en: string })[];
   /** All ayahs in the topic; ayahs holds the first TOPIC_LIMIT. */
   total: number;
+  /** Ayahs in it and in its subtopics. */
+  totalWithin: number;
+}
+
+export interface TopicNode {
+  id: number;
+  name: string;
+  /** Ayahs in the topic and its subtopics. */
+  count: number;
+  children: TopicNode[];
 }
 
 export interface SectionDetail {
@@ -151,8 +163,8 @@ export interface AyahListDetail {
 
 export interface TopicsDetail {
   kind: 'topics';
-  /** Top-level topics with at least 3 ayahs, by name; children with at least 2. */
-  topics: { id: number; name: string; count: number; children: { id: number; name: string; count: number }[] }[];
+  /** Top-level topics with at least 3 ayahs in them or under them, by name, each with its whole tree. */
+  topics: TopicNode[];
 }
 
 export interface PhrasesDetail {

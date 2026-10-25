@@ -278,7 +278,8 @@ const topics: Topic[] = topicRows.map((t) => {
       .filter((x) => x > 0 && topicIds.has(x));
   return {
     id: t.topic_id,
-    name: t.name.trim(),
+    // Many names carry the line breaks and tabs of the index they were copied from; "Enoch(mentioned passingly)".
+    name: t.name.replace(/\s+/g, ' ').replace(/(\w)\(/g, '$1 (').trim(),
     nameAr: (t.arabic_name ?? '').trim(),
     parents: [...new Set([t.parent_id, t.thematic_parent_id, t.ontology_parent_id].filter((p): p is number => !!p && topicIds.has(p)))],
     description: stripHtml(t.description ?? ''),
@@ -286,6 +287,45 @@ const topics: Topic[] = topicRows.map((t) => {
     related: ids(t.related_topics),
   };
 });
+fixProphets(new Map(topics.map((t) => [t.id, t])));
+
+/**
+ * QUL's "Prophets (25 mentioned by name)" (2284) lists 22, and some rows are shifted by one: Job's entry
+ * "tested then rewarded" (21:83) sits under Jesus, "Job the Baptist" holds John the Baptist's birth, "John"
+ * holds Jonah's whale, and Isaac, Muhammad and Shuaib are empty (two misspelled). Point each prophet at the
+ * right entry; an empty one takes the verses of the same prophet in the Human › Prophet tree.
+ */
+function fixProphets(byId: Map<number, Topic>): void {
+  const get = (id: number, name: string) => {
+    const t = byId.get(id);
+    if (!t || !t.name.startsWith(name)) throw new Error(`topics: expected "${name}" at ${id}, found "${t?.name}"; QUL data changed, recheck fixProphets`);
+    return t;
+  };
+  const prophets = get(2284, 'Prophets');
+  const moveTo = (child: Topic, from: Topic, to: Topic) => (child.parents = child.parents.map((p) => (p === from.id ? to.id : p)));
+  const listAsProphet = (t: Topic) => !t.parents.includes(prophets.id) && t.parents.push(prophets.id);
+
+  const job = get(819, 'Job');
+  moveTo(get(2313, 'tested then rewarded'), get(36, 'Jesus'), job);
+  listAsProphet(job);
+  const jonah = get(821, 'Jonah');
+  moveTo(get(2316, 'swallowed by whale'), get(2315, 'John'), jonah);
+  listAsProphet(jonah);
+
+  for (const [id, wrong, name, sameProphet] of [
+    [2314, 'Job', 'John the Baptist', 89], // Yahya
+    [2307, 'Issac', 'Isaac', 49],
+    [2350, 'Muhammd', 'Muhammad', 97],
+    [2352, 'Shuaib', 'Shuaib', 134], // Shuayb
+  ] as const) {
+    const t = get(id, wrong);
+    const other = byId.get(sameProphet)!;
+    t.name = name;
+    if (!t.ayahs.length) t.ayahs = [...other.ayahs];
+    t.related = [...new Set([...t.related, other.id])];
+  }
+}
+
 // Keep topics that point at ayahs, plus any topic that is a parent of a kept one (needed for the hierarchy).
 const keepTopic = new Set(topics.filter((t) => t.ayahs.length).map((t) => t.id));
 for (let grew = true; grew; ) {

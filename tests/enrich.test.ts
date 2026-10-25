@@ -48,6 +48,24 @@ describe.runIf(dataBuilt)('topic and chapter pages, chips', () => {
     expect(t.ayahs.map((a) => `${a.surah}:${a.ayah}`)).toContain('2:153');
   });
 
+  it('shows the topic tree: headings with no ayahs of their own, the 25 prophets, the path to a topic', () => {
+    const index = engine.detail({ kind: 'topics' });
+    if (index?.kind !== 'topics') throw new Error('no topics');
+    const stories = index.topics.find((t) => t.name === 'Stories')!;
+    expect(stories.count).toBeGreaterThan(1000);
+    const prophets = stories.children.find((t) => t.name.startsWith('Prophets'))!;
+    expect(prophets.name).toBe('Prophets (25 mentioned by name)');
+    expect(prophets.children.map((t) => t.name)).toHaveLength(25);
+    expect(prophets.children.map((t) => t.name)).toEqual(expect.arrayContaining(['Isaac', 'Job', 'John the Baptist', 'Jonah', 'Muhammad']));
+    const job = prophets.children.find((t) => t.name === 'Job')!;
+    expect(job.children.map((t) => t.name)).toContain('tested then rewarded');
+
+    const moses = engine.detail({ kind: 'topic', id: prophets.children.find((t) => t.name === 'Moses')!.id }) as TopicDetail;
+    expect(moses.paths.map((p) => p.map((t) => t.name))).toContainEqual(['Stories', 'Prophets (25 mentioned by name)']);
+    expect(moses.children.map((t) => t.name)).toContain('parting of the Red Sea');
+    expect(engine.detail({ kind: 'topic', id: stories.id })).toMatchObject({ total: 0, totalWithin: stories.count });
+  });
+
   it('suggests hadith chapters and builds the chapter page', () => {
     const chip = engine.search('fasting').chips.find((c) => c.kind === 'section' && c.sub.startsWith('Bukhari'));
     expect(chip?.label).toMatch(/Fasting/);

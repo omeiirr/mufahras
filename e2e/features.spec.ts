@@ -54,3 +54,13 @@ test('bookmarks: save, tag, and find them in the list', async ({ page }) => {
   await page.keyboard.press('Enter');
   await expect(page.getByRole('radio', { name: 'kursi' })).toBeVisible();
 });
+
+test('topics open as a tree down to the prophets, and a topic page shows where it sits', async ({ page }) => {
+  await openApp(page, '#/topics');
+  await page.getByRole('button', { name: 'Subtopics of Stories' }).click();
+  await page.getByRole('button', { name: 'Subtopics of Prophets (25 mentioned by name)' }).click();
+  await page.getByRole('link', { name: /^Moses \d+$/ }).first().click();
+  await expect(page.getByRole('heading', { name: 'Moses', level: 1 })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Part of' })).toContainText('Stories›Prophets (25 mentioned by name)');
+  await expect(page.getByRole('list', { name: 'Subtopics of Moses' })).toContainText('parting of the Red Sea');
+});

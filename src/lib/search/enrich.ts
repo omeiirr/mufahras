@@ -2,7 +2,7 @@
 // (Al-Mukhtasar), passage themes, topics, similar ayahs and mutashabihat. Kept apart from the search
 // engine, which only needs the topic names for chips.
 import type { MutashabihatChunk, QuranChunk, SimilarChunk, Surah, TafsirChunk, Theme, Topic } from '../data/types';
-import type { AyahExtra, AyahRef, PhrasesDetail, TopicDetail, TopicsDetail } from '../data/views';
+import type { AyahExtra, AyahRef, PhrasesDetail, TopicDetail, TopicNode, TopicsDetail } from '../data/views';
 import { normalizeLatin } from '../text/normalize';
 import { wordRangesToChars, wordSpans } from '../text/quran-display';
 
@@ -23,6 +23,8 @@ export class Enrichment {
   private topicById = new Map<number, Topic>();
   private topicsOfAyah = new Map<number, number[]>();
   private childrenOf = new Map<number, number[]>();
+  /** Ayahs in a topic and everything under it, filled on first use. */
+  private within = new Map<number, number>();
   /** Normalized topic names, for chip matching. */
   private topicNames: string[] = [];
 
@@ -163,15 +165,12 @@ export class Enrichment {
       name: this.label(t),
       nameAr: t.nameAr,
       description: t.description,
-      parents: named(t.parents),
-      children: (this.childrenOf.get(id) ?? [])
-        .map((c) => this.topicById.get(c)!)
-        .filter((c) => c.ayahs.length)
-        .sort((a, b) => b.ayahs.length - a.ayahs.length)
-        .map((c) => ({ id: c.id, name: c.name, count: c.ayahs.length })),
+      paths: this.pathsTo(t),
+      children: this.subtree(t.id),
       related: named(t.related),
       ayahs: t.ayahs.slice(0, TOPIC_LIMIT).map((i) => ({ ...this.ref(i), en: this.quran.en[i]! })),
       total: t.ayahs.length,
+      totalWithin: this.countWithin(t.id),
     };
   }
 
@@ -183,25 +182,65 @@ export class Enrichment {
     return !!this.phrases;
   }
 
-  /** The topic index: top-level topics (no parents) with at least 3 ayahs, each with its children. */
+  /** The topic index: top-level topics (no parents) with at least 3 ayahs in them or under them, each with its tree. */
   topicsIndex(): TopicsDetail {
-    const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name);
     return {
       kind: 'topics',
       topics: (this.topics ?? [])
-        .filter((t) => !t.parents.length && t.ayahs.length >= 3)
-        .map((t) => ({
-          id: t.id,
-          name: t.name,
-          count: t.ayahs.length,
-          children: (this.childrenOf.get(t.id) ?? [])
-            .map((c) => this.topicById.get(c)!)
-            .filter((c) => c.ayahs.length >= 2)
-            .map((c) => ({ id: c.id, name: this.label(c), count: c.ayahs.length }))
-            .sort(byName),
-        }))
-        .sort(byName),
+        .filter((t) => !t.parents.length && this.countWithin(t.id) >= 3)
+        .map((t) => this.node(t, new Set()))
+        .sort((a, b) => a.name.localeCompare(b.name)),
     };
+  }
+
+  /** Distinct ayahs in a topic and all its subtopics; a heading like "Stories" has none of its own. */
+  private countWithin(id: number): number {
+    let n = this.within.get(id);
+    if (n === undefined) {
+      const all = new Set<number>();
+      const seen = new Set<number>();
+      const walk = (x: number) => {
+        if (seen.has(x)) return;
+        seen.add(x);
+        for (const i of this.topicById.get(x)!.ayahs) all.add(i);
+        for (const c of this.childrenOf.get(x) ?? []) walk(c);
+      };
+      walk(id);
+      this.within.set(id, (n = all.size));
+    }
+    return n;
+  }
+
+  private node(t: Topic, above: Set<number>): TopicNode {
+    return { id: t.id, name: t.name, count: this.countWithin(t.id), children: this.subtree(t.id, new Set(above).add(t.id)) };
+  }
+
+  /**
+   * The subtopics of a topic, all the way down, leaving out any with no ayahs. Names come first, by name
+   * (the prophets, the planets); fragments ("childhood", "goes to jail") keep QUL's order, which follows
+   * the story.
+   */
+  private subtree(id: number, above = new Set([id])): TopicNode[] {
+    const fragment = (t: Topic) => /^[a-z"'“]/.test(t.name);
+    return (this.childrenOf.get(id) ?? [])
+      .filter((c) => !above.has(c) && this.countWithin(c))
+      .map((c) => this.topicById.get(c)!)
+      .sort((a, b) => Number(fragment(a)) - Number(fragment(b)) || (fragment(a) ? a.id - b.id : a.name.localeCompare(b.name)))
+      .map((c) => this.node(c, above));
+  }
+
+  /** Each chain of parents from the top down to `t`, not including `t`; a topic under two parents has two. */
+  private pathsTo(t: Topic, below = new Set<number>()): { id: number; name: string }[][] {
+    const out: { id: number; name: string }[][] = [];
+    for (const p of t.parents) {
+      const parent = this.topicById.get(p);
+      if (!parent || p === t.id || below.has(p)) continue;
+      const step = { id: parent.id, name: parent.name };
+      const up = this.pathsTo(parent, new Set(below).add(t.id));
+      if (up.length) for (const path of up) out.push([...path, step]);
+      else out.push([step]);
+    }
+    return out;
   }
 
   /** Every repeated phrase, most repeated first, with where it occurs. */
