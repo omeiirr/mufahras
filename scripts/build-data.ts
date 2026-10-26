@@ -21,6 +21,7 @@ import type {
   HadithChunk,
   HadithRow,
   Manifest,
+  MushafChunk,
   MutashabihatChunk,
   Phrase,
   QuranChunk,
@@ -136,7 +137,7 @@ function perAyah<V>(name: string, src: Record<string, V>, get: (v: V, key: strin
 }
 
 // Uthmani script is word-level; the last word of each ayah is its number marker (e.g. "٢٥٥").
-type QulWord = { surah: string; ayah: string; word: string; text: string };
+type QulWord = { id: number; surah: string; ayah: string; word: string; text: string };
 const words = qulJson<Record<string, QulWord>>('uthmani.json');
 const wordsByAyah = new Map<string, [number, string][]>();
 for (const w of Object.values(words)) {
@@ -212,6 +213,34 @@ const wordsChunk: WordsChunk = {
 };
 notes.push(wbwMeaningFile ? `words: meanings from ${wbwMeaningFile}` : 'words: no word-by-word translation in data-src/qul yet; transliteration only');
 const translitChunk: TranslitChunk = { simple: translit, wbw: translitWbw };
+
+// ---------------------------------------------------------------- mushaf pages (Madani, 15 lines)
+
+// QUL's layout of the KFGQPC V2 (1421H) print: 604 pages of 15 lines, each line a surah name, the
+// bismillah, or a run of words by QUL word id (the same ids as uthmani.json, ayah markers included).
+// A word becomes [ayah index, position], the position counting words in `ar`, so the marker's position
+// is the ayah's word count.
+const wordAt = new Map<number, [number, number]>();
+for (const w of Object.values(words)) wordAt.set(w.id, [ayahIndex(`${w.surah}:${w.ayah}`, 'mushaf'), Number(w.word) - 1]);
+for (const [id, [i, pos]] of wordAt) {
+  const count = ar[i]!.split(' ').length;
+  if (pos > count) throw new Error(`mushaf: word ${id} at position ${pos} of ${count} in ayah ${i}`);
+}
+type LayoutRow = { page_number: number; line_number: number; line_type: string; is_centered: number; first_word_id: number | ''; last_word_id: number | ''; surah_number: number | '' };
+const layoutDb = qulSqlite('qpc-v2-15-lines');
+const mushaf: MushafChunk = { name: 'KFGQPC V2 (1421H print), 15 lines', pages: [] };
+for (const r of layoutDb.prepare('SELECT * FROM pages ORDER BY page_number, line_number').all() as LayoutRow[]) {
+  const lines = (mushaf.pages[r.page_number - 1] ??= []);
+  if (r.line_type === 'surah_name') lines.push([0, Number(r.surah_number)]);
+  else if (r.line_type === 'basmallah') lines.push([1]);
+  else if (r.line_type === 'ayah') {
+    const [a, b] = [wordAt.get(Number(r.first_word_id)), wordAt.get(Number(r.last_word_id))];
+    if (!a || !b) throw new Error(`mushaf: page ${r.page_number} line ${r.line_number} has unknown words`);
+    lines.push([2, r.is_centered ? 1 : 0, ...a, ...b]);
+  } else throw new Error(`mushaf: unknown line type ${r.line_type}`);
+}
+// Pages 1 and 2 (Al-Fatihah, the start of Al-Baqarah) have 8 lines in a decorated frame, as in print.
+if (mushaf.pages.length !== 604 || mushaf.pages.some((p, k) => p.length !== (k < 2 ? 8 : 15))) throw new Error('mushaf: expected 604 pages of 15 lines');
 
 // ---------------------------------------------------------------- tafsir (Al-Mukhtasar)
 
@@ -636,6 +665,7 @@ emit('mutashabihat', mutashabihat, Object.keys(phrases).length);
 emit('graph', graph, graph.edges.length);
 emit('words', wordsChunk, wordsChunk.translit.reduce((n, w) => n + w.length, 0));
 emit('names-of-allah', namesOfAllah, namesOfAllah.length);
+emit('mushaf', mushaf, mushaf.pages.length);
 for (const [c, arabic] of hadithChunks) {
   emit(`hadith-${c.id}`, c, c.hadiths.length);
   emit(`hadith-${c.id}-ar`, arabic, arabic.length);
@@ -647,6 +677,7 @@ const sources: Source[] = [
   { name: 'Transliteration', provider: 'QUL', url: 'https://qul.tarteel.ai/resources/transliteration', license: 'Not stated', version: 'QUL download' },
   { name: 'Word-by-word English meanings', provider: 'QUL', url: 'https://qul.tarteel.ai/resources/translation', license: 'Not stated', version: 'QUL download' },
   { name: 'Abridged Explanation of the Quran (Al-Mukhtasar)', provider: 'Tafsir Center for Quranic Studies, via QUL', url: 'https://qul.tarteel.ai/resources/tafsir', license: 'Not stated', version: 'QUL download' },
+  { name: 'Mushaf page layout (KFGQPC V2, 1421H print, 15 lines)', provider: 'QUL', url: 'https://qul.tarteel.ai/resources/mushaf-layout', license: 'Not stated', version: 'QUL download' },
   { name: 'Topics, ayah themes, similar ayahs, mutashabihat', provider: 'QUL', url: 'https://qul.tarteel.ai/resources', license: 'Not stated', version: 'QUL download' },
   { name: 'The 99 Names of Allah (Arabic, transliteration, English, meanings)', provider: 'UmmahAPI', url: 'https://ummahapi.com/asma-ul-husna-api', license: 'Provided as sadaqah jariah', version: 'Downloaded 2026-10-24' },
   { name: 'Hadith (six books, English + Arabic, gradings)', provider: 'fawazahmed0/hadith-api', url: 'https://github.com/fawazahmed0/hadith-api', license: 'Unlicense', version: HADITH_API_COMMIT },

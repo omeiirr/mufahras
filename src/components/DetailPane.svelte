@@ -94,7 +94,7 @@
     if (detail.kind === 'section') return `${detail.short} · ${detail.name}`;
     if (detail.kind === 'graph') return 'Similar verses';
     if (detail.kind === 'books') return 'Hadith collections';
-    if (detail.kind === 'words') return '';
+    if (detail.kind === 'words' || detail.kind === 'mushaf') return '';
     if (detail.kind === 'ayah-list') return detail.list === 'duas' ? 'Duas of the Quran' : 'Sajdah verses';
     if (detail.kind === 'topics') return 'Topics';
     if (detail.kind === 'phrases') return 'Repeated phrases';

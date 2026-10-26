@@ -18,5 +18,6 @@ Downloaded by hand from [QUL](https://qul.tarteel.ai/resources) (requires a free
 | `matching-ayah.json.zip` | Similar ayahs | QUL |
 | `Mutashabihat ul Quran.json.bz2` | Mutashabihat (a zip despite the name) | QUL |
 | `quran-metadata-surah-name.json.zip` | Surah metadata | QUL |
+| `qpc-v2-15-lines.db.zip` | Mushaf layout: KFGQPC V2 (1421H print), 15 lines, downloaded 2026-10-26 | QUL (King Fahd Complex print) |
 
 Licensing status: see "QUL licensing status" in `PLAN.md`.

@@ -31,6 +31,17 @@ export interface TranslitChunk {
   wbw: string[];
 }
 
+/**
+ * A printed mushaf's pages, line by line. A line is [0, surah] for a surah's name, [1] for the
+ * bismillah, or [2, centered, fromAyah, fromPos, toAyah, toPos] for a run of words: ayah indices, and
+ * word positions in the ayah's `ar` (0-based; a position equal to the word count is the ayah marker).
+ */
+export interface MushafChunk {
+  name: string;
+  pages: MushafLine[][];
+}
+export type MushafLine = [0, number] | [1] | [2, 0 | 1, number, number, number, number];
+
 export interface TafsirChunk {
   /** Explanation per ayah index; a number points to the group head whose text covers this ayah. */
   text: (string | number)[];

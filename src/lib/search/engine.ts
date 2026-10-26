@@ -13,10 +13,10 @@ import uFuzzy from '@leeoniya/ufuzzy';
 import { BOOKS, formatHadithNumber } from '../data/books';
 import { HADITH_BOOKS } from '../data/types';
 import { DUAS } from '../data/duas';
-import type { NamesOfAllahChunk, WordsChunk } from '../data/types';
+import type { MushafChunk, MushafLine, NamesOfAllahChunk, WordsChunk } from '../data/types';
 import { wordSpans } from '../text/quran-display';
 import type { GraphChunk, HadithArabicChunk, HadithBookId, HadithChunk, MutashabihatChunk, QuranChunk, SimilarChunk, Surah, TafsirChunk, Theme, Topic, TranslitChunk } from '../data/types';
-import type { AyahDetail, AyahLine, Chip, Detail, DetailRequest, HadithDetail, SectionDetail } from '../data/views';
+import type { AyahDetail, AyahLine, Chip, Detail, DetailRequest, HadithDetail, MushafDetail, MushafLineView, SectionDetail } from '../data/views';
 import { classifyGrade, gradeRank, summarizeGrades, type GradeClass } from '../hadith/grades';
 import { foldTranslit, hasArabic, normalizeArabic, normalizeLatin, stripTanzilMarks } from '../text/normalize';
 import { mapRanges, normalizeArabicMapped, normalizeLatinMapped, type Mapped } from '../text/normalize-map';
@@ -564,7 +564,11 @@ export class SearchEngine {
   addNamesOfAllah(c: NamesOfAllahChunk): void {
     this.namesOfAllah = c;
   }
+  addMushaf(c: MushafChunk): void {
+    this.mushaf = c;
+  }
   private namesOfAllah?: NamesOfAllahChunk;
+  private mushaf?: MushafChunk;
   private words?: WordsChunk;
   private graph?: GraphChunk;
 
@@ -649,6 +653,7 @@ export class SearchEngine {
       return this.namesOfAllah
         ? { kind: 'names-of-allah', names: this.namesOfAllah.map(([number, ar, translit, en, meaning]) => ({ number, ar, translit, en, meaning })) }
         : null;
+    if (req.kind === 'mushaf') return this.mushafDetail(req.surah);
     if (req.kind === 'topics') return this.extra?.hasTopics ? this.extra.topicsIndex() : null;
     if (req.kind === 'phrases') return this.extra?.hasPhrases ? this.extra.phrasesIndex() : null;
     if (req.kind === 'words') {
@@ -706,6 +711,35 @@ export class SearchEngine {
       return ok ? [i] : [];
     });
     return this.dailyPool[dateHash(date) % this.dailyPool.length]!;
+  }
+
+  /** The pages of the printed mushaf that hold this surah, with each line's words. */
+  private mushafDetail(surah: number): MushafDetail | null {
+    const q = this.quran!;
+    const s = q.surahs[surah - 1];
+    if (!s || !this.mushaf) return null;
+    const lineSurah = (l: MushafLine) => (l[0] === 0 ? l[1] : l[0] === 2 ? this.surahOf(l[2]).n : 0);
+    const pages: MushafDetail['pages'] = [];
+    this.mushaf.pages.forEach((lines, k) => {
+      if (!lines.some((l) => lineSurah(l) === surah)) return;
+      pages.push({
+        n: k + 1,
+        lines: lines.map((l): MushafLineView => {
+          if (l[0] === 0) return { kind: 'surah', surah: l[1], name: q.surahs[l[1] - 1]!.nameAr };
+          if (l[0] === 1) return { kind: 'bismillah' };
+          const [, centered, fromAyah, fromPos, toAyah, toPos] = l;
+          const words: { text: string; ayah: number; marker: boolean; first: boolean }[] = [];
+          for (let i = fromAyah; i <= toAyah; i++) {
+            const spans = wordSpans(q.ar[i]!);
+            const ayah = i - this.surahOf(i).start + 1;
+            for (let p = i === fromAyah ? fromPos : 0; p <= (i === toAyah ? toPos : spans.length); p++)
+              words.push(p < spans.length ? { text: q.ar[i]!.slice(spans[p]![0], spans[p]![1]), ayah, marker: false, first: p === 0 } : { text: String(ayah), ayah, marker: true, first: false });
+          }
+          return { kind: 'ayah', surah: this.surahOf(fromAyah).n, centered: !!centered, words };
+        }),
+      });
+    });
+    return { kind: 'mushaf', surah, pages };
   }
 
   private surahOf(i: number): Surah {

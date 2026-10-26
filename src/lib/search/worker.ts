@@ -21,6 +21,7 @@ import {
   type GraphChunk,
   type WordsChunk,
   type NamesOfAllahChunk,
+  type MushafChunk,
 } from '../data/types';
 import { DATA_CACHE, fetchManifest } from '../data/fetch';
 import { SearchEngine } from './engine';
@@ -112,6 +113,7 @@ async function load(name: string): Promise<void> {
   else if (name === 'graph') engine.addGraph(data as GraphChunk);
   else if (name === 'words') engine.addWords(data as WordsChunk);
   else if (name === 'names-of-allah') engine.addNamesOfAllah(data as NamesOfAllahChunk);
+  else if (name === 'mushaf') engine.addMushaf(data as MushafChunk);
   else if (arBook) engine.addHadithArabic(arBook, data as HadithArabicChunk);
   else engine.addHadith(data as HadithChunk);
 
@@ -133,7 +135,7 @@ function runSearch(req: Extract<WorkerRequest, { type: 'search' }>): void {
 const EXTRA_CHUNKS = ['tafsir', 'themes', 'topics', 'similar', 'mutashabihat', 'graph'];
 
 /** Chunks needed for everything the app does today; Arabic hadith included. */
-const OFFLINE_CHUNKS = ['quran', 'translit', 'words', 'names-of-allah', ...EXTRA_CHUNKS, ...HADITH_BOOKS.map((b) => `hadith-${b}`), ...HADITH_BOOKS.map((b) => `hadith-${b}-ar`)];
+const OFFLINE_CHUNKS = ['quran', 'translit', 'words', 'names-of-allah', 'mushaf', ...EXTRA_CHUNKS, ...HADITH_BOOKS.map((b) => `hadith-${b}`), ...HADITH_BOOKS.map((b) => `hadith-${b}-ar`)];
 
 /**
  * Fetches a data chunk, cache first (names are content-hashed, so a cached copy is never stale),
@@ -210,6 +212,7 @@ async function detail(req: DetailRequest): Promise<Detail | null> {
   if (req.kind === 'words') await ensure('words');
   if (req.kind === 'topics') await ensure('topics');
   if (req.kind === 'names-of-allah') await ensure('names-of-allah');
+  if (req.kind === 'mushaf') await ensure('mushaf');
   if (req.kind === 'phrases') await ensure('mutashabihat');
   if (req.kind === 'hadith-daily') await Promise.all([ensure('hadith-bukhari'), ensure('hadith-muslim')]);
   if (req.kind === 'books') await Promise.all(HADITH_BOOKS.map((b) => ensure(`hadith-${b}`)));

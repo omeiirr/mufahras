@@ -23,7 +23,9 @@ export type DetailRequest =
   | { kind: 'sajdah' }
   | { kind: 'topics' }
   | { kind: 'phrases' }
-  | { kind: 'names-of-allah' };
+  | { kind: 'names-of-allah' }
+  /** The printed mushaf's pages that hold a surah. */
+  | { kind: 'mushaf'; surah: number };
 
 export interface AyahLine {
   ayah: number;
@@ -178,12 +180,25 @@ export interface NamesOfAllahDetail {
   names: { number: number; ar: string; translit: string; en: string; meaning: string }[];
 }
 
+export interface MushafDetail {
+  kind: 'mushaf';
+  surah: number;
+  /** Whole pages, so they can hold the end of the surah before or the start of the one after. */
+  pages: { n: number; lines: MushafLineView[] }[];
+}
+
+export type MushafLineView =
+  | { kind: 'surah'; surah: number; name: string }
+  | { kind: 'bismillah' }
+  /** Lines never cross a surah boundary; `marker` words are ayah numbers, `first` an ayah's first word. */
+  | { kind: 'ayah'; surah: number; centered: boolean; words: { text: string; ayah: number; marker: boolean; first: boolean }[] };
+
 export interface BooksDetail {
   kind: 'books';
   books: { id: HadithBookId; title: string; short: string; count: number; sections: { n: number; name: string; count: number }[] }[];
 }
 
-export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail | TopicDetail | SectionDetail | GraphDetail | BooksDetail | WordsDetail | AyahListDetail | TopicsDetail | PhrasesDetail | NamesOfAllahDetail;
+export type Detail = AyahDetail | SurahDetail | SurahList | HadithDetail | TopicDetail | SectionDetail | GraphDetail | BooksDetail | WordsDetail | AyahListDetail | TopicsDetail | PhrasesDetail | NamesOfAllahDetail | MushafDetail;
 
 /** Suggested browse links shown above results: a QUL topic, or a chapter (book) of a hadith collection. */
 export interface Chip {

@@ -16,13 +16,15 @@ export interface Settings {
   sakinah: boolean;
   /** Search by meaning: an optional ~50 MB download (src/lib/meaning/). */
   meaning: boolean;
+  /** The surah screen: verse by verse with the translation, the Arabic alone as one text, or the mushaf's pages. */
+  surahView: 'translation' | 'arabic' | 'pages';
 }
 
 export const TEXT_SCALES = [0.9, 1, 1.12, 1.25] as const;
 export const ARABIC_SCALES = [0.85, 1, 1.2, 1.4] as const;
 
 const KEY = 'settings';
-const DEFAULTS: Settings = { textScale: 1, arabicScale: 1, translit: true, history: true, sakinah: false, meaning: false };
+const DEFAULTS: Settings = { textScale: 1, arabicScale: 1, translit: true, history: true, sakinah: false, meaning: false, surahView: 'translation' };
 
 function load(): Settings {
   try {

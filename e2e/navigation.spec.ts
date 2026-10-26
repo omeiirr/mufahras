@@ -113,3 +113,29 @@ test('a download that fails is tried again, and search fills in once it works', 
   await expect(page.getByRole('alert')).toHaveCount(0);
   expect(requests).toBe(2);
 });
+
+test('the surah screen can show the Arabic alone, and remembers it', async ({ page }) => {
+  await openApp(page, '#/surah/67');
+  await expect(page.getByText('Blessed is He in whose hand is dominion')).toBeVisible();
+  await page.getByRole('radio', { name: 'Arabic', exact: true }).click();
+  await expect(page.getByText('Blessed is He in whose hand is dominion')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Verse 67:30' })).toBeAttached();
+  await openApp(page, '#/surah/67/15');
+  await expect(page.getByRole('radio', { name: 'Arabic', exact: true })).toBeChecked();
+  await expect(page.locator('#ayah-67-15')).toBeInViewport();
+  await page.getByRole('link', { name: 'Verse 67:15' }).click();
+  await expect(page).toHaveURL(/#\/67:15/);
+});
+
+test('the surah screen shows the pages of the Madani mushaf', async ({ page }) => {
+  await openApp(page, '#/surah/67/15');
+  await page.getByRole('radio', { name: 'Mushaf' }).click();
+  await expect(page.getByRole('region', { name: 'Page 562' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Page 564' })).toBeAttached();
+  await expect(page.locator('#ayah-67-15')).toBeInViewport();
+  const overflowing = await page.locator('.line').evaluateAll((lines) => lines.filter((l) => l.scrollWidth > l.clientWidth + 1).length);
+  expect(overflowing).toBe(0);
+  await page.getByRole('link', { name: 'Verse 67:15' }).click();
+  await expect(page).toHaveURL(/#\/67:15/);
+});
+

@@ -3,7 +3,9 @@
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import type { SurahDetail } from '../lib/data/views';
   import type { SearchClient } from '../lib/search/client';
-  import { placeName } from '../lib/ui/format';
+  import { settings, updateSettings } from '../lib/store/settings.svelte';
+  import { ayahMarker, placeName } from '../lib/ui/format';
+  import MushafPages from './MushafPages.svelte';
   import VerseWords from './VerseWords.svelte';
 
   let { d, scrollTo, hrefFor, client }: { d: SurahDetail; scrollTo?: number; hrefFor: (path: string) => string; client: SearchClient } = $props();
@@ -12,7 +14,7 @@
   const BISMILLAH = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
 
   $effect(() => {
-    if (!scrollTo) return;
+    if (!scrollTo || settings.surahView === 'pages') return; // the pages scroll once they've loaded
     const el = document.getElementById(`ayah-${d.surah.n}-${scrollTo}`);
     el?.scrollIntoView({ block: 'start' });
   });
@@ -23,18 +25,38 @@
     <p class="name-ar" lang="ar" dir="rtl">{d.surah.nameAr}</p>
     <h1>{d.surah.n}. {d.surah.nameSimple}</h1>
     <p class="facts">{placeName(d.surah.place)} · {d.surah.count} ayahs · revelation order {d.surah.order}</p>
+    <div class="seg" role="radiogroup" aria-label="Show">
+      {#each [['translation', 'Translation'], ['arabic', 'Arabic'], ['pages', 'Mushaf']] as const as [view, label] (view)}
+        <button type="button" role="radio" aria-checked={settings.surahView === view} class:on={settings.surahView === view} onclick={() => updateSettings({ surahView: view })}>{label}</button>
+      {/each}
+    </div>
   </header>
 
-  {#if d.surah.bismillah}<p class="quran bismillah" lang="ar" dir="rtl">{BISMILLAH}</p>{/if}
+  {#if settings.surahView === 'pages'}
+    <MushafPages surah={d.surah.n} {client} {hrefFor} {scrollTo} />
+  {:else}
+    {#if d.surah.bismillah}<p class="quran bismillah" lang="ar" dir="rtl">{BISMILLAH}</p>{/if}
 
-  <ol class="ayahs">
-    {#each d.ayahs as a (a.ayah)}
-      <li id={`ayah-${d.surah.n}-${a.ayah}`} class:target={scrollTo === a.ayah}>
-        <VerseWords ar={a.ar} surah={d.surah.n} ayah={a.ayah} {client} />
-        <p class="en"><a class="num" href={hrefFor(`${d.surah.n}:${a.ayah}`)}>{d.surah.n}:{a.ayah}</a> {a.en}</p>
-      </li>
-    {/each}
-  </ol>
+    {#if settings.surahView === 'arabic'}
+      <!-- The surah as one text, as in a mushaf; each ayah's marker opens its verse screen. -->
+      <p class="quran flow" lang="ar" dir="rtl">
+        {#each d.ayahs as a (a.ayah)}
+          <span id={`ayah-${d.surah.n}-${a.ayah}`} class="ayah" class:target={scrollTo === a.ayah}
+            >{a.ar}&nbsp;<a class="marker" href={hrefFor(`${d.surah.n}:${a.ayah}`)} aria-label={`Verse ${d.surah.n}:${a.ayah}`}>{ayahMarker(a.ayah)}</a></span
+          >{' '}
+        {/each}
+      </p>
+    {:else}
+      <ol class="ayahs">
+        {#each d.ayahs as a (a.ayah)}
+          <li id={`ayah-${d.surah.n}-${a.ayah}`} class:target={scrollTo === a.ayah}>
+            <VerseWords ar={a.ar} surah={d.surah.n} ayah={a.ayah} {client} />
+            <p class="en"><a class="num" href={hrefFor(`${d.surah.n}:${a.ayah}`)}>{d.surah.n}:{a.ayah}</a> {a.en}</p>
+          </li>
+        {/each}
+      </ol>
+    {/if}
+  {/if}
 
   <nav class="pager" aria-label="Neighbouring surahs">
     {#if d.prev}<a href={hrefFor(`surah/${d.prev.n}`)}><ChevronLeft size={18} aria-hidden="true" /> {d.prev.nameSimple}</a>{:else}<span></span>{/if}
@@ -63,6 +85,44 @@
     margin: var(--space-1) 0 0;
     color: var(--ink-2);
     font-size: var(--text-sm);
+  }
+  .seg {
+    display: inline-flex;
+    gap: 2px;
+    margin-top: var(--space-3);
+    padding: 2px;
+    background: var(--surface-2);
+    border-radius: 99px;
+  }
+  .seg button {
+    min-height: 36px;
+    padding: 0 var(--space-4);
+    border-radius: 99px;
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+  .seg button.on {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+  }
+  .flow {
+    margin: var(--space-4) 0 0;
+    padding: 0 var(--space-1) var(--space-4);
+    line-height: 2.4;
+    text-align: justify;
+    border-bottom: 1px solid var(--line);
+  }
+  .flow .ayah {
+    scroll-margin-top: var(--space-4);
+    border-radius: 6px;
+  }
+  .flow .ayah.target {
+    background: var(--accent-soft);
+  }
+  .flow .marker {
+    color: var(--accent);
+    text-decoration: none;
   }
   .bismillah {
     text-align: center;

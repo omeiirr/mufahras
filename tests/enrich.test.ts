@@ -1,6 +1,6 @@
 // Verse extras, topic and chapter pages, and browse chips, against the real data.
 import { describe, expect, it } from 'vitest';
-import type { AyahDetail, SectionDetail, TopicDetail } from '../src/lib/data/views';
+import type { AyahDetail, MushafDetail, SectionDetail, SurahDetail, TopicDetail } from '../src/lib/data/views';
 import { normalizeArabic } from '../src/lib/text/normalize';
 import { dataBuilt, loadEngine } from './load';
 
@@ -247,3 +247,29 @@ describe.runIf(dataBuilt)('the 99 Names of Allah', () => {
     }
   });
 });
+
+describe.runIf(dataBuilt)('mushaf pages', () => {
+  const engine = loadEngine();
+  const pagesOf = (surah: number) => engine.detail({ kind: 'mushaf', surah }) as MushafDetail;
+
+  it('puts each surah on its pages of the Madani print', () => {
+    expect(pagesOf(1).pages.map((p) => p.n)).toEqual([1]);
+    expect(pagesOf(67).pages.map((p) => p.n)).toEqual([562, 563, 564]);
+    expect(pagesOf(2).pages.map((p) => p.n)).toEqual(Array.from({ length: 48 }, (_, k) => k + 2));
+    expect(pagesOf(114).pages.map((p) => p.n)).toEqual([604]);
+    expect(pagesOf(67).pages[0]!.lines[0]).toMatchObject({ kind: 'surah', surah: 67 });
+  });
+
+  it('holds every word of every ayah, in order, once', () => {
+    for (let surah = 1; surah <= 114; surah++) {
+      const d = engine.detail({ kind: 'surah', surah }) as SurahDetail;
+      const byAyah = new Map<number, string[]>();
+      for (const p of pagesOf(surah).pages)
+        for (const l of p.lines)
+          if (l.kind === 'ayah' && l.surah === surah)
+            for (const w of l.words) if (!w.marker) (byAyah.get(w.ayah) ?? byAyah.set(w.ayah, []).get(w.ayah)!).push(w.text);
+      for (const a of d.ayahs) expect(byAyah.get(a.ayah)?.join(' '), `${surah}:${a.ayah}`).toBe(a.ar);
+    }
+  });
+});
+
