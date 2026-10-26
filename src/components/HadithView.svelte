@@ -2,6 +2,7 @@
   import ChevronLeft from '@lucide/svelte/icons/chevron-left';
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import type { HadithDetail } from '../lib/data/views';
+  import { addShortcuts, go } from '../lib/ui/keys';
   import Actions from './Actions.svelte';
   import GradeBadge from './GradeBadge.svelte';
 
@@ -12,6 +13,13 @@
   const bookmark = $derived({ path: `${d.book}/${d.number}`, kind: 'hadith' as const, label: `${d.short} ${d.number}`, sublabel: d.section.name, text: d.en.slice(0, 220) });
   // Cards carry the English; a hadith's Arabic includes its whole chain of narrators, too long for an image.
   const card = $derived({ ar: '', arFont: 'arabic' as const, en: d.en, ref, sub: d.section.name });
+
+  $effect(() =>
+    addShortcuts('This hadith', 1, () => [
+      { keys: ['ArrowLeft'], label: 'Previous hadith', when: () => d.prev !== undefined, run: () => go(hrefFor(`${d.book}/${d.prev}`)) },
+      { keys: ['ArrowRight'], label: 'Next hadith', when: () => d.next !== undefined, run: () => go(hrefFor(`${d.book}/${d.next}`)) },
+    ]),
+  );
 </script>
 
 <article class="hadith">

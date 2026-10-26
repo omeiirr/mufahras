@@ -3,7 +3,9 @@
   // The Arabic is tappable word by word, so the reference and the translation are the links to the verse.
   import type { AyahListDetail } from '../lib/data/views';
   import type { SearchClient } from '../lib/search/client';
+  import { addShortcuts, openWords, stepFocus } from '../lib/ui/keys';
   import VerseWords from './VerseWords.svelte';
+  import { radiogroup } from '../lib/ui/focus';
 
   let { d, hrefFor, client }: { d: AyahListDetail; hrefFor: (path: string) => string; client: SearchClient } = $props();
 
@@ -15,6 +17,14 @@
       intro: 'Verses that the six hadith collections quote in Arabic or cite by number. Open one to read the hadith.',
     },
   } as const;
+
+  $effect(() =>
+    addShortcuts('This list', 1, () => [
+      { keys: ['j'], label: 'Next verse', run: () => stepFocus('.list a.ref', 1) },
+      { keys: ['k'], label: 'Previous verse', run: () => stepFocus('.list a.ref', -1) },
+      { keys: ['w'], label: 'Word by word', run: () => openWords('.list > li') },
+    ]),
+  );
 
   type Ayah = AyahListDetail['ayahs'][number];
   let mostFirst = $state(false);
@@ -36,7 +46,7 @@
   <h1>{INFO[d.list].title}</h1>
   <p class="sub">{INFO[d.list].intro} {d.ayahs.length} verses.</p>
   {#if d.list === 'in-hadith'}
-    <div class="seg" role="radiogroup" aria-label="Order">
+    <div class="seg" role="radiogroup" use:radiogroup aria-label="Order">
       {#each [[false, 'In Quran order'], [true, 'Most mentioned']] as const as [on, label] (label)}
         <button type="button" role="radio" aria-checked={mostFirst === on} class:on={mostFirst === on} onclick={() => (mostFirst = on)}>{label}</button>
       {/each}

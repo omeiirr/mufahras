@@ -107,8 +107,11 @@ or dark. Your recent searches wait on the start screen, beside a **verse and a h
 or off, all in the **☰ menu**, which is reachable from every screen. And **Sakinah mode** (سكينة, tranquillity):
 one switch for just search and reading, without daily cards, suggestions, extras or the graph.
 
-On a desktop the results and the text sit side by side, with the keyboard doing the rest (`/` to search, ↑ ↓ to
-move, Enter to open).
+On a desktop the results and the text sit side by side, and the keyboard does the rest. `/` searches, ↑ ↓ choose a
+result and Enter opens it. The keys then follow the screen: ← → for the previous and next verse or hadith (or the
+pages of the mushaf, turning right to left), `j` `k` through the verses of a surah, `b` to bookmark, `c` to copy,
+`w` for word by word, and `q` `h` `a` `s` to search the Quran, the hadith, all, or sahih only. Press `?` on any
+screen to see the keys that work there.
 
 <p align="center">
   <img src="docs/screenshots/desktop.png" alt="Desktop: Arabic search results on the left, Al-Fatihah 1:2 on the right" width="760" />

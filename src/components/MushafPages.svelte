@@ -5,6 +5,7 @@
   import type { MushafDetail } from '../lib/data/views';
   import type { SearchClient } from '../lib/search/client';
   import { ayahMarker } from '../lib/ui/format';
+  import { addShortcuts } from '../lib/ui/keys';
 
   let { surah, client, hrefFor, scrollTo }: { surah: number; client: SearchClient; hrefFor: (path: string) => string; scrollTo?: number } = $props();
 
@@ -26,6 +27,29 @@
     if (!d || !scrollTo) return;
     document.getElementById(`ayah-${surah}-${scrollTo}`)?.scrollIntoView({ block: 'center' });
   });
+
+  /** Turns to the next or previous page: brings its top to the top of the pane. */
+  function turn(dir: 1 | -1) {
+    const pages = [...document.querySelectorAll<HTMLElement>('.pages .page')];
+    const scroller = pages[0]?.closest<HTMLElement>('.scroll');
+    if (!scroller) return;
+    const top = scroller.getBoundingClientRect().top;
+    const tops = pages.map((p) => p.getBoundingClientRect().top - top);
+    let at = -1; // the page being read: the last one whose top has reached the top of the pane
+    tops.forEach((t, k) => t <= 8 && (at = k));
+    // Back from partway down a page goes to its top first.
+    const to = dir > 0 ? at + 1 : at >= 0 && tops[at]! < -8 ? at : at - 1;
+    if (to < 0) scroller.scrollTo({ top: 0 });
+    else pages[to]?.scrollIntoView({ block: 'start' });
+  }
+
+  // Like turning the pages of a printed mushaf: the next page is to the left.
+  $effect(() =>
+    addShortcuts('Mushaf pages', 2, () => [
+      { keys: ['ArrowLeft'], label: 'Next page', when: () => !!d, run: () => turn(1) },
+      { keys: ['ArrowRight'], label: 'Previous page', when: () => !!d, run: () => turn(-1) },
+    ]),
+  );
 
   /** Shrinks a line that overflows the page, and checks again whenever the page is resized. */
   function fit(node: HTMLElement) {

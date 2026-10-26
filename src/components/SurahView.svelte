@@ -5,13 +5,32 @@
   import type { SearchClient } from '../lib/search/client';
   import { settings, updateSettings } from '../lib/store/settings.svelte';
   import { ayahMarker, placeName } from '../lib/ui/format';
+  import { addShortcuts, go, openWords, stepFocus } from '../lib/ui/keys';
   import MushafPages from './MushafPages.svelte';
   import VerseWords from './VerseWords.svelte';
+  import { radiogroup } from '../lib/ui/focus';
 
   let { d, scrollTo, hrefFor, client }: { d: SurahDetail; scrollTo?: number; hrefFor: (path: string) => string; client: SearchClient } = $props();
 
   // Bismillah is shown as a heading except where it is ayah 1 (Al-Fatihah) or absent (At-Tawbah).
   const BISMILLAH = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
+
+  const VIEWS = ['translation', 'arabic', 'pages'] as const;
+  const AYAH_LINKS = { translation: 'ol.ayahs a.num', arabic: '.flow a.marker', pages: '' };
+  $effect(() =>
+    addShortcuts('This surah', 1, () => [
+      { keys: ['ArrowLeft'], label: 'Previous surah', when: () => !!d.prev, run: () => go(hrefFor(`surah/${d.prev!.n}`)) },
+      { keys: ['ArrowRight'], label: 'Next surah', when: () => !!d.next, run: () => go(hrefFor(`surah/${d.next!.n}`)) },
+      { keys: ['j'], label: 'Next verse', when: () => settings.surahView !== 'pages', run: () => stepFocus(AYAH_LINKS[settings.surahView], 1) },
+      { keys: ['k'], label: 'Previous verse', when: () => settings.surahView !== 'pages', run: () => stepFocus(AYAH_LINKS[settings.surahView], -1) },
+      { keys: ['w'], label: 'Word by word', when: () => settings.surahView === 'translation', run: () => openWords('ol.ayahs > li') },
+      {
+        keys: ['v'],
+        label: 'Translation, Arabic or mushaf pages',
+        run: () => updateSettings({ surahView: VIEWS[(VIEWS.indexOf(settings.surahView) + 1) % VIEWS.length]! }),
+      },
+    ]),
+  );
 
   $effect(() => {
     if (!scrollTo || settings.surahView === 'pages') return; // the pages scroll once they've loaded
@@ -25,7 +44,7 @@
     <p class="name-ar" lang="ar" dir="rtl">{d.surah.nameAr}</p>
     <h1>{d.surah.n}. {d.surah.nameSimple}</h1>
     <p class="facts">{placeName(d.surah.place)} · {d.surah.count} ayahs · revelation order {d.surah.order}</p>
-    <div class="seg" role="radiogroup" aria-label="Show">
+    <div class="seg" role="radiogroup" use:radiogroup aria-label="Show">
       {#each [['translation', 'Translation'], ['arabic', 'Arabic'], ['pages', 'Mushaf']] as const as [view, label] (view)}
         <button type="button" role="radio" aria-checked={settings.surahView === view} class:on={settings.surahView === view} onclick={() => updateSettings({ surahView: view })}>{label}</button>
       {/each}

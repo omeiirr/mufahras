@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Corpus } from '../lib/router.svelte';
+  import { radiogroup } from '../lib/ui/focus';
 
   let { corpus, sahih, onchange }: { corpus: Corpus; sahih: boolean; onchange: (patch: { corpus?: Corpus; sahih?: boolean }) => void } = $props();
 
@@ -11,7 +12,7 @@
 </script>
 
 <div class="chips">
-  <div class="group" role="radiogroup" aria-label="Search in">
+  <div class="group" role="radiogroup" use:radiogroup aria-label="Search in">
     {#each options as [value, label] (value)}
       <button type="button" role="radio" aria-checked={corpus === value} class:on={corpus === value} onclick={() => onchange({ corpus: value })}>{label}</button>
     {/each}

@@ -2,7 +2,7 @@
   // App shell. Phone: results with the search bar docked at the bottom; opening a result slides a
   // detail screen over them (Back returns, scroll kept). Desktop (≥ 1024px): results on the left,
   // the selected result's detail on the right; ↑/↓ move the selection. See "UI design" in PLAN.md.
-  import { untrack } from 'svelte';
+  import { tick, untrack } from 'svelte';
   import { fly } from 'svelte/transition';
   import DetailPane from './components/DetailPane.svelte';
   import Empty from './components/Empty.svelte';
@@ -11,6 +11,7 @@
   import SearchBar from './components/SearchBar.svelte';
   import MenuIcon from '@lucide/svelte/icons/menu';
   import Menu from './components/Menu.svelte';
+  import KeysHelp from './components/KeysHelp.svelte';
   import { meaning, searchMeaning, startMeaning } from './lib/meaning/meaning.svelte';
   import { recordSearch } from './lib/store/history.svelte';
   import { settings, updateSettings } from './lib/store/settings.svelte';
@@ -20,6 +21,7 @@
   import { SearchClient } from './lib/search/client';
   import type { PresentedHit, SearchResponse } from './lib/search/types';
   import type { LoadStatus } from './lib/search/worker';
+  import { addShortcuts, handleShortcut } from './lib/ui/keys';
 
   const PAGE = 30;
 
@@ -181,31 +183,57 @@
       e.preventDefault();
       if (!wide) input?.blur();
       if (hit.path !== route.path) open(hit);
+      focusDetail();
     } else if (e.key === 'Escape' && query) {
       e.preventDefault();
       query = '';
     }
   }
 
-  function onWindowKey(e: KeyboardEvent): void {
-    // An open drawer or sheet handles its own keys (Esc closes it, and must not also navigate back).
-    if (document.querySelector('[data-modal]')) return;
-    const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
-    if ((e.key === '/' && !typing) || (e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey))) {
-      e.preventDefault();
-      input?.focus();
-      input?.select();
-    } else if (e.key === 'Escape' && !typing && route.path) {
-      e.preventDefault();
-      if (wide) navigate({ path: '' }, { replace: true });
-      else back();
-    }
+  /** After Enter on a result, the keys belong to the text it opened (its ← →, b, c…). */
+  async function focusDetail(): Promise<void> {
+    await tick();
+    document.querySelector<HTMLElement>('.detail .scroll')?.focus({ preventScroll: true });
   }
+
+  function focusSearch(): void {
+    input?.focus();
+    input?.select();
+  }
+
+  // A desktop dialog, so no history entry for Android Back (unlike the menu).
+  let keysOpen = $state(false);
+  const openKeys = () => (keysOpen = true);
+
+  // Keys for the whole app; screens add their own (lib/ui/keys.ts). The graph page has keys of its own.
+  $effect(() =>
+    addShortcuts('Anywhere', 0, () => [
+      { keys: ['/'], label: 'Search', when: () => !graphRoute, run: focusSearch },
+      { keys: ['k'], ctrl: true, typing: true, when: () => !graphRoute, run: focusSearch },
+      { keys: ['?'], label: 'These shortcuts', run: openKeys },
+      { keys: ['m'], label: 'Menu', run: openMenu },
+      { keys: ['a'], label: 'Search all', when: () => !graphRoute, run: () => onFilter({ corpus: 'all' }) },
+      { keys: ['q'], label: 'Search the Quran only', when: () => !graphRoute, run: () => onFilter({ corpus: 'quran' }) },
+      { keys: ['h'], label: 'Search the hadith only', when: () => !graphRoute, run: () => onFilter({ corpus: 'hadith' }) },
+      { keys: ['s'], label: 'Sahih hadith only, on or off', when: () => !graphRoute && route.corpus !== 'quran', run: () => onFilter({ sahih: !route.sahih }) },
+      {
+        keys: ['Escape'],
+        label: wide ? 'Back to the search' : 'Back',
+        when: () => !graphRoute && (wide || !!route.path),
+        run: () => {
+          if (wide) {
+            if (route.path) navigate({ path: '' }, { replace: true });
+            focusSearch();
+          } else back();
+        },
+      },
+    ]),
+  );
 
   const hadithLoaded = $derived(status.loaded.filter((n) => /^hadith-\w+$/.test(n) && !n.endsWith('-ar')).length);
 </script>
 
-<svelte:window onkeydown={onWindowKey} />
+<svelte:window onkeydown={handleShortcut} />
 
 <div class="app" class:wide>
   <!-- On phones a detail screen covers the results; keep keyboard and screen readers out from underneath. -->
@@ -278,7 +306,11 @@
   {/if}
 
   {#if menuOpen}
-    <Menu {client} ready={status.ready} side={wide ? 'left' : 'right'} onclose={closeMenu} onnavigate={(p) => navigate({ path: p })} />
+    <Menu {client} ready={status.ready} side={wide ? 'left' : 'right'} onclose={closeMenu} onnavigate={(p) => navigate({ path: p })} onkeys={wide ? openKeys : undefined} />
+  {/if}
+
+  {#if keysOpen}
+    <KeysHelp onclose={() => (keysOpen = false)} />
   {/if}
 
   {#if backToast.visible}

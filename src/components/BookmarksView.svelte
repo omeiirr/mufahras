@@ -4,6 +4,7 @@
   import Trash2 from '@lucide/svelte/icons/trash-2';
   import Upload from '@lucide/svelte/icons/upload';
   import { allTags, bookmarks, exportBookmarks, importBookmarks, removeBookmark, setTags } from '../lib/store/bookmarks.svelte';
+  import { radiogroup } from '../lib/ui/focus';
 
   let { hrefFor }: { hrefFor: (path: string) => string } = $props();
 
@@ -48,7 +49,7 @@
   {#if message}<p class="sub" role="status">{message}</p>{/if}
 
   {#if tags.length}
-    <div class="filter" role="radiogroup" aria-label="Filter by tag">
+    <div class="filter" role="radiogroup" use:radiogroup aria-label="Filter by tag">
       <button type="button" role="radio" aria-checked={tag === null} class:on={tag === null} onclick={() => (tag = null)}>All</button>
       {#each tags as t (t)}
         <button type="button" role="radio" aria-checked={tag === t} class:on={tag === t} onclick={() => (tag = t)}>{t}</button>

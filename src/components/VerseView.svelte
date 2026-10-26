@@ -7,6 +7,7 @@
   import VerseWords from './VerseWords.svelte';
   import { settings } from '../lib/store/settings.svelte';
   import { ayahMarker, placeName } from '../lib/ui/format';
+  import { addShortcuts, go, openWords } from '../lib/ui/keys';
   import Actions from './Actions.svelte';
   import VerseExtras from './VerseExtras.svelte';
 
@@ -18,6 +19,15 @@
   const bookmark = $derived({ path: ref, kind: 'ayah' as const, label: ref, sublabel: d.surah.nameSimple, text: plainEn.slice(0, 220) });
   const card = $derived({ ar: `${d.ar} ${ayahMarker(d.ayah)}`, arFont: 'quran' as const, en: plainEn, ref: `Quran ${ref}`, sub: `${d.surah.nameSimple} · ${d.surah.nameAr}` });
   const copyText = $derived(`${d.ar}\n\n${d.en.replace(/[¹²³⁰-⁹]/g, '')}\n\n— Quran ${ref} (${d.surah.nameSimple})`);
+
+  $effect(() =>
+    addShortcuts('This verse', 1, () => [
+      { keys: ['ArrowLeft'], label: 'Previous verse', when: () => !!d.prev, run: () => go(hrefFor(`${d.prev!.surah}:${d.prev!.ayah}`)) },
+      { keys: ['ArrowRight'], label: 'Next verse', when: () => !!d.next, run: () => go(hrefFor(`${d.next!.surah}:${d.next!.ayah}`)) },
+      { keys: ['w'], label: 'Word by word', run: () => openWords('.verse') },
+      { keys: ['r'], label: 'Read the surah from here', run: () => go(hrefFor(`surah/${d.surah.n}/${d.ayah}`)) },
+    ]),
+  );
 </script>
 
 <article class="verse">

@@ -11,6 +11,7 @@
   import { bookmarks, isBookmarked, toggleBookmark, type Bookmark as BookmarkRecord } from '../lib/store/bookmarks.svelte';
   import { settings } from '../lib/store/settings.svelte';
   import { closeLayer, openLayer } from '../lib/back.svelte';
+  import { addShortcuts } from '../lib/ui/keys';
   import CardSheet from './CardSheet.svelte';
 
   let {
@@ -35,6 +36,19 @@
     }
   }
 
+  function openCard() {
+    cardOpen = true;
+    openLayer('card', () => (cardOpen = false));
+  }
+
+  $effect(() =>
+    addShortcuts(bookmark.kind === 'ayah' ? 'This verse' : 'This hadith', 1, () => [
+      { keys: ['b'], label: saved ? 'Remove the bookmark' : 'Bookmark', run: () => toggleBookmark(bookmark) },
+      { keys: ['c'], label: 'Copy, with the reference', run: copy },
+      { keys: ['i'], label: 'Share as an image', when: () => !settings.sakinah, run: openCard },
+    ]),
+  );
+
   async function share() {
     try {
       await navigator.share({ title, text, url: location.href });
@@ -55,13 +69,7 @@
     <button type="button" onclick={share}><Share2 size={18} aria-hidden="true" /> Share</button>
   {/if}
   {#if !settings.sakinah}
-    <button
-    type="button"
-    onclick={() => {
-      cardOpen = true;
-      openLayer('card', () => (cardOpen = false));
-    }}><ImageIcon size={18} aria-hidden="true" /> Image</button
-  >
+    <button type="button" onclick={openCard}><ImageIcon size={18} aria-hidden="true" /> Image</button>
   {/if}
 </div>
 

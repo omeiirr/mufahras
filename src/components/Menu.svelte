@@ -7,6 +7,7 @@
   import Download from '@lucide/svelte/icons/download';
   import History from '@lucide/svelte/icons/history';
   import Info from '@lucide/svelte/icons/info';
+  import Keyboard from '@lucide/svelte/icons/keyboard';
   import MessageSquare from '@lucide/svelte/icons/message-square';
   import Network from '@lucide/svelte/icons/network';
   import Quote from '@lucide/svelte/icons/quote';
@@ -26,6 +27,7 @@
   import { ARABIC_SCALES, settings, TEXT_SCALES, updateSettings } from '../lib/store/settings.svelte';
   import { setTheme, theme, THEMES, type ThemeChoice } from '../lib/theme.svelte';
   import OfflinePanel from './OfflinePanel.svelte';
+  import { radiogroup, trapFocus } from '../lib/ui/focus';
 
   let {
     onclose,
@@ -33,7 +35,16 @@
     client,
     ready,
     side,
-  }: { onclose: () => void; onnavigate: (path: string) => void; client: SearchClient; ready: boolean; side: 'left' | 'right' } = $props();
+    onkeys,
+  }: {
+    onclose: () => void;
+    onnavigate: (path: string) => void;
+    client: SearchClient;
+    ready: boolean;
+    side: 'left' | 'right';
+    /** Desktop: open the list of keyboard shortcuts. */
+    onkeys?: () => void;
+  } = $props();
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let closeButton = $state<HTMLButtonElement>();
@@ -75,7 +86,7 @@
 
 <div class="scrim" onclick={onclose} transition:fade={{ duration: reducedMotion ? 0 : 150 }} aria-hidden="true"></div>
 <!-- The drawer opens from the side its ☰ button is on: right on phones, left on desktop. -->
-<nav class="drawer" class:right={side === 'right'} aria-label="Menu" data-modal transition:fly={{ x: side === 'right' ? 320 : -320, duration: reducedMotion ? 0 : 220, opacity: 1 }}>
+<nav class="drawer" class:right={side === 'right'} aria-label="Menu" data-modal use:trapFocus transition:fly={{ x: side === 'right' ? 320 : -320, duration: reducedMotion ? 0 : 220, opacity: 1 }}>
   <header>
     <img src="icons/icon-192.png" alt="" width="36" height="36" />
     <div class="name">Mufahras <span lang="ar" dir="rtl">مُفَهْرَس</span></div>
@@ -149,7 +160,7 @@
 
   <section>
     <h2 id="theme-h">Theme</h2>
-    <div class="themes" role="radiogroup" aria-labelledby="theme-h">
+    <div class="themes" role="radiogroup" use:radiogroup aria-labelledby="theme-h">
       {#each themes as t (t.id)}
         <button type="button" role="radio" aria-checked={theme.choice === t.id} class:on={theme.choice === t.id} onclick={() => setTheme(t.id)}>
           <span class="swatch" style:--a={t.swatch[0]} style:--b={t.swatch[1]} aria-hidden="true"></span>
@@ -163,7 +174,7 @@
     <h2>Reading</h2>
     <div class="row">
       <span id="ts-l">Text size</span>
-      <div class="seg" role="radiogroup" aria-labelledby="ts-l">
+      <div class="seg" role="radiogroup" use:radiogroup aria-labelledby="ts-l">
         {#each TEXT_SCALES as s, k (s)}
           <button type="button" role="radio" aria-checked={settings.textScale === s} aria-label={sizeLabels[k]} class:on={settings.textScale === s} onclick={() => updateSettings({ textScale: s })}>
             <span style:font-size={`${0.75 + k * 0.12}rem`}>A</span>
@@ -173,7 +184,7 @@
     </div>
     <div class="row">
       <span id="as-l">Arabic size</span>
-      <div class="seg" role="radiogroup" aria-labelledby="as-l">
+      <div class="seg" role="radiogroup" use:radiogroup aria-labelledby="as-l">
         {#each ARABIC_SCALES as s, k (s)}
           <button type="button" role="radio" aria-checked={settings.arabicScale === s} aria-label={sizeLabels[k]} class:on={settings.arabicScale === s} onclick={() => updateSettings({ arabicScale: s })}>
             <span lang="ar" style:font-size={`${0.85 + k * 0.18}rem`} style:font-family="var(--font-quran)">ع</span>
@@ -221,6 +232,17 @@
         <li class="note">To install: tap <strong>Share</strong> in Safari, then <strong>Add to Home Screen</strong>.</li>
       {/if}
       <li><button type="button" onclick={() => go('about')}><Info size={18} aria-hidden="true" /> About and credits</button></li>
+      {#if onkeys}
+        <li>
+          <button
+            type="button"
+            onclick={() => {
+              onclose();
+              onkeys();
+            }}><Keyboard size={18} aria-hidden="true" /> Keyboard shortcuts <span class="n"><kbd>?</kbd></span></button
+          >
+        </li>
+      {/if}
       <li>
         <a href="https://github.com/omeiirr/mufahras/issues/new/choose" target="_blank" rel="noopener"><MessageSquare size={18} aria-hidden="true" /> Send feedback</a>
       </li>

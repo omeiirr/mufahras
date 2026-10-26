@@ -2,6 +2,7 @@
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import { SvelteSet } from 'svelte/reactivity';
   import type { TopicNode } from '../lib/data/views';
+  import { treeKeys } from '../lib/ui/focus';
 
   let {
     nodes,
@@ -47,7 +48,7 @@
   {/each}
 {/snippet}
 
-<ul class="tree" aria-label={label}>{@render branch(nodes, '')}</ul>
+<ul class="tree" aria-label={label} use:treeKeys>{@render branch(nodes, '')}</ul>
 
 <style>
   .tree,

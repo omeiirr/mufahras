@@ -5,6 +5,7 @@
   import Share2 from '@lucide/svelte/icons/share-2';
   import X from '@lucide/svelte/icons/x';
   import { canvasToFile, renderCard, type CardContent, type CardShape, type CardStyle } from '../lib/card/render';
+  import { radiogroup, trapFocus } from '../lib/ui/focus';
 
   let { content, onclose }: { content: CardContent; onclose: () => void } = $props();
 
@@ -56,7 +57,7 @@
 <svelte:window onkeydown={(e) => e.key === 'Escape' && onclose()} />
 
 <div class="scrim" onclick={onclose} aria-hidden="true"></div>
-<div class="sheet" role="dialog" aria-modal="true" aria-label="Share as image" data-modal>
+<div class="sheet" role="dialog" aria-modal="true" aria-label="Share as image" data-modal use:trapFocus>
   <div class="head">
     <strong>Share as image</strong>
     <button type="button" class="icon" bind:this={closeButton} onclick={onclose} aria-label="Close"><X size={20} aria-hidden="true" /></button>
@@ -65,11 +66,11 @@
     {#if url}<img src={url} alt={`Image of ${content.ref}`} class:busy />{/if}
   </div>
   <div class="opts">
-    <div class="seg" role="radiogroup" aria-label="Style">
+    <div class="seg" role="radiogroup" use:radiogroup aria-label="Style">
       <button type="button" role="radio" aria-checked={style === 'light'} class:on={style === 'light'} onclick={() => (style = 'light')}>Light</button>
       <button type="button" role="radio" aria-checked={style === 'dark'} class:on={style === 'dark'} onclick={() => (style = 'dark')}>Dark</button>
     </div>
-    <div class="seg" role="radiogroup" aria-label="Shape">
+    <div class="seg" role="radiogroup" use:radiogroup aria-label="Shape">
       <button type="button" role="radio" aria-checked={shape === 'square'} class:on={shape === 'square'} onclick={() => (shape = 'square')}>Square</button>
       <button type="button" role="radio" aria-checked={shape === 'story'} class:on={shape === 'story'} onclick={() => (shape = 'story')}>Story</button>
     </div>

@@ -5,11 +5,21 @@
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import X from '@lucide/svelte/icons/x';
   import type { WordsDetail } from '../lib/data/views';
+  import { addShortcuts } from '../lib/ui/keys';
 
   let { words, index, onpick, onclose }: { words: WordsDetail['words'] | null; index: number; onpick: (k: number) => void; onclose: () => void } = $props();
 
   const w = $derived(words?.[index]);
   const hasMeanings = $derived(!!words?.some((x) => x.meaning));
+
+  // Right to left, like the verse: ← is the next word.
+  $effect(() =>
+    addShortcuts('Word by word', 2, () => [
+      { keys: ['ArrowLeft'], label: 'Next word', run: () => onpick(index + 1) },
+      { keys: ['ArrowRight'], label: 'Previous word', run: () => onpick(index - 1) },
+      { keys: ['Escape'], label: 'Close word by word', run: onclose },
+    ]),
+  );
 </script>
 
 <div class="card" role="region" aria-label="Word by word" aria-live="polite">

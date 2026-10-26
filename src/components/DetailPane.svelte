@@ -114,7 +114,8 @@
       {/if}
     </header>
   {/if}
-  <div class="scroll" bind:this={scroller}>
+  <!-- Focusable, so after Enter on a result the arrow and Page keys scroll it and its shortcuts apply. -->
+  <div class="scroll" bind:this={scroller} tabindex="-1">
     <div class="content" aria-busy={loading}>
       {#if local === 'bookmarks'}
         <BookmarksView {hrefFor} />
@@ -190,6 +191,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .scroll:focus-visible {
+    outline: none;
   }
   .scroll {
     flex: 1;
