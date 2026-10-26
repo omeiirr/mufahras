@@ -55,7 +55,8 @@ export class Enrichment {
         list.push(t.id);
       }
     }
-    this.topicNames = topics.map((t) => normalizeLatin(t.name));
+    // A bracketed note isn't part of the name: "Prophets (25 mentioned by name)" is named by "prophets".
+    this.topicNames = topics.map((t) => normalizeLatin(t.name.replace(/\s*\([^)]*\)/g, '')));
   }
 
   /**
@@ -93,7 +94,8 @@ export class Enrichment {
 
   // ---- verse screen
 
-  forAyah(i: number): AyahExtra {
+  /** Everything below a verse except the hadith that mention it, which the engine adds (it holds the books). */
+  forAyah(i: number): Omit<AyahExtra, 'hadith'> {
     const q = this.quran;
     const s = this.surahOf(i);
     const ayahNo = (k: number) => k - s.start + 1;
@@ -266,14 +268,16 @@ export class Enrichment {
   matchTopics(query: string, limit = 3): { id: number; name: string; count: number }[] {
     if (!this.topics) return [];
     const scored: [number, number][] = [];
+    // Counted with their subtopics, so a heading like "Prophets (25 mentioned by name)" is offered too.
     this.topicNames.forEach((name, k) => {
       const score = nameMatch(query, name);
-      if (score > 0 && this.topics![k]!.ayahs.length >= 2) scored.push([k, score + Math.min(5, Math.log2(this.topics![k]!.ayahs.length))]);
+      const count = score > 0 ? this.countWithin(this.topics![k]!.id) : 0;
+      if (count >= 2) scored.push([k, score + Math.min(5, Math.log2(count))]);
     });
     return scored
       .sort((a, b) => b[1] - a[1])
       .slice(0, limit)
-      .map(([k]) => ({ id: this.topics![k]!.id, name: this.label(this.topics![k]!), count: this.topics![k]!.ayahs.length }));
+      .map(([k]) => ({ id: this.topics![k]!.id, name: this.label(this.topics![k]!), count: this.countWithin(this.topics![k]!.id) }));
   }
 }
 

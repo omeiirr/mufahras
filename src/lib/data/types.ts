@@ -31,6 +31,11 @@ export interface TranslitChunk {
   wbw: string[];
 }
 
+/** Hadith that mention each verse, by ayah index (scripts/build-data.ts: quoted in the Arabic, or cited by number). */
+export interface MentionsChunk {
+  byAyah: Record<number, [HadithBookId, number][]>;
+}
+
 /**
  * A printed mushaf's pages, line by line. A line is [0, surah] for a surah's name, [1] for the
  * bismillah, or [2, centered, fromAyah, fromPos, toAyah, toPos] for a run of words: ayah indices, and

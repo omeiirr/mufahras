@@ -1,6 +1,7 @@
 // Verse extras, topic and chapter pages, and browse chips, against the real data.
 import { describe, expect, it } from 'vitest';
-import type { AyahDetail, MushafDetail, SectionDetail, SurahDetail, TopicDetail } from '../src/lib/data/views';
+import type { AyahDetail, AyahListDetail, HadithDetail, MushafDetail, SectionDetail, SurahDetail, TopicDetail } from '../src/lib/data/views';
+import type { HadithBookId } from '../src/lib/data/types';
 import { normalizeArabic } from '../src/lib/text/normalize';
 import { dataBuilt, loadEngine } from './load';
 
@@ -273,3 +274,35 @@ describe.runIf(dataBuilt)('mushaf pages', () => {
   });
 });
 
+
+describe.runIf(dataBuilt)('verses mentioned in hadith', () => {
+  const engine = loadEngine();
+  const ayah = (surah: number, a: number) => engine.detail({ kind: 'ayah', surah, ayah: a }) as AyahDetail;
+  const hadith = (book: HadithBookId, number: number) => engine.detail({ kind: 'hadith', book, number }) as HadithDetail;
+  const refs = (h: HadithDetail) => h.verses.map((v) => `${v.surah}:${v.ayah}`);
+
+  it('finds verses a hadith quotes in Arabic or cites by number', () => {
+    expect(refs(hadith('bukhari', 4971))).toEqual(expect.arrayContaining(['26:214', '111:1']));
+    expect(ayah(2, 255).extra?.hadith.map((h) => `${h.book} ${h.number}`)).toEqual(expect.arrayContaining(['bukhari 3275', 'bukhari 5010']));
+  });
+
+  it('lists the hadith of a verse sahih first', () => {
+    const sahih = ayah(112, 1).extra!.hadith.map((h) => Number(h.grade === 'sahih'));
+    expect(sahih).toContain(0);
+    expect(sahih).toEqual([...sahih].sort((a, b) => b - a));
+  });
+
+  it('does not count common phrases of dhikr as quotes', () => {
+    // 64:1 opens with "whatever is in the heavens and earth glorifies Allah", said often in duas.
+    expect(ayah(64, 1).extra?.hadith).toEqual([]);
+  });
+
+  it('lists every verse mentioned, in Quran order, with counts', () => {
+    const d = engine.detail({ kind: 'in-hadith' }) as AyahListDetail;
+    expect(d.ayahs.length).toBeGreaterThan(500);
+    const top = d.ayahs.reduce((a, b) => ((b.count ?? 0) > (a.count ?? 0) ? b : a));
+    expect(`${top.surah}:${top.ayah}`).toBe('112:1');
+    const order = d.ayahs.map((a) => a.surah * 1000 + a.ayah);
+    expect(order).toEqual([...order].sort((a, b) => a - b));
+  });
+});

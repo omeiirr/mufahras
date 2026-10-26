@@ -25,6 +25,7 @@ export function loadEngine(): SearchEngine {
   engine.addWords(loadChunk('words'));
   engine.addNamesOfAllah(loadChunk('names-of-allah'));
   engine.addMushaf(loadChunk('mushaf'));
+  engine.addMentions(loadChunk('mentions'));
   for (const book of HADITH_BOOKS) {
     engine.addHadith(loadChunk(`hadith-${book}`));
     engine.addHadithArabic(book, loadChunk(`hadith-${book}-ar`));

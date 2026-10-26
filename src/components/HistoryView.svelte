@@ -64,10 +64,11 @@
   .q {
     flex: 1;
     display: flex;
+    align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
     min-height: var(--tap);
-    padding: 0 var(--space-2);
+    padding: var(--space-2);
     text-align: left;
   }
   .q:hover {

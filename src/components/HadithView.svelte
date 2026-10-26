@@ -32,6 +32,13 @@
   <p class="en">{d.en}</p>
   {#if d.ar}<p class="arabic" lang="ar" dir="rtl">{d.ar}</p>{/if}
 
+  {#if d.verses.length}
+    <nav class="verses" aria-label="Verses in this hadith">
+      <span class="lbl">Verses in this hadith</span>
+      {#each d.verses as v (`${v.surah}:${v.ayah}`)}<a href={hrefFor(`${v.surah}:${v.ayah}`)} title={v.name}>{v.surah}:{v.ayah}</a>{/each}
+    </nav>
+  {/if}
+
   {#if d.grades.length}
     <section aria-labelledby="grades-h">
       <h2 id="grades-h">Gradings</h2>
@@ -114,6 +121,21 @@
     margin: 0;
     color: var(--ink-2);
     font-size: var(--text-sm);
+  }
+  .verses {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    align-items: baseline;
+    font-size: var(--text-sm);
+  }
+  .verses .lbl {
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .verses a {
+    font-weight: 600;
+    text-decoration: none;
   }
   .pager {
     display: flex;

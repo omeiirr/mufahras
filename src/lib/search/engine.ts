@@ -13,10 +13,10 @@ import uFuzzy from '@leeoniya/ufuzzy';
 import { BOOKS, formatHadithNumber } from '../data/books';
 import { HADITH_BOOKS } from '../data/types';
 import { DUAS } from '../data/duas';
-import type { MushafChunk, MushafLine, NamesOfAllahChunk, WordsChunk } from '../data/types';
+import type { MentionsChunk, MushafChunk, MushafLine, NamesOfAllahChunk, WordsChunk } from '../data/types';
 import { wordSpans } from '../text/quran-display';
 import type { GraphChunk, HadithArabicChunk, HadithBookId, HadithChunk, MutashabihatChunk, QuranChunk, SimilarChunk, Surah, TafsirChunk, Theme, Topic, TranslitChunk } from '../data/types';
-import type { AyahDetail, AyahLine, Chip, Detail, DetailRequest, HadithDetail, MushafDetail, MushafLineView, SectionDetail } from '../data/views';
+import type { AyahDetail, AyahLine, Chip, Detail, DetailRequest, HadithDetail, MentioningHadith, MushafDetail, MushafLineView, SectionDetail } from '../data/views';
 import { classifyGrade, gradeRank, summarizeGrades, type GradeClass } from '../hadith/grades';
 import { foldTranslit, hasArabic, normalizeArabic, normalizeLatin, stripTanzilMarks } from '../text/normalize';
 import { mapRanges, normalizeArabicMapped, normalizeLatinMapped, type Mapped } from '../text/normalize-map';
@@ -567,6 +567,18 @@ export class SearchEngine {
   addMushaf(c: MushafChunk): void {
     this.mushaf = c;
   }
+  addMentions(c: MentionsChunk): void {
+    this.mentionsOf = new Map(Object.entries(c.byAyah).map(([i, list]) => [Number(i), list]));
+    this.versesIn = new Map();
+    for (const [i, list] of this.mentionsOf)
+      for (const [book, number] of list) {
+        const key = `${book}/${number}`;
+        this.versesIn.set(key, [...(this.versesIn.get(key) ?? []), i]);
+      }
+  }
+  /** Hadith that mention each verse (ayah index), and the reverse by "book/number". */
+  private mentionsOf?: Map<number, [HadithBookId, number][]>;
+  private versesIn = new Map<string, number[]>();
   private namesOfAllah?: NamesOfAllahChunk;
   private mushaf?: MushafChunk;
   private words?: WordsChunk;
@@ -634,6 +646,19 @@ export class SearchEngine {
     if (req.kind === 'graph') return this.graphDetail();
     if (req.kind === 'hadith-daily') return this.dailyHadith(req.date);
     if (req.kind === 'books') return this.booksDetail();
+    if (req.kind === 'in-hadith') {
+      if (!this.mentionsOf) return null;
+      return {
+        kind: 'ayah-list',
+        list: 'in-hadith',
+        ayahs: [...this.mentionsOf]
+          .sort((a, b) => a[0] - b[0])
+          .map(([i, list]) => {
+            const s = this.surahOf(i);
+            return { surah: s.n, ayah: i - s.start + 1, name: s.nameSimple, ar: q.ar[i]!, en: q.en[i]!, count: list.length };
+          }),
+      };
+    }
     if (req.kind === 'duas' || req.kind === 'sajdah') {
       // Sajdah verses carry the prostration sign ۩ (U+06E9) in the text: the 15 verses of prostration.
       const refs =
@@ -685,7 +710,7 @@ export class SearchEngine {
       kind: 'ayah',
       surah: s,
       ...this.ayahLine(i, req.ayah),
-      extra: this.extra?.ready ? this.extra.forAyah(i) : undefined,
+      extra: this.extra?.ready && this.mentionsOf ? { ...this.extra.forAyah(i), hadith: this.hadithMentioning(i) } : undefined,
       translit: this.translit?.wbw[i] ?? '',
       prev: req.ayah > 1 ? { surah: s.n, ayah: req.ayah - 1 } : prevSurah ? { surah: prevSurah.n, ayah: prevSurah.count } : undefined,
       next: req.ayah < s.count ? { surah: s.n, ayah: req.ayah + 1 } : nextSurah ? { surah: nextSurah.n, ayah: 1 } : undefined,
@@ -740,6 +765,19 @@ export class SearchEngine {
       });
     });
     return { kind: 'mushaf', surah, pages };
+  }
+
+  /** The hadith that quote or cite verse `i`: sahih first, then by book and number. Books not loaded are left out. */
+  private hadithMentioning(i: number): MentioningHadith[] {
+    return (this.mentionsOf?.get(i) ?? [])
+      .flatMap(([book, number]) => {
+        const b = this.books.get(book);
+        const row = b?.byNumber.get(number);
+        if (!b || row === undefined) return [];
+        const en = b.chunk.hadiths[row]![2];
+        return [{ book, short: BOOKS[book].short, number, grade: b.grade[row]!, en: en.length > 220 ? `${en.slice(0, en.lastIndexOf(' ', 210))}…` : en }];
+      })
+      .sort((x, y) => gradeRank(y.grade) - gradeRank(x.grade) || HADITH_BOOKS.indexOf(x.book) - HADITH_BOOKS.indexOf(y.book) || x.number - y.number);
   }
 
   private surahOf(i: number): Surah {
@@ -835,6 +873,12 @@ export class SearchEngine {
       grades: grades.map(([s, grade]) => ({ scholar: b.chunk.scholars[s] ?? '', grade, cls: classifyGrade(grade) })),
       summary: b.grade[row]!,
       sahihCollection: info.sahihCollection,
+      verses: [...(this.versesIn.get(`${book}/${number}`) ?? [])]
+        .sort((x, y) => x - y)
+        .map((i) => {
+          const s = this.surahOf(i);
+          return { surah: s.n, ayah: i - s.start + 1, name: s.nameSimple };
+        }),
       prev: b.chunk.hadiths[row - 1]?.[0],
       next: b.chunk.hadiths[row + 1]?.[0],
     };

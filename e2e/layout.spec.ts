@@ -19,6 +19,7 @@ const SCREENS = [
   '#/names',
   '#/duas',
   '#/sajdah',
+  '#/in-hadith',
   '#/topics',
   '#/phrases',
   '#/names-of-allah',

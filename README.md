@@ -64,8 +64,9 @@ Some things to try:
 | `bukhari 1` · `tirmidhi 2516` | a hadith by its number |
 | `qul huwa allahu ahad` | transliteration |
 | `الحمد لله رب العالمين` | Arabic, with or without diacritics |
-| `fasting` · `orphans` | topics in the Quran and chapters of the hadith books |
+| `fasting` · `orphans` · `prophets` | topics in the Quran and chapters of the hadith books |
 | a sentence you remember, in any translation | the source, even when the wording differs ("close matches") |
+| a whole passage you pasted, of any length | where it comes from |
 | `dealing with anxiety` · `visiting the sick` | with **Search by meaning** on: texts that say it in other words |
 
 ## Search by meaning
@@ -86,10 +87,14 @@ shows the texts themselves; it never writes or summarizes anything. You can remo
 
 **Reading.** Every verse opens with its neighbours and a link to read the whole surah. Below it: the theme of its
 passage, an explanation (Al-Mukhtasar), its topics, similar verses with the shared words highlighted, and phrases
-it shares with other verses (mutashabihat). **Tap any Arabic word** for its meaning and transliteration, and step
-word by word through the verse. Every hadith shows its book and chapter, the Arabic, and each grading by name.
+it shares with other verses (mutashabihat), and the **hadith that mention it**, where a hadith quotes the verse
+in Arabic or cites it by number. **Tap any Arabic word** for its meaning and transliteration, and step word by word
+through the verse. Every hadith shows its book and chapter, the Arabic, each grading by name, and the verses it
+mentions. Read a surah three ways: with its translation, as **Arabic only**, or on the **pages of the Madani
+mushaf**, line for line as printed.
 
-**Browsing.** All 114 surahs; the six hadith collections, chapter by chapter; every topic; the well-known
+**Browsing.** All 114 surahs; the six hadith collections, chapter by chapter; every topic, as a tree you can open (Stories › Prophets ›
+Moses); the **verses mentioned in the hadith**, in Quran order or most mentioned first; the well-known
 names for verses, surahs and hadith; **the 99 Names of Allah**; the **duas of the Quran**; the 15 **sajdah verses**; the phrases that
 repeat across the Quran (mutashabihat); and a **graph of similar verses**, where verses that share wording are joined, and refrains like Ar-Rahman's "Which of
 the favours of your Lord would you deny?" form clusters you can explore.
@@ -154,7 +159,7 @@ something and didn't, please [open an issue](https://github.com/omeiirr/mufahras
 
 The Quran data comes from the [Quranic Universal Library (QUL)](https://qul.tarteel.ai) by Tarteel, with the Quran
 text prepared by [Tanzil](https://tanzil.net), the translation by Saheeh International, and the transliteration, word-by-word meanings,
-topics and similar-verse data from QUL. The hadith collections come from [fawazahmed0/hadith-api](https://github.com/fawazahmed0/hadith-api). The 99 Names of Allah come from
+topics, similar-verse data and the page layout of the Madani mushaf from QUL. The hadith collections come from [fawazahmed0/hadith-api](https://github.com/fawazahmed0/hadith-api). The 99 Names of Allah come from
 [UmmahAPI](https://ummahapi.com/asma-ul-husna-api). The Quran
 is set in [Scheherazade New](https://software.sil.org/scheherazade/) by SIL, the hadith Arabic in Noto Naskh Arabic,
 and the logo's mīm in Amiri. Full details are in [NOTICE](NOTICE). Mufahras is not affiliated with or endorsed by
@@ -182,8 +187,7 @@ npm run build        # data + app into dist/
 
 Every push to `main` is built, checked and deployed to GitHub Pages. [docs/TECHNICAL.md](docs/TECHNICAL.md) has
 what we learned building it (normalizing Arabic, making fuzzy search fast, offline pitfalls, typesetting the
-Quran), with code. [PLAN.md](PLAN.md) has the design, the data pipeline, the search engine and what's coming next, including topics, tafsir, similar verses, and finding the source
-of a whole pasted quote.
+Quran), with code. [PLAN.md](PLAN.md) has the design, the data pipeline, the search engine and what's coming next.
 
 ---
 

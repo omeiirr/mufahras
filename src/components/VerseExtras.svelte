@@ -1,15 +1,19 @@
 <script lang="ts">
-  // Below a verse: Al-Mukhtasar explanation, topics, similar ayahs and repeated phrases (mutashabihat).
+  // Below a verse: Al-Mukhtasar explanation, topics, similar ayahs, the hadith that mention it, and
+  // repeated phrases (mutashabihat).
   import ChevronDown from '@lucide/svelte/icons/chevron-down';
   import Network from '@lucide/svelte/icons/network';
   import Tag from '@lucide/svelte/icons/tag';
   import type { AyahDetail, AyahExtra } from '../lib/data/views';
+  import GradeBadge from './GradeBadge.svelte';
   import Highlighted from './Highlighted.svelte';
 
   let { d, extra, hrefFor }: { d: AyahDetail; extra: AyahExtra; hrefFor: (path: string) => string } = $props();
 
   let tafsirOpen = $state(false);
   let openPhrase = $state<number | null>(null);
+  let allHadith = $state(false);
+  const HADITH_SHOWN = 5;
   const LONG = 420;
   const range = (from: number, to: number) => (from === to ? `${d.surah.n}:${from}` : `${d.surah.n}:${from}–${to}`);
 </script>
@@ -58,6 +62,28 @@
         </li>
       {/each}
     </ul>
+  </section>
+{/if}
+
+{#if extra.hadith.length}
+  <section aria-labelledby="in-hadith-h">
+    <h2 id="in-hadith-h">Hadith that mention this verse <span class="sub">{extra.hadith.length}</span></h2>
+    <ul class="list">
+      {#each allHadith ? extra.hadith : extra.hadith.slice(0, HADITH_SHOWN) as h (`${h.book}/${h.number}`)}
+        <li>
+          <a href={hrefFor(`${h.book}/${h.number}`)}>
+            <span class="ref">{h.short} {h.number} <GradeBadge grade={h.grade} /></span>
+            <span class="en">{h.en}</span>
+          </a>
+        </li>
+      {/each}
+    </ul>
+    {#if extra.hadith.length > HADITH_SHOWN}
+      <button type="button" class="more" aria-expanded={allHadith} onclick={() => (allHadith = !allHadith)}>
+        {allHadith ? 'Show fewer' : `Show all ${extra.hadith.length}`}
+      </button>
+    {/if}
+    <p class="credit">Found where the hadith quotes the verse in Arabic or cites it by number.</p>
   </section>
 {/if}
 

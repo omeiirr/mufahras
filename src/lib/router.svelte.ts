@@ -105,7 +105,7 @@ export function detailFor(path: string): { req: DetailRequest; scrollTo?: number
   if (path === 'surahs') return { req: { kind: 'surahs' } };
   if (path === 'graph' || path.startsWith('graph/')) return { req: { kind: 'graph' } };
   if (path === 'books') return { req: { kind: 'books' } };
-  if (path === 'topics' || path === 'phrases' || path === 'duas' || path === 'sajdah') return { req: { kind: path } };
+  if (path === 'topics' || path === 'phrases' || path === 'duas' || path === 'sajdah' || path === 'in-hadith') return { req: { kind: path } };
   if (path === 'names-of-allah') return { req: { kind: 'names-of-allah' } };
   m = /^topic\/(\d+)$/.exec(path);
   if (m) return { req: { kind: 'topic', id: Number(m[1]) } };

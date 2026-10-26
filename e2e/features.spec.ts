@@ -64,3 +64,18 @@ test('topics open as a tree down to the prophets, and a topic page shows where i
   await expect(page.getByRole('navigation', { name: 'Part of' })).toContainText('Stories›Prophets (25 mentioned by name)');
   await expect(page.getByRole('list', { name: 'Subtopics of Moses' })).toContainText('parting of the Red Sea');
 });
+
+test('hadith that mention a verse, the verses in a hadith, and the list of all of them', async ({ page }) => {
+  await openApp(page, '#/2:255');
+  const section = page.getByRole('region', { name: /Hadith that mention this verse/ });
+  await expect(section.getByRole('link', { name: /Bukhari 3275/ })).toBeVisible();
+  await openApp(page, '#/bukhari/4971');
+  const verses = page.getByRole('navigation', { name: 'Verses in this hadith' });
+  await verses.getByRole('link', { name: '111:1' }).click();
+  await expect(page.getByRole('heading', { name: '111:1', level: 1 })).toBeVisible();
+  await openApp(page, '#/in-hadith');
+  await expect(page.getByRole('heading', { name: 'Verses in the hadith', level: 1 })).toBeVisible();
+  await page.getByRole('radio', { name: 'Most mentioned' }).click();
+  await expect(page.locator('.count').first()).toContainText(/In \d+ hadith/);
+  await expect(page.getByRole('link', { name: /^112:1/ }).first()).toBeVisible();
+});

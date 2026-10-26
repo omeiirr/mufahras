@@ -95,7 +95,7 @@
     if (detail.kind === 'graph') return 'Similar verses';
     if (detail.kind === 'books') return 'Hadith collections';
     if (detail.kind === 'words' || detail.kind === 'mushaf') return '';
-    if (detail.kind === 'ayah-list') return detail.list === 'duas' ? 'Duas of the Quran' : 'Sajdah verses';
+    if (detail.kind === 'ayah-list') return { duas: 'Duas of the Quran', sajdah: 'Sajdah verses', 'in-hadith': 'Verses in the hadith' }[detail.list];
     if (detail.kind === 'topics') return 'Topics';
     if (detail.kind === 'phrases') return 'Repeated phrases';
     if (detail.kind === 'names-of-allah') return 'The 99 Names of Allah';

@@ -24,6 +24,8 @@ export type DetailRequest =
   | { kind: 'topics' }
   | { kind: 'phrases' }
   | { kind: 'names-of-allah' }
+  /** Every verse that hadith mention, with how many. */
+  | { kind: 'in-hadith' }
   /** The printed mushaf's pages that hold a surah. */
   | { kind: 'mushaf'; surah: number };
 
@@ -45,6 +47,15 @@ export interface AyahDetail extends AyahLine {
   extra?: AyahExtra;
 }
 
+export interface MentioningHadith {
+  book: HadithBookId;
+  short: string;
+  number: number;
+  grade: GradeClass;
+  /** The start of its English. */
+  en: string;
+}
+
 export interface AyahRef {
   surah: number;
   ayah: number;
@@ -60,6 +71,8 @@ export interface AyahExtra {
   similar: (AyahRef & { name: string; ar: string; en: string; ranges: [number, number][] })[];
   /** Mutashabihat: phrases this ayah shares with others; ranges are the phrase in this ayah's Arabic. */
   phrases: { text: string; ranges: [number, number][]; count: number; refs: (AyahRef & { name: string })[] }[];
+  /** Hadith that quote or cite this verse, sahih first. */
+  hadith: MentioningHadith[];
 }
 
 export interface TopicDetail {
@@ -130,6 +143,8 @@ export interface HadithDetail {
   grades: HadithGrade[];
   summary: GradeClass;
   sahihCollection: boolean;
+  /** Verses the hadith quotes or cites, in Quran order. */
+  verses: (AyahRef & { name: string })[];
   prev?: number;
   next?: number;
 }
@@ -159,8 +174,9 @@ export interface WordsDetail {
 
 export interface AyahListDetail {
   kind: 'ayah-list';
-  list: 'duas' | 'sajdah';
-  ayahs: (AyahRef & { name: string; ar: string; en: string })[];
+  list: 'duas' | 'sajdah' | 'in-hadith';
+  /** count: for in-hadith, how many hadith mention the verse. */
+  ayahs: (AyahRef & { name: string; ar: string; en: string; count?: number })[];
 }
 
 export interface TopicsDetail {

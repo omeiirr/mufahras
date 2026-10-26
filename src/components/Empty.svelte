@@ -2,6 +2,7 @@
   // Shown before typing: examples that demonstrate what the search understands.
   import BookOpen from '@lucide/svelte/icons/book-open';
   import Network from '@lucide/svelte/icons/network';
+  import Quote from '@lucide/svelte/icons/quote';
   import type { SearchClient } from '../lib/search/client';
   import { history } from '../lib/store/history.svelte';
   import { settings } from '../lib/store/settings.svelte';
@@ -21,11 +22,13 @@
     ['patience prayer', 'words, in any order'],
     ['patiance', 'typos are fine'],
     ['ayatul kursi', 'well-known names'],
-    ['baqarah 255', 'verses by surah name or 2:255'],
+    ['baqarah 255', 'a verse and its hadith'],
+    ['surah mulk', 'a surah, or its mushaf pages'],
     ['bukhari 1', 'hadith numbers'],
     ['qul huwa allahu ahad', 'transliteration'],
     ['الحمد لله رب العالمين', 'Arabic, no diacritics needed'],
     ['fasting', 'topics and hadith chapters'],
+    ['prophets', 'topics within topics'],
     ['Allah does not burden a soul beyond its capacity', 'a quote, worded differently'],
   ];
   // Search by meaning (beta): last, since it needs switching on and a download the first time.
@@ -57,7 +60,7 @@
     {/each}
   </ul>
   <p class="tips">
-    Tap any Arabic word in a verse for its meaning. The <strong>☰ menu</strong> has bookmarks, themes, text size and Sakinah mode.
+    Tap any Arabic word in a verse for its meaning. Read a surah with its translation, as Arabic only, or on mushaf pages. The <strong>☰ menu</strong> has bookmarks, themes, text size and Sakinah mode.
   </p>
   {:else}
     <button type="button" class="show-ex" onclick={() => (showExamples = true)}>Show examples</button>
@@ -100,7 +103,7 @@
     {/each}
   </ul>
   <p class="tips">
-    Tap any Arabic word in a verse for its meaning. The <strong>☰ menu</strong> has bookmarks, themes, text size and Sakinah mode.
+    Tap any Arabic word in a verse for its meaning. Read a surah with its translation, as Arabic only, or on mushaf pages. The <strong>☰ menu</strong> has bookmarks, themes, text size and Sakinah mode.
   </p>
   {:else}
     <button type="button" class="show-ex" onclick={() => (showExamples = true)}>Show examples</button>
@@ -108,7 +111,8 @@
   {/if}
   <div class="ctas">
     <button type="button" class="browse" onclick={onbrowse}><BookOpen size={18} aria-hidden="true" /> Browse surahs</button>
-    {#if !settings.sakinah}<a class="graph" href={hrefFor('graph')}><Network size={18} aria-hidden="true" /> Similar verses graph</a>{/if}
+    <a class="cta" href={hrefFor('in-hadith')}><Quote size={18} aria-hidden="true" /> Verses in the hadith</a>
+    {#if !settings.sakinah}<a class="cta" href={hrefFor('graph')}><Network size={18} aria-hidden="true" /> Similar verses graph</a>{/if}
   </div>
   {#if !settings.sakinah}<OfflinePanel {client} {ready} />{/if}
 </section>
@@ -240,7 +244,7 @@
     flex-wrap: wrap;
     gap: var(--space-2);
   }
-  .graph {
+  .cta {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);

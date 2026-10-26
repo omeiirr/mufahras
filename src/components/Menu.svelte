@@ -9,6 +9,7 @@
   import Info from '@lucide/svelte/icons/info';
   import MessageSquare from '@lucide/svelte/icons/message-square';
   import Network from '@lucide/svelte/icons/network';
+  import Quote from '@lucide/svelte/icons/quote';
   import Repeat from '@lucide/svelte/icons/repeat';
   import Sparkles from '@lucide/svelte/icons/sparkles';
   import Star from '@lucide/svelte/icons/star';
@@ -135,6 +136,7 @@
       <li><button type="button" onclick={() => go('names')}><Sparkles size={18} aria-hidden="true" /> Well-known names</button></li>
       <li><button type="button" onclick={() => go('duas')}><Hand size={18} aria-hidden="true" /> Duas of the Quran</button></li>
       <li><button type="button" onclick={() => go('sajdah')}><ArrowDownToLine size={18} aria-hidden="true" /> Sajdah verses</button></li>
+      <li><button type="button" onclick={() => go('in-hadith')}><Quote size={18} aria-hidden="true" /> Verses in the hadith</button></li>
       {#if !settings.sakinah}
         <li><button type="button" onclick={() => go('topics')}><Tag size={18} aria-hidden="true" /> Topics</button></li>
         <li><button type="button" onclick={() => go('phrases')}><Repeat size={18} aria-hidden="true" /> Repeated phrases</button></li>

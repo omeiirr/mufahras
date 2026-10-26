@@ -22,6 +22,7 @@ import {
   type WordsChunk,
   type NamesOfAllahChunk,
   type MushafChunk,
+  type MentionsChunk,
 } from '../data/types';
 import { DATA_CACHE, fetchManifest } from '../data/fetch';
 import { SearchEngine } from './engine';
@@ -114,6 +115,7 @@ async function load(name: string): Promise<void> {
   else if (name === 'words') engine.addWords(data as WordsChunk);
   else if (name === 'names-of-allah') engine.addNamesOfAllah(data as NamesOfAllahChunk);
   else if (name === 'mushaf') engine.addMushaf(data as MushafChunk);
+  else if (name === 'mentions') engine.addMentions(data as MentionsChunk);
   else if (arBook) engine.addHadithArabic(arBook, data as HadithArabicChunk);
   else engine.addHadith(data as HadithChunk);
 
@@ -131,8 +133,8 @@ function runSearch(req: Extract<WorkerRequest, { type: 'search' }>): void {
 
 // ---- offline storage
 
-/** Verse-screen extras: tafsir, themes, topics, similar ayahs, mutashabihat. */
-const EXTRA_CHUNKS = ['tafsir', 'themes', 'topics', 'similar', 'mutashabihat', 'graph'];
+/** Verse-screen extras: tafsir, themes, topics, similar ayahs, mutashabihat, the hadith that mention it. */
+const EXTRA_CHUNKS = ['tafsir', 'themes', 'topics', 'similar', 'mutashabihat', 'graph', 'mentions'];
 
 /** Chunks needed for everything the app does today; Arabic hadith included. */
 const OFFLINE_CHUNKS = ['quran', 'translit', 'words', 'names-of-allah', 'mushaf', ...EXTRA_CHUNKS, ...HADITH_BOOKS.map((b) => `hadith-${b}`), ...HADITH_BOOKS.map((b) => `hadith-${b}-ar`)];
@@ -213,10 +215,12 @@ async function detail(req: DetailRequest): Promise<Detail | null> {
   if (req.kind === 'topics') await ensure('topics');
   if (req.kind === 'names-of-allah') await ensure('names-of-allah');
   if (req.kind === 'mushaf') await ensure('mushaf');
+  if (req.kind === 'hadith' || req.kind === 'in-hadith') await ensure('mentions');
   if (req.kind === 'phrases') await ensure('mutashabihat');
   if (req.kind === 'hadith-daily') await Promise.all([ensure('hadith-bukhari'), ensure('hadith-muslim')]);
   if (req.kind === 'books') await Promise.all(HADITH_BOOKS.map((b) => ensure(`hadith-${b}`)));
-  if (req.kind === 'ayah' && req.extra) await Promise.all(EXTRA_CHUNKS.map(ensure));
+  // The hadith that mention the verse are listed from the books' English.
+  if (req.kind === 'ayah' && req.extra) await Promise.all([...EXTRA_CHUNKS, ...HADITH_BOOKS.map((b) => `hadith-${b}`)].map(ensure));
   return engine.detail(req);
 }
 

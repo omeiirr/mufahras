@@ -21,6 +21,7 @@ import type {
   HadithChunk,
   HadithRow,
   Manifest,
+  MentionsChunk,
   MushafChunk,
   MutashabihatChunk,
   Phrase,
@@ -33,7 +34,7 @@ import type {
   Topic,
   TranslitChunk,
 } from '../src/lib/data/types.ts';
-import { superscript } from '../src/lib/text/normalize.ts';
+import { normalizeArabic, superscript } from '../src/lib/text/normalize.ts';
 import { HADITH_API_COMMIT } from './sources.ts';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -636,6 +637,77 @@ if (unclassifiedGrades.size)
       .join(', ')}`,
   );
 
+// ---------------------------------------------------------------- verses mentioned in hadith
+
+// A hadith mentions a verse when its Arabic quotes the verse (hadith quote the Quran word for word), or its
+// English cites it by number. Quoting means holding at least 80% of the verse's words (all of a verse of up
+// to 6 words), or 10 of its words in a row (part of a long verse). Shorter thresholds let phrases that are
+// also dhikr in (verses ending وهو على كل شيء قدير then match dozens of hadith); verses under 4 words
+// ("الم") can't be told apart and need a citation.
+const GRAM = 4;
+const verseGrams = new Map<string, [number, number][]>();
+const verseLength: number[] = [];
+ar.forEach((a, i) => {
+  const readings = [normalizeArabic(a).split(' '), normalizeArabic(a, true).split(' ')];
+  verseLength[i] = readings[0]!.length;
+  for (const w of readings)
+    for (let k = 0; k + GRAM <= w.length; k++) {
+      const g = w.slice(k, k + GRAM).join(' ');
+      let list = verseGrams.get(g);
+      if (!list) verseGrams.set(g, (list = []));
+      list.push([i, k]);
+    }
+});
+const longestRun = (positions: Set<number>) => {
+  let best = 0;
+  for (const p of positions) {
+    if (positions.has(p - 1)) continue;
+    let n = 1;
+    while (positions.has(p + n)) n++;
+    best = Math.max(best, n);
+  }
+  return best;
+};
+function quotedVerses(arabic: string): number[] {
+  const w = normalizeArabic(arabic).split(' ');
+  const covered = new Map<number, Set<number>>();
+  for (let k = 0; k + GRAM <= w.length; k++)
+    for (const [i, p] of verseGrams.get(w.slice(k, k + GRAM).join(' ')) ?? []) {
+      let set = covered.get(i);
+      if (!set) covered.set(i, (set = new Set()));
+      for (let j = 0; j < GRAM; j++) set.add(p + j);
+    }
+  return [...covered].filter(([i, s]) => (verseLength[i]! <= 6 ? s.size >= verseLength[i]! : s.size / verseLength[i]! >= 0.8) || longestRun(s) >= 10).map(([i]) => i);
+}
+/** (75.16) (3:64) [3:190] (2:159-160) (V 3:92) (14:24 & 25) (96.1, 96.2) (Surat Najm 53:13); not (i.e. 2.5%) or (Hadith No. 6.556). */
+function citedVerses(english: string): number[] {
+  const out: number[] = [];
+  for (const [, inner] of english.matchAll(/[(\[]([^()\[\]]{0,40})[)\]]/g)) {
+    if (/%|hadith|no\./i.test(inner!)) continue;
+    for (const c of inner!.matchAll(/\b(\d{1,3})\s*[:.]\s*(\d{1,3})(?:\s*[-–]\s*(\d{1,3}))?((?:\s*[&,]\s*\d{1,3}(?![:.\d]))*)/g)) {
+      const s = surahs[Number(c[1]) - 1];
+      const [from, to] = [Number(c[2]), Number(c[3] ?? c[2])];
+      const extra = [...(c[4] ?? '').matchAll(/\d+/g)].map((x) => Number(x[0]));
+      const ayahs = [...Array.from({ length: Math.max(0, Math.min(to, from + 40) - from + 1) }, (_, k) => from + k), ...extra];
+      if (s) for (const a of ayahs) if (a >= 1 && a <= s.count) out.push(s.start + a - 1);
+    }
+  }
+  return out;
+}
+const mentions: MentionsChunk = { byAyah: {} };
+let mentionPairs = 0;
+const mentioning = new Set<string>();
+for (const [c, arabic] of hadithChunks)
+  c.hadiths.forEach(([number, , english], row) => {
+    for (const i of new Set([...quotedVerses(arabic[row] ?? ''), ...citedVerses(english)])) {
+      (mentions.byAyah[i] ??= []).push([c.id, number]);
+      mentionPairs++;
+      mentioning.add(`${c.id}/${number}`);
+    }
+  });
+check(mentioning.size > 1000, `mentions: only ${mentioning.size} hadith mention a verse, expected over 1,000`);
+notes.push(`mentions: ${mentioning.size} hadith mention ${Object.keys(mentions.byAyah).length} verses (${mentionPairs} pairs)`);
+
 // ---------------------------------------------------------------- write
 
 if (errors.length) {
@@ -666,6 +738,7 @@ emit('graph', graph, graph.edges.length);
 emit('words', wordsChunk, wordsChunk.translit.reduce((n, w) => n + w.length, 0));
 emit('names-of-allah', namesOfAllah, namesOfAllah.length);
 emit('mushaf', mushaf, mushaf.pages.length);
+emit('mentions', mentions, mentionPairs);
 for (const [c, arabic] of hadithChunks) {
   emit(`hadith-${c.id}`, c, c.hadiths.length);
   emit(`hadith-${c.id}-ar`, arabic, arabic.length);
