@@ -28,6 +28,7 @@
   import { setTheme, theme, THEMES, type ThemeChoice } from '../lib/theme.svelte';
   import OfflinePanel from './OfflinePanel.svelte';
   import { radiogroup, trapFocus } from '../lib/ui/focus';
+  import { isTyping } from '../lib/ui/keys';
 
   let {
     onclose,
@@ -82,7 +83,13 @@
   };
 </script>
 
-<svelte:window onkeydown={(e) => e.key === 'Escape' && onclose()} />
+<!-- Esc closes it, and so does m, the key that opened it. -->
+<svelte:window
+  onkeydown={(e) => {
+    const m = e.key.toLowerCase() === 'm' && !e.ctrlKey && !e.metaKey && !e.altKey && !isTyping(e.target);
+    if (e.key === 'Escape' || m) onclose();
+  }}
+/>
 
 <div class="scrim" onclick={onclose} transition:fade={{ duration: reducedMotion ? 0 : 150 }} aria-hidden="true"></div>
 <!-- The drawer opens from the side its ☰ button is on: right on phones, left on desktop. -->

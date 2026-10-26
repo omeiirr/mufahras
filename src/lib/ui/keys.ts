@@ -44,8 +44,12 @@ export function addShortcuts(name: string, level: Level, list: () => Shortcut[])
 const ordered = () => layers.map((l, k) => [l, k] as const).sort((a, b) => b[0].level - a[0].level || b[1] - a[1]).map(([l]) => l);
 
 const keyOf = (e: KeyboardEvent) => (e.key.length === 1 ? e.key.toLowerCase() : e.key);
-const isTyping = (t: EventTarget | null) =>
-  t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement || (t instanceof HTMLElement && t.isContentEditable);
+/** In a field that takes letters (a checkbox or a button doesn't). */
+export const isTyping = (t: EventTarget | null) =>
+  (t instanceof HTMLInputElement && !['checkbox', 'radio', 'button', 'submit', 'range', 'file'].includes(t.type)) ||
+  t instanceof HTMLTextAreaElement ||
+  t instanceof HTMLSelectElement ||
+  (t instanceof HTMLElement && t.isContentEditable);
 
 export function handleShortcut(e: KeyboardEvent): void {
   // A control that used the key itself (a radio group's arrows, the topic tree) has prevented it.

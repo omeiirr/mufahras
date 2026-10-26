@@ -184,9 +184,10 @@
       if (!wide) input?.blur();
       if (hit.path !== route.path) open(hit);
       focusDetail();
-    } else if (e.key === 'Escape' && query) {
+    } else if (e.key === 'Escape') {
+      // Leaves the box, keeping the search; the letter keys then work (the ✕ button clears it).
       e.preventDefault();
-      query = '';
+      input?.blur();
     }
   }
 
@@ -211,7 +212,7 @@
       { keys: ['/'], label: 'Search', when: () => !graphRoute, run: focusSearch },
       { keys: ['k'], ctrl: true, typing: true, when: () => !graphRoute, run: focusSearch },
       { keys: ['?'], label: 'These shortcuts', run: openKeys },
-      { keys: ['m'], label: 'Menu', run: openMenu },
+      { keys: ['m'], label: 'Menu, open or close', run: openMenu },
       { keys: ['a'], label: 'Search all', when: () => !graphRoute, run: () => onFilter({ corpus: 'all' }) },
       { keys: ['q'], label: 'Search the Quran only', when: () => !graphRoute, run: () => onFilter({ corpus: 'quran' }) },
       { keys: ['h'], label: 'Search the hadith only', when: () => !graphRoute, run: () => onFilter({ corpus: 'hadith' }) },

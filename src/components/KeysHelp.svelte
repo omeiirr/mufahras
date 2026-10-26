@@ -14,7 +14,7 @@
     keys: [
       { key: '↑ ↓', label: 'Choose a result' },
       { key: 'Enter', label: 'Open it, and move to it' },
-      { key: 'Esc', label: 'Clear the search' },
+      { key: 'Esc', label: 'Leave the search box' },
     ],
   };
   const shown = anywhere < 0 ? [...groups, searchBox] : [...groups.slice(0, anywhere), searchBox, ...groups.slice(anywhere)];

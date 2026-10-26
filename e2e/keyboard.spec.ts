@@ -80,11 +80,16 @@ test('filters by key: q, h, a and s', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Sahih hadith only' })).toHaveAttribute('aria-pressed', 'true');
   await page.keyboard.press('a');
   await expect(page.getByRole('radio', { name: 'All' })).toHaveAttribute('aria-checked', 'true');
-  // Typing in the search box types, it doesn't filter.
+  // Typing in the search box types, it doesn't filter; Esc leaves the box, keeping the search.
   await search(page).focus();
   await page.keyboard.type(' q');
   await expect(search(page)).toHaveValue('patience q');
   await expect(page.getByRole('radio', { name: 'All' })).toHaveAttribute('aria-checked', 'true');
+  await page.keyboard.press('Escape');
+  await expect(search(page)).not.toBeFocused();
+  await expect(search(page)).toHaveValue('patience q');
+  await page.keyboard.press('q');
+  await expect(page.getByRole('radio', { name: 'Quran' })).toHaveAttribute('aria-checked', 'true');
 });
 
 test('j and k step through the verses of a surah', async ({ page }) => {
@@ -144,4 +149,9 @@ test('the menu keeps Tab inside it, and gives focus back when it closes', async 
   await page.keyboard.press('Escape');
   await expect(page.locator('nav.drawer')).toHaveCount(0);
   await expect(page.locator('.detail .scroll')).toBeFocused();
+  // m opens it and m closes it, also from a switch inside it.
+  await page.keyboard.press('m');
+  await page.getByRole('checkbox', { name: /Sakinah mode/ }).focus();
+  await page.keyboard.press('m');
+  await expect(page.locator('nav.drawer')).toHaveCount(0);
 });
