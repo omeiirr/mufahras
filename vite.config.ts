@@ -42,9 +42,11 @@ export default defineConfig({
         // og.png: link-preview card, only fetched by link scrapers. Search by meaning's code (~110 KB) is
         // precached so it starts offline; its model, runtime .wasm and vectors (not matched here) are
         // downloaded only when it's switched on, into its own cache (src/lib/meaning/meaning-worker.ts).
-        globIgnores: ['og.png'],
+        // The landing page (welcome/) is a plain web page: not part of the offline app.
+        globIgnores: ['og.png', 'welcome/**', 'assets/welcome-*'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/\/welcome\//],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
@@ -61,7 +63,19 @@ export default defineConfig({
         ],
       },
     }),
+    // The PWA plugin adds the manifest and service worker to every page; the landing page is not the app.
+    {
+      name: 'welcome-not-pwa',
+      enforce: 'post',
+      transformIndexHtml: {
+        order: 'post',
+        handler: (html, ctx) =>
+          ctx.path.startsWith('/welcome/') ? html.replace(/<link rel="manifest"[^>]*>|<script id="vite-plugin-pwa:register-sw"[^>]*><\/script>/g, '') : html,
+      },
+    },
   ],
+  // Two pages: the app, and the landing page at welcome/.
+  build: { rollupOptions: { input: { main: 'index.html', welcome: 'welcome/index.html' } } },
   // Workers as ES modules: the meaning worker loads its runtime with a dynamic import.
   worker: { format: 'es' },
   test: {

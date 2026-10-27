@@ -19,7 +19,8 @@
     "data:fetch": "tsx scripts/fetch-hadith.ts && tsx scripts/fetch-model.ts",
     "data": "NODE_OPTIONS=--disable-warning=ExperimentalWarning tsx scripts/build-data.ts && NODE_OPTIONS=--disable-warning=ExperimentalWarning tsx scripts/build-meaning.ts",
     "e2e": "playwright test",
-    "wasm": "tsx scripts/build-wasm.ts"
+    "wasm": "tsx scripts/build-wasm.ts",
+    "welcome:shots": "NODE_OPTIONS=--disable-warning=ExperimentalWarning tsx scripts/welcome-shots.ts"
   },
   "dependencies": {
     "@fontsource-variable/noto-naskh-arabic": "^5.3.0",

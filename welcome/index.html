@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#17493c" />
+    <script>
+      // The app's saved theme (same site, same storage), or the system's light or dark.
+      (function () {
+        var t = 'auto';
+        try {
+          t = localStorage.getItem('theme') || 'auto';
+        } catch (e) {}
+        if (['paper', 'sepia', 'dusk', 'night'].indexOf(t) < 0) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'paper';
+        document.documentElement.dataset.theme = t;
+      })();
+    </script>
+    <title>Mufahras · Find any verse or hadith as you type</title>
+    <meta name="description" content="Type a few words you remember, misspelled, in Arabic or transliteration, and Mufahras finds the verse of the Quran or the hadith. Free, private, and it works offline." />
+    <link rel="icon" type="image/png" href="/icons/favicon-48.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Mufahras" />
+    <meta property="og:title" content="Mufahras · Find any verse or hadith as you type" />
+    <meta property="og:description" content="The Quran and the six major hadith collections, searchable as you type: misspelled, in Arabic or transliteration. Free, private, works offline." />
+    <meta property="og:url" content="https://omeiirr.github.io/mufahras/welcome/" />
+    <meta property="og:image" content="https://omeiirr.github.io/mufahras/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="module" src="./welcome.ts"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="band hero">
+      <nav class="top wrap" aria-label="Site">
+        <a class="brand" href="./"><img src="/icons/icon-192.png" alt="" width="36" height="36" /> Mufahras</a>
+        <a class="top-link" href="https://github.com/omeiirr/mufahras">GitHub</a>
+        <a class="top-link strong" href="../">Open the app</a>
+      </nav>
+      <div class="wrap hero-grid">
+        <div class="hero-text">
+          <p class="name-ar" lang="ar" dir="rtl">مُفَهْرَس</p>
+          <h1>Find any verse or hadith as you type.</h1>
+          <p class="lede">
+            Type the few words you remember, misspelled, in Arabic or in transliteration. Mufahras finds the verse of the Quran or the
+            hadith before you've finished typing.
+          </p>
+          <div class="ctas">
+            <a class="btn gold" href="../">Open Mufahras</a>
+            <button type="button" class="btn ghost" data-demo>
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg> See demo
+            </button>
+          </div>
+          <p class="fine">Free · No accounts · Works offline · The Quran and the six major hadith collections</p>
+        </div>
+
+        <!-- A search that types itself; the results are what the app returns for each query. -->
+        <div class="mock" aria-label="Example searches">
+          <div class="mock-bar">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2" /><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+            <span class="mock-q" dir="auto">patiance prayer</span><span class="caret" aria-hidden="true"></span>
+          </div>
+          <p class="mock-note">Misspelled</p>
+          <ol class="mock-hits" aria-live="polite">
+            <li>
+              <p class="ref"><b>2:153</b> Al-Baqarah</p>
+              <p>O you who have believed, seek help through <mark>patience</mark> and <mark>prayer</mark>. Indeed, Allāh is with the patient.</p>
+            </li>
+            <li>
+              <p class="ref"><b>2:45</b> Al-Baqarah</p>
+              <p>And seek help through <mark>patience</mark> and <mark>prayer</mark>; and indeed, it is difficult except for the humbly submissive [to Allāh]</p>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="band paper" aria-labelledby="name-h">
+        <div class="wrap split">
+          <p class="big-ar" lang="ar" dir="rtl" aria-hidden="true">مُفَهْرَس</p>
+          <div>
+            <p class="eyebrow">The name</p>
+            <h2 id="name-h">Mufahras means <em>indexed</em></h2>
+            <p>
+              For generations, the way to find a verse from a word you remembered was <em>al-Muʿjam al-Mufahras li-Alfāẓ al-Qurʾān
+              al-Karīm</em>, the concordance compiled by Muḥammad Fuʾād ʿAbd al-Bāqī, which lists every word of the Quran with the verses
+              it appears in. Its sister work did the same for hadith.
+            </p>
+            <p>Mufahras carries that tradition into your pocket: an index of the Quran and the Sunnah that answers as you type.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="band tint" aria-labelledby="search-h">
+        <div class="wrap">
+          <figure class="ayah">
+            <p class="ar" lang="ar" dir="rtl">وَلَقَدْ يَسَّرْنَا ٱلْقُرْءَانَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍۢ</p>
+            <figcaption>“And We have certainly made the Qur’ān easy for remembrance, so is there any who will remember?” <cite>Quran 54:17</cite></figcaption>
+          </figure>
+          <div class="split media-right">
+            <div>
+              <p class="eyebrow">Search</p>
+              <h2 id="search-h">A few words you remember are enough</h2>
+              <p>Words in any order, half-remembered, with mistakes. Mufahras reads the Arabic, the English and the transliteration of every verse, and the English and Arabic of every hadith.</p>
+              <ul class="tiles">
+                <li><h3>Typos are fine</h3><p><a href="../#/?q=patiance">patiance</a> finds patience.</p></li>
+                <li><h3>So are abbreviations</h3><p><a href="../#/?q=ptnc%20pryr">ptnc pryr</a>, like a code editor's search.</p></li>
+                <li><h3>Arabic</h3><p><a href="../#/?q=%D8%A7%D9%84%D8%AD%D9%85%D8%AF%20%D9%84%D9%84%D9%87" lang="ar" dir="rtl">الحمد لله</a>, with or without diacritics.</p></li>
+                <li><h3>Transliteration</h3><p><a href="../#/?q=qul%20huwa%20allahu%20ahad">qul huwa allahu ahad</a></p></li>
+                <li><h3>References and names</h3><p><a href="../#/?q=baqarah%20255">baqarah 255</a>, <a href="../#/?q=ayatul%20kursi">ayatul kursi</a>, <a href="../#/?q=bukhari%201">bukhari 1</a></p></li>
+                <li><h3>A whole passage</h3><p>Paste a quote of any length, in any translation, to find where it comes from.</p></li>
+              </ul>
+            </div>
+            <div class="phone"><img src="./shots/search.webp" alt="Results for the misspelled search “patiance prayer”: 2:153 and 2:45, with the words highlighted" width="390" height="800" loading="lazy" /></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band paper" aria-labelledby="meaning-h">
+        <div class="wrap split">
+          <div>
+            <p class="eyebrow">Search by meaning <span class="pill">beta</span></p>
+            <h2 id="meaning-h">Or describe what you're looking for</h2>
+            <p>
+              The verse you're thinking of may not use the word you remember. Switch on Search by meaning and Mufahras also shows the texts
+              closest in meaning to what you typed: “dealing with anxiety” finds <em>with hardship will be ease</em>, though it never uses the word.
+            </p>
+            <p class="small">English only. It runs on your device, after a one-time download of about 40&nbsp;MB, and then works offline too. It only finds the texts; it never writes or summarizes anything.</p>
+          </div>
+          <div class="mock meaning">
+            <div class="mock-bar">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2" /><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+              <span>dealing with anxiety</span>
+            </div>
+            <p class="mock-note">By meaning</p>
+            <ol class="mock-hits">
+              <li>
+                <p class="ref"><b>94:6</b> Ash-Sharh</p>
+                <p class="ar" lang="ar" dir="rtl">إِنَّ مَعَ ٱلْعُسْرِ يُسْرًۭا</p>
+                <p>Indeed, with hardship [will be] ease.</p>
+              </li>
+              <li>
+                <p class="ref"><b>Bukhari 6369</b> Invocations</p>
+                <p>The Prophet (ﷺ) used to say, “O Allah! I seek refuge with You from worry and grief, from incapacity and laziness…”</p>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <section class="band tint" aria-labelledby="read-h">
+        <div class="wrap">
+          <figure class="ayah">
+            <p class="ar" lang="ar" dir="rtl">أَوْ زِدْ عَلَيْهِ وَرَتِّلِ ٱلْقُرْءَانَ تَرْتِيلًا</p>
+            <figcaption>“…and recite the Qur’ān with measured recitation.” <cite>Quran 73:4</cite></figcaption>
+          </figure>
+          <p class="eyebrow center">Reading</p>
+          <h2 id="read-h" class="center">Every verse, opened up</h2>
+          <p class="center measure">Open a result and it's all there: the verse with its neighbours, and everything that helps you understand it.</p>
+          <div class="phones">
+            <figure><div class="phone"><img src="./shots/verse.webp" alt="94:6 with the word مَعَ opened word by word: ma'a, with" width="390" height="800" loading="lazy" /></div><figcaption><b>Word by word.</b> Tap any Arabic word for its meaning and transliteration, and step through the verse.</figcaption></figure>
+            <figure><div class="phone"><img src="./shots/verse-hadith.webp" alt="The hadith that mention 112:1: 86 of them, sahih first" width="390" height="800" loading="lazy" /></div><figcaption><b>The hadith that mention it.</b> Where a hadith quotes the verse in Arabic or cites it by number.</figcaption></figure>
+            <figure><div class="phone"><img src="./shots/mushaf.webp" alt="Surah Al-Mulk on page 562 of the Madani mushaf" width="390" height="800" loading="lazy" /></div><figcaption><b>On mushaf pages.</b> Read a surah with its translation, as Arabic alone, or line for line as in the Madani print.</figcaption></figure>
+          </div>
+          <ul class="checks">
+            <li>The explanation from Al-Mukhtasar, and the theme of the passage</li>
+            <li>Its topics, and similar verses with the shared words marked</li>
+            <li>Phrases it shares with other verses (mutashabihat)</li>
+            <li>Every hadith with its book, chapter, Arabic and each scholar's grading</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="band paper" aria-labelledby="browse-h">
+        <div class="wrap">
+          <figure class="ayah">
+            <p class="ar" lang="ar" dir="rtl">أَفَلَا يَتَدَبَّرُونَ ٱلْقُرْءَانَ أَمْ عَلَىٰ قُلُوبٍ أَقْفَالُهَآ</p>
+            <figcaption>“Then do they not reflect upon the Qur’ān, or are there locks upon [their] hearts?” <cite>Quran 47:24</cite></figcaption>
+          </figure>
+          <p class="eyebrow center">Browsing</p>
+          <h2 id="browse-h" class="center">Room to wander</h2>
+          <ul class="gallery">
+            <li><a href="../#/topics"><div class="phone"><img src="./shots/topics.webp" alt="The topics as a tree: Stories, Prophets (25 mentioned by name), Aaron, Abraham, Adam…" width="390" height="800" loading="lazy" /></div><h3>Topics</h3><p>As a tree you can open: Stories › Prophets › Moses.</p></a></li>
+            <li><a href="../#/names-of-allah"><div class="phone"><img src="./shots/names.webp" alt="The 99 Names of Allah, beginning with Ar-Rahman" width="390" height="800" loading="lazy" /></div><h3>The 99 Names of Allah</h3><p>With their meanings and the verses they come from.</p></a></li>
+            <li><a href="../#/in-hadith"><div class="phone"><img src="./shots/in-hadith.webp" alt="Verses in the hadith, most mentioned first: 112:1 in 86 hadith, 87:1 in 59" width="390" height="800" loading="lazy" /></div><h3>Verses in the hadith</h3><p>Every verse the six collections quote, most mentioned first.</p></a></li>
+            <li><a href="../#/graph"><div class="phone"><img src="./shots/graph.webp" alt="A graph of similar verses: 1,644 dots joined where verses share wording" width="390" height="800" loading="lazy" /></div><h3>Similar verses</h3><p>A graph of the verses that share wording, to explore.</p></a></li>
+          </ul>
+          <p class="center small">Also: all 114 surahs, the six hadith collections chapter by chapter, the duas of the Quran, the sajdah verses, repeated phrases and well-known names.</p>
+        </div>
+      </section>
+
+      <section class="band dark" aria-labelledby="private-h">
+        <div class="wrap">
+          <p class="eyebrow center">Free, private, offline</p>
+          <h2 id="private-h" class="center">Yours, on your device</h2>
+          <ul class="three">
+            <li>
+              <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+              <h3>Nothing to sign up for</h3>
+              <p>No accounts, no ads, no tracking, no analytics, no cookies. It's free.</p>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+              <h3>Your searches stay with you</h3>
+              <p>They're answered by code on your phone or computer, never sent anywhere. Bookmarks and history live only on your device.</p>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M2 9.5a15 15 0 0 1 20 0M5.5 13a10 10 0 0 1 13 0M9 16.5a5 5 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /><path d="m3 3 18 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+              <h3>Works without a signal</h3>
+              <p>After the first visit it opens and searches offline: on a flight, underground, anywhere. One tap stores the rest.</p>
+            </li>
+          </ul>
+          <div class="install">
+            <h3>Install it like an app</h3>
+            <dl>
+              <div><dt>iPhone</dt><dd><b>Share</b> in Safari, then <b>Add to Home Screen</b></dd></div>
+              <div><dt>Android</dt><dd><b>Install app</b> in Chrome's menu. Then share a quote from any app to Mufahras to find its source.</dd></div>
+              <div><dt>Desktop</dt><dd>The install icon in the address bar</dd></div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section class="band paper" aria-labelledby="desk-h">
+        <div class="wrap">
+          <p class="eyebrow center">On a desktop</p>
+          <h2 id="desk-h" class="center">Side by side, and the keyboard does the rest</h2>
+          <div class="browser"><img src="./shots/desktop.webp" alt="Mufahras on a desktop: the search “ayatul kursi” on the left, 2:255 on the right" width="1280" height="760" loading="lazy" /></div>
+          <ul class="keys">
+            <li><kbd>/</kbd> search</li>
+            <li><kbd>↑</kbd><kbd>↓</kbd> choose</li>
+            <li><kbd>←</kbd><kbd>→</kbd> previous, next</li>
+            <li><kbd>B</kbd> bookmark</li>
+            <li><kbd>W</kbd> word by word</li>
+            <li><kbd>?</kbd> the keys for any screen</li>
+          </ul>
+          <p class="center small">Four colour themes, Paper, Sepia, Dusk and Night, with text and Arabic sizes. And Sakinah mode: one switch for just search and reading.</p>
+        </div>
+      </section>
+
+      <section class="band hero closing" aria-labelledby="close-h">
+        <div class="wrap center">
+          <blockquote>
+            <p>The Prophet (ﷺ) said, “The best among you (Muslims) are those who learn the Qur’an and teach it.”</p>
+            <cite>Sahih al-Bukhari 5027</cite>
+          </blockquote>
+          <h2 id="close-h">Find what you were looking for</h2>
+          <div class="ctas center">
+            <a class="btn gold" href="../">Open Mufahras</a>
+            <a class="btn ghost" href="https://github.com/omeiirr/mufahras">View on GitHub</a>
+          </div>
+          <p class="fine">If it benefits you, please remember us in your duʿāʾ.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="band foot">
+      <div class="wrap foot-grid">
+        <div>
+          <p class="brand"><img src="/icons/icon-192.png" alt="" width="28" height="28" /> Mufahras</p>
+          <p>Code under the <a href="https://github.com/omeiirr/mufahras/blob/main/LICENSE">MIT License</a>. The Quran and hadith data stay under their own terms, set out in <a href="https://github.com/omeiirr/mufahras/blob/main/NOTICE">NOTICE</a>.</p>
+        </div>
+        <div>
+          <h2>Sources</h2>
+          <p>
+            Quran data from the <a href="https://qul.tarteel.ai">Quranic Universal Library</a> by Tarteel, the text prepared by <a href="https://tanzil.net">Tanzil</a>, the
+            translation by Saheeh International. Hadith from <a href="https://github.com/fawazahmed0/hadith-api">fawazahmed0/hadith-api</a>. Not affiliated with or
+            endorsed by any of them.
+          </p>
+        </div>
+        <div>
+          <h2>Links</h2>
+          <ul>
+            <li><a href="../">Open the app</a></li>
+            <li><a href="https://github.com/omeiirr/mufahras">Source code</a></li>
+            <li><a href="https://github.com/omeiirr/mufahras/issues">Report a mistake</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+
+    <dialog class="demo" aria-label="Mufahras demo video">
+      <button type="button" class="demo-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+      </button>
+      <video controls playsinline preload="none" poster="./demo-poster.webp"></video>
+    </dialog>
+  </body>
+</html>

@@ -19,6 +19,7 @@
     find a verse from a word they remembered. Type what you remember, misspelled or out of order, in English, Arabic or
     transliteration, and find its source in the Quran and the six major hadith collections.
   </p>
+  <p><a href="welcome/">A tour of what it can do</a>, with a short demo video.</p>
 
   <h2>Private and offline</h2>
   <p>

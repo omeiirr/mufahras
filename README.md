@@ -6,7 +6,7 @@
 
 **Find any verse of the Quran, or any hadith of the six major collections, as you type.**
 
-[**Open Mufahras →**](https://omeiirr.github.io/mufahras/)
+[**Open Mufahras →**](https://omeiirr.github.io/mufahras/) · [Take the tour](https://omeiirr.github.io/mufahras/welcome/)
 
 </div>
 
@@ -186,7 +186,11 @@ npm run data:fetch   # download the hadith collections and the search-by-meaning
 npm run dev          # http://localhost:5173 (add -- --host to open it from a phone)
 npm test             # search ranking, search-by-meaning evaluation, data integrity and colour contrast
 npm run build        # data + app into dist/
+npm run welcome:shots  # retake the landing page's screenshots from the built app (welcome/shots/)
 ```
+
+The landing page is `welcome/` (plain HTML and CSS, built by Vite as a second page beside the app, and kept out of
+the service worker).
 
 Every push to `main` is built, checked and deployed to GitHub Pages. [docs/TECHNICAL.md](docs/TECHNICAL.md) has
 what we learned building it (normalizing Arabic, making fuzzy search fast, offline pitfalls, typesetting the
